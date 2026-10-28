@@ -1,0 +1,129 @@
+import { z } from 'zod';
+import initial from '../../data/initial.json';
+import balance from '../../data/balance.json';
+import traits from '../../data/traits.json';
+export const traitDefinitions = validate(
+  z.array(z.object({ id: z.string(), name: z.string() })),
+  traits,
+  'data/traits.json',
+);
+export const traitName = (id: string) =>
+  traitDefinitions.find((t) => t.id === id)?.name ?? id;
+const nat = z.number().int().nonnegative();
+const bounded = z.number().min(0).max(100);
+export const resourcesSchema = z.object({
+  stone: z.number().nonnegative(),
+  herb: z.number().nonnegative(),
+  pill: z.number().nonnegative(),
+  reputation: z.number().nonnegative(),
+});
+export const discipleSchema = z.object({
+  id: z.string().min(1),
+  name: z.string().min(2).max(3),
+  gender: z.enum(['男', '女']),
+  ageSeasons: nat,
+  lifespanSeasons: nat,
+  remainingSeasons: nat,
+  stage: z.enum(['少年', '青年', '壮年', '迟暮', '坐化']),
+  root: z.object({
+    grade: z.enum(['天灵根', '双灵根', '三灵根', '杂灵根']),
+    elements: z
+      .array(z.enum(['金', '木', '水', '火', '土']))
+      .min(1)
+      .max(5),
+  }),
+  realm: z.object({
+    major: z.enum(['炼气', '筑基']),
+    layer: z.number().int().min(1).max(3),
+    xp: z.number().nonnegative(),
+  }),
+  traits: z
+    .array(
+      z
+        .string()
+        .refine(
+          (id) => traitDefinitions.some((t) => t.id === id),
+          '未知特质编号',
+        ),
+    )
+    .min(1)
+    .max(2),
+  needs: z.object({ energy: bounded, mood: bounded, drive: bounded }),
+  relations: z.record(
+    z.string(),
+    z.object({
+      value: z.number().min(-100).max(100),
+      tags: z.array(z.string()),
+    }),
+  ),
+  policy: z.enum(['均衡', '专修', '勤工']),
+  state: z.object({
+    behavior: z.enum(['修炼', '做工', '社交', '休息']),
+    location: z.string(),
+    stepsLeft: nat,
+    injuredUntil: nat,
+    awayUntil: nat,
+  }),
+  flags: z.record(z.string(), z.union([z.boolean(), z.number(), z.string()])),
+  look: z.object({
+    body: z.string(),
+    hair: z.string(),
+    trim: z.string(),
+    accessory: z.string(),
+  }),
+});
+export const buildingSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  level: z.number().int().min(1).max(2),
+  x: z.number(),
+  y: z.number(),
+});
+export const initialSchema = z
+  .object({
+    resources: resourcesSchema,
+    disciples: z.array(discipleSchema).min(1),
+    buildings: z.array(buildingSchema),
+  })
+  .superRefine((v, ctx) => {
+    if (new Set(v.disciples.map((d) => d.id)).size !== v.disciples.length)
+      ctx.addIssue({
+        code: 'custom',
+        path: ['disciples'],
+        message: '弟子编号重复',
+      });
+  });
+export const balanceSchema = z.object({
+  capacity: resourcesSchema.omit({ reputation: true }),
+});
+export function validate<T>(
+  schema: z.ZodType<T>,
+  value: unknown,
+  path: string,
+): T {
+  const result = schema.safeParse(value);
+  if (!result.success)
+    throw new Error(
+      `${path}：数据无效；${result.error.issues.map((i) => `${i.path.join('.')} 字段不符合约定（${i.code === 'custom' ? i.message : '请检查类型、范围或必填字段'}）`).join('；')}`,
+    );
+  return result.data;
+}
+export function parseJson(text: string, path: string): unknown {
+  try {
+    return JSON.parse(text);
+  } catch {
+    throw new Error(`${path}：不是有效的 JSON`);
+  }
+}
+export function loadData(
+  raw: unknown = initial,
+  rawBalance: unknown = balance,
+) {
+  return {
+    ...validate(initialSchema, raw, 'data/initial.json'),
+    balance: validate(balanceSchema, rawBalance, 'data/balance.json'),
+  };
+}
+export type GameData = ReturnType<typeof loadData>;
+export type Disciple = z.infer<typeof discipleSchema>;
+export type Resources = z.infer<typeof resourcesSchema>;

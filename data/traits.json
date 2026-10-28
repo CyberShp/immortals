@@ -1,0 +1,12 @@
+[
+  { "id": "T_DILIGENT", "name": "勤勉" },
+  { "id": "T_LAZY", "name": "懒散" },
+  { "id": "T_SWORD", "name": "剑痴" },
+  { "id": "T_HERB", "name": "杏林" },
+  { "id": "T_WINE", "name": "好酒" },
+  { "id": "T_AMOROUS", "name": "多情" },
+  { "id": "T_ALOOF", "name": "孤僻" },
+  { "id": "T_PROUD", "name": "好胜" },
+  { "id": "T_KIND", "name": "温厚" },
+  { "id": "T_LUCKY", "name": "福缘" }
+]

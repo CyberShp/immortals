@@ -1,0 +1,186 @@
+{
+  "resources": { "stone": 80, "herb": 0, "pill": 3, "reputation": 5 },
+  "disciples": [
+    {
+      "id": "d0",
+      "name": "陆青崖",
+      "gender": "男",
+      "ageSeasons": 76,
+      "lifespanSeasons": 400,
+      "remainingSeasons": 324,
+      "stage": "青年",
+      "root": { "grade": "天灵根", "elements": ["火"] },
+      "realm": { "major": "炼气", "layer": 2, "xp": 60 },
+      "traits": ["T_PROUD", "T_SWORD"],
+      "needs": { "energy": 90, "mood": 75, "drive": 55 },
+      "relations": { "d1": { "value": 0, "tags": [] } },
+      "policy": "均衡",
+      "state": {
+        "behavior": "修炼",
+        "location": "空地",
+        "stepsLeft": 0,
+        "injuredUntil": 0,
+        "awayUntil": 0
+      },
+      "flags": {},
+      "look": {
+        "body": "男",
+        "hair": "束发",
+        "trim": "火",
+        "accessory": "T_PROUD"
+      }
+    },
+    {
+      "id": "d1",
+      "name": "沈墨",
+      "gender": "男",
+      "ageSeasons": 96,
+      "lifespanSeasons": 400,
+      "remainingSeasons": 304,
+      "stage": "青年",
+      "root": { "grade": "三灵根", "elements": ["土", "金", "水"] },
+      "realm": { "major": "炼气", "layer": 2, "xp": 20 },
+      "traits": ["T_ALOOF", "T_DILIGENT"],
+      "needs": { "energy": 90, "mood": 75, "drive": 55 },
+      "relations": {
+        "d0": { "value": 0, "tags": [] },
+        "d2": { "value": 5, "tags": [] }
+      },
+      "policy": "均衡",
+      "state": {
+        "behavior": "修炼",
+        "location": "空地",
+        "stepsLeft": 0,
+        "injuredUntil": 0,
+        "awayUntil": 0
+      },
+      "flags": {},
+      "look": {
+        "body": "男",
+        "hair": "束发",
+        "trim": "土",
+        "accessory": "T_ALOOF"
+      }
+    },
+    {
+      "id": "d2",
+      "name": "白芷",
+      "gender": "女",
+      "ageSeasons": 80,
+      "lifespanSeasons": 400,
+      "remainingSeasons": 320,
+      "stage": "青年",
+      "root": { "grade": "双灵根", "elements": ["水", "木"] },
+      "realm": { "major": "炼气", "layer": 1, "xp": 70 },
+      "traits": ["T_AMOROUS", "T_WINE"],
+      "needs": { "energy": 90, "mood": 75, "drive": 55 },
+      "relations": { "d1": { "value": 5, "tags": [] } },
+      "policy": "均衡",
+      "state": {
+        "behavior": "修炼",
+        "location": "空地",
+        "stepsLeft": 0,
+        "injuredUntil": 0,
+        "awayUntil": 0
+      },
+      "flags": {},
+      "look": {
+        "body": "女",
+        "hair": "束发",
+        "trim": "水",
+        "accessory": "T_AMOROUS"
+      }
+    },
+    {
+      "id": "d3",
+      "name": "苏小禾",
+      "gender": "女",
+      "ageSeasons": 60,
+      "lifespanSeasons": 400,
+      "remainingSeasons": 340,
+      "stage": "少年",
+      "root": { "grade": "双灵根", "elements": ["木", "水"] },
+      "realm": { "major": "炼气", "layer": 1, "xp": 30 },
+      "traits": ["T_HERB", "T_KIND"],
+      "needs": { "energy": 90, "mood": 75, "drive": 55 },
+      "relations": { "d5": { "value": 50, "tags": [] } },
+      "policy": "均衡",
+      "state": {
+        "behavior": "修炼",
+        "location": "空地",
+        "stepsLeft": 0,
+        "injuredUntil": 0,
+        "awayUntil": 0
+      },
+      "flags": {},
+      "look": {
+        "body": "女",
+        "hair": "束发",
+        "trim": "木",
+        "accessory": "T_HERB"
+      }
+    },
+    {
+      "id": "d4",
+      "name": "钱多多",
+      "gender": "男",
+      "ageSeasons": 64,
+      "lifespanSeasons": 400,
+      "remainingSeasons": 336,
+      "stage": "青年",
+      "root": { "grade": "杂灵根", "elements": ["土", "金", "水", "火"] },
+      "realm": { "major": "炼气", "layer": 1, "xp": 0 },
+      "traits": ["T_LAZY", "T_LUCKY"],
+      "needs": { "energy": 90, "mood": 75, "drive": 55 },
+      "relations": {},
+      "policy": "均衡",
+      "state": {
+        "behavior": "修炼",
+        "location": "空地",
+        "stepsLeft": 0,
+        "injuredUntil": 0,
+        "awayUntil": 0
+      },
+      "flags": {},
+      "look": {
+        "body": "男",
+        "hair": "束发",
+        "trim": "土",
+        "accessory": "T_LAZY"
+      }
+    },
+    {
+      "id": "d5",
+      "name": "林守拙",
+      "gender": "男",
+      "ageSeasons": 716,
+      "lifespanSeasons": 720,
+      "remainingSeasons": 6,
+      "stage": "迟暮",
+      "root": { "grade": "双灵根", "elements": ["木", "土"] },
+      "realm": { "major": "筑基", "layer": 1, "xp": 0 },
+      "traits": ["T_KIND", "T_WINE"],
+      "needs": { "energy": 90, "mood": 75, "drive": 55 },
+      "relations": { "d3": { "value": 50, "tags": [] } },
+      "policy": "均衡",
+      "state": {
+        "behavior": "修炼",
+        "location": "空地",
+        "stepsLeft": 0,
+        "injuredUntil": 0,
+        "awayUntil": 0
+      },
+      "flags": {},
+      "look": {
+        "body": "男",
+        "hair": "束发",
+        "trim": "木",
+        "accessory": "T_KIND"
+      }
+    }
+  ],
+  "buildings": [
+    { "id": "B_HALL", "name": "主殿", "level": 1, "x": 330, "y": 135 },
+    { "id": "B_DORM", "name": "居舍", "level": 1, "x": 145, "y": 235 }
+  ]
+}

@@ -1,0 +1,7 @@
+node_modules
+dist
+STATUS.md
+artifacts
+package-lock.json
+
+output
