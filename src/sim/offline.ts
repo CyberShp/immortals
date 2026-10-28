@@ -1,6 +1,6 @@
 import { CONFIG as C } from './config';
 import { makeRng, offlineSeed } from './rng';
-import { advance, type World } from './world';
+import { advance, relationTier, type World } from './world';
 export interface OfflineTime {
   elapsedMs: number;
   clamped: 'none' | 'negative' | 'over7d';
@@ -13,6 +13,7 @@ export interface OfflineSummary extends OfflineTime {
   warehouseFull: boolean;
   hints: string[];
   clockRollback: boolean;
+  relations: string[];
 }
 export interface OfflineConfig {
   maxMs: number;
@@ -56,16 +57,30 @@ export function applyOffline(
   if (!Number.isSafeInteger(rounds) || rounds < 0 || rounds > max)
     throw new Error('离线轮数超出允许范围');
   const before = { ...w.resources };
+  const relationsBefore = new Map(
+    w.disciples.flatMap((d) =>
+      Object.entries(d.relations).map(([id, r]) => [
+        `${d.id}:${id}`,
+        relationTier(r.value),
+      ]),
+    ),
+  );
   const summary: OfflineSummary = {
     ...time,
     rounds,
     resources: { stone: 0, herb: 0, pill: 0, reputation: 0 },
     breakthroughs: [],
+    relations: [],
     warehouseFull: false,
     hints: w.events.filter((e) => !e.chain).map((e) => e.hint),
     clockRollback: time.clamped === 'negative',
   };
   if (!rounds) return summary;
+  const overflow = w.events.filter((e) => e.chain).slice(C.offlineQueueLimit);
+  if (overflow.length) {
+    w.flags.deferredEvents = JSON.stringify(overflow);
+    w.events = w.events.filter((e) => !overflow.includes(e));
+  }
   const seed = w.rng.seed;
   w.rng = makeRng(offlineSeed(seed, lastSeen));
   w.rng.seed = seed;
@@ -79,12 +94,20 @@ export function applyOffline(
         summary.breakthroughs.push(t);
         summary.hints.push(t);
       },
+      onHint: (t) => summary.hints.push(t),
       onFull: () => {
         summary.warehouseFull = true;
       },
     });
-  // 连锁节点由 M2 调度器产生，离线最多保留三个决策节点。
-  w.events = w.events.slice(0, C.offlineQueueLimit);
+  for (const d of w.disciples)
+    for (const [id, r] of Object.entries(d.relations)) {
+      const old = relationsBefore.get(`${d.id}:${id}`) ?? '平常';
+      const current = relationTier(r.value);
+      if (d.id < id && old !== current)
+        summary.relations.push(
+          `${d.name}与${w.disciples.find((x) => x.id === id)?.name}：${old}→${current}`,
+        );
+    }
   for (const key of Object.keys(before) as (keyof typeof before)[])
     summary.resources[key] = w.resources[key] - before[key];
   summary.hints = summary.hints.slice(0, C.offlineHintLimit);

@@ -1,1 +1,174 @@
-{ "capacity": { "stone": 400, "herb": 150, "pill": 20 } }
+{
+  "capacity": {
+    "stone": 400,
+    "herb": 150,
+    "pill": 20
+  },
+  "stepMs": 10000,
+  "stepsPerRound": 30,
+  "seasonsPerYear": 4,
+  "autosaveMs": 30000,
+  "needMax": 100,
+  "youthYears": 16,
+  "adultYears": 40,
+  "elderlyRatio": 0.85,
+  "restBelow": 30,
+  "restUntil": 80,
+  "restGain": 6,
+  "moodDecay": 0.4,
+  "driveDecay": 1,
+  "energyCost": {
+    "修炼": 0.5,
+    "做工": 2,
+    "社交": 1,
+    "休息": 0
+  },
+  "socialGain": 4,
+  "meditationDrive": 4,
+  "workScore": 40,
+  "vacancyScore": 10,
+  "vacancies": 2,
+  "policyMultiplier": 1.5,
+  "lowDriveMultiplier": 1.5,
+  "durationMin": 4,
+  "durationRange": 5,
+  "socialDurationMin": 3,
+  "socialDurationRange": 3,
+  "xpPerStep": 5,
+  "lowMoodMultiplier": 0.5,
+  "passiveStone": 1,
+  "workStone": 2,
+  "workHerb": 1.5,
+  "elementalBonus": 1.2,
+  "diligentXp": 1.2,
+  "diligentDecay": 0.7,
+  "lazyYield": 0.8,
+  "xpThreshold": [100, 150, 200],
+  "breakthroughBase": 0.6,
+  "majorBase": 0.5,
+  "proudBonus": 0.1,
+  "goodMood": 70,
+  "moodBonus": 0.1,
+  "chanceCap": 0.95,
+  "majorChanceCap": 0.9,
+  "failureXp": 0.7,
+  "majorFailureXp": 0.5,
+  "failureMood": 20,
+  "majorPills": 3,
+  "lifespan": {
+    "炼气": 400,
+    "筑基": 720
+  },
+  "breakthroughReputation": 3,
+  "majorReputation": 15,
+  "rootXp": {
+    "天灵根": 1.6,
+    "双灵根": 1.2,
+    "三灵根": 1,
+    "杂灵根": 0.7
+  },
+  "rootChance": {
+    "天灵根": 0.15,
+    "双灵根": 0.05,
+    "三灵根": 0,
+    "杂灵根": -0.1
+  },
+  "logLimit": 100,
+  "queueLimit": 5,
+  "offlineQueueLimit": 3,
+  "offlineHintLimit": 10,
+  "offlineAgeRounds": 8,
+  "offlineBreakthroughs": 2,
+  "offline": {
+    "maxMs": 604800000,
+    "roundMs": 300000,
+    "bands": [
+      {
+        "end": 3600000,
+        "rate": 1
+      },
+      {
+        "end": 28800000,
+        "rate": 0.4
+      },
+      {
+        "end": 86400000,
+        "rate": 0.15
+      },
+      {
+        "end": 604800000,
+        "rate": 0.05
+      }
+    ]
+  },
+  "initial": {
+    "stone": 80,
+    "herb": 0,
+    "pill": 3,
+    "reputation": 5
+  },
+  "rootWeights": [5, 25, 45, 25],
+  "rootElements": [1, 2, 3, 4],
+  "elements": {
+    "金": {
+      "color": "#E8DFC0",
+      "adventure": 1.2
+    },
+    "木": {
+      "color": "#5E9A55",
+      "herb": 1.2
+    },
+    "水": {
+      "color": "#4F7FB0",
+      "social": 1.2
+    },
+    "火": {
+      "color": "#C4452F",
+      "alchemy": 0.15
+    },
+    "土": {
+      "color": "#C49A3E",
+      "stone": 1.2,
+      "construction": 0.8
+    }
+  },
+  "relationTiers": [-60, -20, 20, 60],
+  "scheduler": {
+    "interval": 6,
+    "timeout": 30,
+    "daySteps": 15
+  },
+  "autoBuild": [
+    {
+      "id": "B_GARDEN",
+      "round": 0
+    },
+    {
+      "id": "B_MEDIT",
+      "round": 1
+    },
+    {
+      "id": "B_ALCHEMY",
+      "round": 2
+    },
+    {
+      "id": "B_DORM",
+      "round": 3
+    },
+    {
+      "id": "B_HALL",
+      "round": 4
+    }
+  ],
+  "names": ["云知秋", "叶听雨", "顾长风", "宁小满", "楚望舒", "柳归舟"],
+  "jobs": {
+    "constructionPriority": 100,
+    "reservePriority": 10,
+    "stonePriority": 1,
+    "gardenPriority": 2,
+    "woodGardenPriority": 5,
+    "alchemyPriority": 3,
+    "fireAlchemyPriority": 6,
+    "reserveConstruction": true
+  }
+}

@@ -1,12 +1,137 @@
 [
-  { "id": "T_DILIGENT", "name": "勤勉" },
-  { "id": "T_LAZY", "name": "懒散" },
-  { "id": "T_SWORD", "name": "剑痴" },
-  { "id": "T_HERB", "name": "杏林" },
-  { "id": "T_WINE", "name": "好酒" },
-  { "id": "T_AMOROUS", "name": "多情" },
-  { "id": "T_ALOOF", "name": "孤僻" },
-  { "id": "T_PROUD", "name": "好胜" },
-  { "id": "T_KIND", "name": "温厚" },
-  { "id": "T_LUCKY", "name": "福缘" }
+  {
+    "id": "T_DILIGENT",
+    "name": "勤勉",
+    "effects": {
+      "xp": 1.2,
+      "driveDecay": 0.7
+    },
+    "relations": {
+      "T_LAZY": 0.5,
+      "T_DILIGENT": 1.3
+    },
+    "accessory": "腰间书卷",
+    "exclusive": ["T_LAZY"]
+  },
+  {
+    "id": "T_LAZY",
+    "name": "懒散",
+    "effects": {
+      "yield": 0.8,
+      "rest": 1.3
+    },
+    "relations": {
+      "T_DILIGENT": 0.5,
+      "T_WINE": 1.3
+    },
+    "accessory": "蒲扇",
+    "exclusive": ["T_DILIGENT"]
+  },
+  {
+    "id": "T_SWORD",
+    "name": "剑痴",
+    "effects": {
+      "adventureXp": 40,
+      "injury": -0.05
+    },
+    "relations": {
+      "T_SWORD": 1.2,
+      "T_PROUD": 1.2
+    },
+    "accessory": "背负长剑",
+    "exclusive": []
+  },
+  {
+    "id": "T_HERB",
+    "name": "杏林",
+    "effects": {
+      "herb": 1.3,
+      "alchemy": 0.1
+    },
+    "relations": {
+      "*": 1.1
+    },
+    "accessory": "背药篓",
+    "exclusive": []
+  },
+  {
+    "id": "T_WINE",
+    "name": "好酒",
+    "effects": {
+      "socialMood": 1.5,
+      "drunkChance": 0.05,
+      "drunkEnergy": 20
+    },
+    "relations": {
+      "T_WINE": 1.5,
+      "T_ALOOF": 0.8
+    },
+    "accessory": "腰挂酒葫芦",
+    "exclusive": []
+  },
+  {
+    "id": "T_AMOROUS",
+    "name": "多情",
+    "effects": {
+      "romanceWeight": 2,
+      "socialScore": 1.5
+    },
+    "relations": {
+      "*": 1.5,
+      "T_ALOOF": 0.8
+    },
+    "accessory": "桃花簪",
+    "exclusive": ["T_ALOOF"]
+  },
+  {
+    "id": "T_ALOOF",
+    "name": "孤僻",
+    "effects": {
+      "moodDecay": 0.5,
+      "aloneXp": 1.15,
+      "socialScore": 0.5
+    },
+    "relations": {
+      "*": 0.5
+    },
+    "accessory": "斗笠",
+    "exclusive": ["T_AMOROUS"]
+  },
+  {
+    "id": "T_PROUD",
+    "name": "好胜",
+    "effects": {
+      "breakthrough": 0.1,
+      "conflictWeight": 2
+    },
+    "relations": {
+      "T_PROUD": 0.6,
+      "T_ALOOF": 0.6
+    },
+    "accessory": "朱红发带",
+    "exclusive": []
+  },
+  {
+    "id": "T_KIND",
+    "name": "温厚",
+    "effects": {
+      "nearConflictWeight": 0.5
+    },
+    "relations": {
+      "*": 1.3
+    },
+    "accessory": "手串念珠",
+    "exclusive": []
+  },
+  {
+    "id": "T_LUCKY",
+    "name": "福缘",
+    "effects": {
+      "lucky": 0.2,
+      "treasure": 2
+    },
+    "relations": {},
+    "accessory": "铜钱串",
+    "exclusive": []
+  }
 ]

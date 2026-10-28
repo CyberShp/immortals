@@ -1,6 +1,6 @@
-# 模拟仙府 · M1 骨架
+# 模拟仙府 · M2 数据与事件
 
-纯静态宗门挂机原型。TypeScript 严格模式、Vite、PixiJS v8 小地图与原生 DOM 界面。界面、美术和事件均为 M1 占位内容；尚不是三十分钟完整剧情体验。
+纯静态宗门挂机原型。TypeScript 严格模式、Vite、PixiJS v8 小地图与原生 DOM 界面。数据、事件和营造已接入；美术仍为明确标注的占位。六轮故事完成率尚未通过设计门槛。
 
 ## 运行
 
@@ -25,13 +25,15 @@ npm run preview
 
 默认十秒一步、三十步一轮、一轮一季。设置中的加速或 `?speed=30` 仅加速前台，范围一至三百倍；离线结算始终使用真实时间。声音默认关闭，当前只保存开关，不播放音频。
 
-可选浏览器回归（先构建）：
+浏览器回归（先构建，单独终端启动服务）：
 
 ```sh
-npx tsx scripts/browser-smoke.ts
+npx vite preview --port 4173
+node scripts/e2e.mjs http://localhost:4173
+node scripts/e2e.mjs http://localhost:4173 --soak
 ```
 
-脚本默认使用 macOS 已安装的 Chrome，可用 `CHROME_PATH` 指向其他位置。仅启动临时静态服务和独立无头浏览器，结束自动关闭。截图与导出样本位于忽略的 `output/playwright/`。
+脚本使用系统 Chrome，连接给定地址，不启动/停止服务。截图与挂机 JSON 输出到 `docs/screenshots/`。`?debug=1` 才暴露 `window.__xianfu`；包括只读世界快照、推进、导出、重置和修改 lastSeen，供测试离线弹窗。正式 URL 不暴露钩子。本环境 Chrome 启动 SIGABRT，截图与浏览器挂机仍待运行。
 
 ## 目录
 
@@ -54,11 +56,33 @@ npx tsx scripts/browser-smoke.ts
 - `/Volumes/Media/immortal-qa/design/03-web-tech-proposal.md`
 - `/Volumes/Media/immortal-qa/design/02-systems-and-events.md`
 
-`data/initial.json` 包含资源、弟子数组和初始建筑。弟子保留设计 1.1 全部字段，额外显式保存 `remainingSeasons`（剩余寿元），避免混淆 `lifespanSeasons`（总寿元）。年龄和寿元单位都是季；阶段由模拟更新。特质使用 Lore 的 `T_*` 编号，中文显示名见 `data/traits.json`。`data/balance.json` 管理仓库上限，其余数值在 `src/sim/config.ts`。数据入口 `loadData` 负责 zod 校验，错误包含文件与字段路径。模拟函数原地修改传入世界，同种子、同操作可复现；`advance` 等价于连续 `step`。
+## 数据格式
 
-离线分段累计有效时间，再向下取整为轮：十分钟 2 轮、一小时 12 轮、八小时 45 轮、一天 74 轮、七天 160 轮。负时间及非有限值按零处理并标记时钟异常，超过七天截断。离线按轮调用三十步，限制每人两次小突破、不筑基、不坐化、年龄最多推进八季。不足一轮的离线时间不结算。仓库溢出丢弃。
+新局来源为 `data/roster.json` 六人、`balance.json` 数值、`buildings.json` 建筑、`traits.json` 特质、`events.json` 事件。`data/initial.json` 仅保留为 M1 样本。所有 JSON 在加载时经 zod 校验，失败显示中文文件与字段路径；具体字段见 `src/sim/schema.ts`、`src/sim/data.ts`。设计依据另含 `/Volumes/Media/immortal-qa/design/art/ART-STYLE-WEB-v1.md`，只引用源路径。
 
-M1 只有一个开局选择事件，自动默认处理和选项界面可运行；完整触发条件、故事链、建筑经营、关系变化与新事件接入文档由 M2 补充。当前全员简化劳作会较快填满灵石库，尚未执行 M2 的经济节奏验收。
+事件采用 `{id, kind, chain, step, roles, trigger, hint, text, options, priority, cooldown, pity, branches}`；`options` 含 label/effects/default/cost/conditions。例如 `{"op":"resource","key":"reputation","value":25}` 表示声望至少 25；`{"op":"any","conditions":[...]}` 表示任一条件。效果按 type 进入注册表，普通数值写 JSON，特殊规则才加代码。
+
+弟子以季存年龄、总寿元和 remainingSeasons。模拟函数原地修改世界，同 seed 同操作可逐项复现；所有随机调用计数进入存档。自动掌门默认开启，可在设置关闭；方针只指方向，弟子自行选择动作。建筑和事件选项先验条件/成本，不允许负资源。
+
+## 接入新事件
+
+1. 在 `data/events.json` 编写角色条件、触发树、提示/正文、至少一个可用的 ★ 默认项、效果与成本。当前 demo **固定 20 个**，新增范围需同时更新数量契约，不能悄悄扩内容。
+2. 角色用 A/B 槽，文案用 `{A}`/`{B}`，三字名代入后提示 ≤16 字、正文 ≤40 字。连锁填写 chain/step 和前置间隔，角色首次选中后沿用。
+3. 优先复用 schema 中的条件词和效果类型。确需新效果，在 `schema.ts` 登记 type，并在 `world.ts` 的 handlers 注册结算；禁止把某个新事件 ID 的条件散落进步进循环。
+4. 补条件命中/不命中、效果、成本拒绝和链前置测试。运行以下回归，并检查统计中的 null/命中样本数。
+
+```sh
+npm test
+npm run build
+npm run lint
+npm run sim -- --seed 42 --rounds 6
+npm run sim -- --seeds 100 --rounds 6 --report docs/sim-100.json
+npm run sim -- --seeds 100 --rounds 6 --idle --report docs/sim-idle-100.json
+```
+
+默认 sim 在事件出现时立即选默认；`--idle` 才是前台 30 步超时处理，两者分别统计。默认成本不足时采用首个可用免费项。统计命令成功退出表示模拟正常运行，**不表示节奏/故事目标通过**。具体缺口与参数解释见 `docs/ARCHITECTURE.md`「待 Lore 确认」。
+
+离线分段累计有效时间，再向下取整：十分钟 2 轮、八小时 45 轮、一天 74 轮、七天 160 轮；负时间不补算，七天封顶。每人最多两次成功小突破，不筑基、不坐化，年龄最多八季。通用事件默认结算，最多保留三个连锁决策节点，汇总含关系档位变化和十条以内提示。
 
 ## 存档与隐藏
 

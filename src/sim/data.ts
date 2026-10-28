@@ -1,12 +1,10 @@
 import { z } from 'zod';
-import initial from '../../data/initial.json';
 import balance from '../../data/balance.json';
-import traits from '../../data/traits.json';
-export const traitDefinitions = validate(
-  z.array(z.object({ id: z.string(), name: z.string() })),
-  traits,
-  'data/traits.json',
-);
+import { configSchema, CONFIG } from './config';
+import { buildingDefinitions } from './catalog';
+import roster from '../../data/roster.json';
+import { traitDefinitions, validate } from './catalog';
+export { traitDefinitions, validate } from './catalog';
 export const traitName = (id: string) =>
   traitDefinitions.find((t) => t.id === id)?.name ?? id;
 const nat = z.number().int().nonnegative();
@@ -47,7 +45,18 @@ export const discipleSchema = z.object({
         ),
     )
     .min(1)
-    .max(2),
+    .max(2)
+    .refine(
+      (ts) =>
+        new Set(ts).size === ts.length &&
+        ts.every(
+          (t) =>
+            !traitDefinitions
+              .find((d) => d.id === t)
+              ?.exclusive.some((x) => ts.includes(x)),
+        ),
+      '特质重复或互斥',
+    ),
   needs: z.object({ energy: bounded, mood: bounded, drive: bounded }),
   relations: z.record(
     z.string(),
@@ -58,7 +67,7 @@ export const discipleSchema = z.object({
   ),
   policy: z.enum(['均衡', '专修', '勤工']),
   state: z.object({
-    behavior: z.enum(['修炼', '做工', '社交', '休息']),
+    behavior: z.enum(['修炼', '做工', '社交', '休息', '历练']),
     location: z.string(),
     stepsLeft: nat,
     injuredUntil: nat,
@@ -75,7 +84,10 @@ export const discipleSchema = z.object({
 export const buildingSchema = z.object({
   id: z.string(),
   name: z.string(),
-  level: z.number().int().min(1).max(2),
+  level: z.number().int().min(0).max(2),
+  progress: z.number().nonnegative().default(0),
+  targetLevel: z.number().int().min(0).max(2).default(0),
+  builtTick: z.number().int().nonnegative().default(0),
   x: z.number(),
   y: z.number(),
 });
@@ -96,18 +108,6 @@ export const initialSchema = z
 export const balanceSchema = z.object({
   capacity: resourcesSchema.omit({ reputation: true }),
 });
-export function validate<T>(
-  schema: z.ZodType<T>,
-  value: unknown,
-  path: string,
-): T {
-  const result = schema.safeParse(value);
-  if (!result.success)
-    throw new Error(
-      `${path}：数据无效；${result.error.issues.map((i) => `${i.path.join('.')} 字段不符合约定（${i.code === 'custom' ? i.message : '请检查类型、范围或必填字段'}）`).join('；')}`,
-    );
-  return result.data;
-}
 export function parseJson(text: string, path: string): unknown {
   try {
     return JSON.parse(text);
@@ -116,12 +116,32 @@ export function parseJson(text: string, path: string): unknown {
   }
 }
 export function loadData(
-  raw: unknown = initial,
+  raw: unknown = {
+    resources: CONFIG.initial,
+    buildings: buildingDefinitions
+      .filter((b) => b.initialLevel)
+      .map((b) => ({
+        id: b.id,
+        name: b.name,
+        level: b.initialLevel,
+        x: b.slot[0],
+        y: b.slot[1],
+      })),
+    disciples: validate(
+      z.array(discipleSchema).length(6),
+      roster,
+      'data/roster.json',
+    ),
+  },
   rawBalance: unknown = balance,
 ) {
   return {
     ...validate(initialSchema, raw, 'data/initial.json'),
-    balance: validate(balanceSchema, rawBalance, 'data/balance.json'),
+    balance: validate(
+      balanceSchema,
+      validate(configSchema, rawBalance, 'data/balance.json'),
+      'data/balance.json',
+    ),
   };
 }
 export type GameData = ReturnType<typeof loadData>;

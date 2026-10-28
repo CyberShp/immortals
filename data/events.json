@@ -1,0 +1,1749 @@
+[
+  {
+    "id": "EV_BRK_01",
+    "kind": "突破",
+    "chain": "",
+    "step": 0,
+    "roles": {
+      "A": {
+        "conditions": [
+          {
+            "op": "field",
+            "key": "realm.major",
+            "value": "炼气",
+            "compare": "eq",
+            "who": "A"
+          },
+          {
+            "op": "field",
+            "key": "realm.layer",
+            "value": 3,
+            "compare": "lt",
+            "who": "A"
+          },
+          {
+            "op": "xpFull"
+          },
+          {
+            "op": "field",
+            "key": "state.behavior",
+            "value": "修炼",
+            "compare": "eq",
+            "who": "A"
+          }
+        ]
+      }
+    },
+    "trigger": {
+      "conditions": [],
+      "chance": 1,
+      "cadence": "step"
+    },
+    "hint": "{A}修为圆满，欲冲关",
+    "text": "{A}周身灵气翻涌，瓶颈松动。",
+    "options": [
+      {
+        "label": "赐丹护法",
+        "effects": [
+          {
+            "type": "breakthrough",
+            "value": 0.2
+          }
+        ],
+        "cost": {
+          "pill": 1
+        },
+        "default": false,
+        "conditions": []
+      },
+      {
+        "label": "任其冲关",
+        "effects": [
+          {
+            "type": "breakthrough",
+            "value": 0
+          }
+        ],
+        "cost": {},
+        "default": true,
+        "conditions": []
+      }
+    ],
+    "priority": 2,
+    "cooldown": 1,
+    "pity": 0,
+    "branches": []
+  },
+  {
+    "id": "EV_BRK_02",
+    "kind": "突破",
+    "chain": "",
+    "step": 0,
+    "roles": {
+      "A": {
+        "conditions": [
+          {
+            "op": "field",
+            "key": "realm.major",
+            "value": "炼气",
+            "compare": "eq",
+            "who": "A"
+          },
+          {
+            "op": "field",
+            "key": "realm.layer",
+            "value": 3,
+            "compare": "eq",
+            "who": "A"
+          },
+          {
+            "op": "xpFull"
+          }
+        ]
+      }
+    },
+    "trigger": {
+      "conditions": [],
+      "chance": 1,
+      "cadence": "step"
+    },
+    "hint": "{A}叩问筑基之关",
+    "text": "炼气已到尽头，筑基需三枚丹药护住心脉。",
+    "options": [
+      {
+        "label": "赐三丹冲关",
+        "effects": [
+          {
+            "type": "foundation",
+            "value": 0
+          }
+        ],
+        "cost": {
+          "pill": 3
+        },
+        "default": true,
+        "conditions": []
+      },
+      {
+        "label": "暂缓",
+        "effects": [
+          {
+            "type": "wait"
+          }
+        ],
+        "cost": {},
+        "default": true,
+        "conditions": [
+          {
+            "op": "resource",
+            "key": "pill",
+            "value": 3,
+            "compare": "lt"
+          }
+        ]
+      },
+      {
+        "label": "强行冲关",
+        "effects": [
+          {
+            "type": "foundation",
+            "value": -0.3
+          }
+        ],
+        "cost": {},
+        "default": false,
+        "conditions": []
+      }
+    ],
+    "priority": 2,
+    "cooldown": 1,
+    "pity": 0,
+    "branches": []
+  },
+  {
+    "id": "EV_WRK_01",
+    "kind": "做工",
+    "chain": "",
+    "step": 0,
+    "roles": {
+      "A": {
+        "conditions": [
+          {
+            "op": "any",
+            "conditions": [
+              {
+                "op": "trait",
+                "values": ["T_HERB"]
+              },
+              {
+                "op": "root",
+                "values": ["木"]
+              }
+            ]
+          },
+          {
+            "op": "field",
+            "key": "flags.gardenWork",
+            "value": 8,
+            "compare": "gte",
+            "who": "A"
+          }
+        ]
+      }
+    },
+    "trigger": {
+      "conditions": [
+        {
+          "op": "building",
+          "key": "B_GARDEN",
+          "value": 1
+        }
+      ],
+      "chance": 1,
+      "cadence": "step"
+    },
+    "hint": "药圃灵草长势喜人",
+    "text": "{A}照料的灵草抽了新芽，比往年多一成。",
+    "options": [
+      {
+        "label": "收入库房",
+        "effects": [
+          {
+            "type": "resources",
+            "values": {
+              "herb": 15
+            }
+          }
+        ],
+        "cost": {},
+        "default": true,
+        "conditions": []
+      },
+      {
+        "label": "分给众人",
+        "effects": [
+          {
+            "type": "resources",
+            "values": {
+              "herb": 5
+            }
+          },
+          {
+            "type": "need",
+            "key": "mood",
+            "value": 8,
+            "target": "all"
+          },
+          {
+            "type": "coworkRelation",
+            "value": 5
+          }
+        ],
+        "cost": {},
+        "default": false,
+        "conditions": []
+      }
+    ],
+    "priority": 0,
+    "cooldown": 1,
+    "pity": 0,
+    "branches": []
+  },
+  {
+    "id": "EV_WRK_02",
+    "kind": "做工",
+    "chain": "",
+    "step": 0,
+    "roles": {
+      "A": {
+        "conditions": [
+          {
+            "op": "signal",
+            "key": "alchemyFailed"
+          }
+        ]
+      }
+    },
+    "trigger": {
+      "conditions": [],
+      "chance": 0.3,
+      "cadence": "step"
+    },
+    "hint": "炼丹房传来一声闷响",
+    "text": "{A}灰头土脸冲出丹房，炉里冒着黑烟。",
+    "options": [
+      {
+        "label": "清理重来",
+        "effects": [
+          {
+            "type": "stopAlchemy",
+            "value": 3
+          }
+        ],
+        "cost": {},
+        "default": true,
+        "conditions": []
+      },
+      {
+        "label": "罚抄丹经",
+        "effects": [
+          {
+            "type": "need",
+            "key": "mood",
+            "value": -10,
+            "target": "A"
+          },
+          {
+            "type": "flag",
+            "key": "nextAlchemy",
+            "value": 0.1,
+            "target": "A"
+          }
+        ],
+        "cost": {},
+        "default": false,
+        "conditions": []
+      },
+      {
+        "label": "一笑置之",
+        "effects": [
+          {
+            "type": "need",
+            "key": "mood",
+            "value": 5,
+            "target": "A"
+          },
+          {
+            "type": "coworkRelation",
+            "value": 3
+          }
+        ],
+        "cost": {},
+        "default": false,
+        "conditions": []
+      }
+    ],
+    "priority": 0,
+    "cooldown": 0,
+    "pity": 0,
+    "branches": []
+  },
+  {
+    "id": "EV_SOC_01",
+    "kind": "社交",
+    "chain": "",
+    "step": 0,
+    "roles": {
+      "A": {
+        "conditions": [
+          {
+            "op": "field",
+            "key": "state.behavior",
+            "value": "社交",
+            "compare": "eq",
+            "who": "A"
+          }
+        ]
+      },
+      "B": {
+        "conditions": [
+          {
+            "op": "field",
+            "key": "state.behavior",
+            "value": "社交",
+            "compare": "eq",
+            "who": "A"
+          }
+        ],
+        "who": "B"
+      }
+    },
+    "trigger": {
+      "conditions": [
+        {
+          "op": "time",
+          "key": "night"
+        },
+        {
+          "op": "relation",
+          "value": 20,
+          "compare": "gte"
+        }
+      ],
+      "chance": 1,
+      "cadence": "step"
+    },
+    "hint": "{A}与{B}月下论道",
+    "text": "二人对坐松下，各说一段心得，竟都有所悟。",
+    "options": [
+      {
+        "label": "由他们聊",
+        "effects": [
+          {
+            "type": "xp",
+            "value": 20,
+            "target": "both"
+          },
+          {
+            "type": "relation",
+            "value": 8
+          }
+        ],
+        "cost": {},
+        "default": true,
+        "conditions": []
+      },
+      {
+        "label": "催回打坐",
+        "effects": [
+          {
+            "type": "need",
+            "key": "drive",
+            "value": 10,
+            "target": "both"
+          },
+          {
+            "type": "relation",
+            "value": 2
+          }
+        ],
+        "cost": {},
+        "default": false,
+        "conditions": []
+      }
+    ],
+    "priority": 0,
+    "cooldown": 2,
+    "pity": 0,
+    "branches": []
+  },
+  {
+    "id": "EV_ADV_01",
+    "kind": "历练",
+    "chain": "",
+    "step": 0,
+    "roles": {
+      "A": {
+        "conditions": [
+          {
+            "op": "field",
+            "key": "ageSeasons",
+            "value": 64,
+            "compare": "gte",
+            "who": "A"
+          },
+          {
+            "op": "field",
+            "key": "needs.energy",
+            "value": 80,
+            "compare": "gte",
+            "who": "A"
+          },
+          {
+            "op": "healthy"
+          }
+        ],
+        "weights": [
+          {
+            "conditions": [
+              {
+                "op": "any",
+                "conditions": [
+                  {
+                    "op": "trait",
+                    "values": ["T_SWORD", "T_LUCKY"]
+                  },
+                  {
+                    "op": "root",
+                    "values": ["金"]
+                  }
+                ]
+              }
+            ],
+            "value": 2
+          }
+        ]
+      }
+    },
+    "trigger": {
+      "conditions": [
+        {
+          "op": "population",
+          "value": 4
+        }
+      ],
+      "chance": 0.03,
+      "cadence": "step"
+    },
+    "hint": "{A}请命下山历练",
+    "text": "{A}背好行囊，在山门前等你点头。",
+    "options": [
+      {
+        "label": "准行",
+        "effects": [
+          {
+            "type": "depart",
+            "value": 30
+          }
+        ],
+        "cost": {},
+        "default": true,
+        "conditions": []
+      },
+      {
+        "label": "再练练",
+        "effects": [
+          {
+            "type": "need",
+            "key": "drive",
+            "value": -10,
+            "target": "A"
+          }
+        ],
+        "cost": {},
+        "default": false,
+        "conditions": []
+      }
+    ],
+    "priority": 0,
+    "cooldown": 2,
+    "pity": 0,
+    "branches": []
+  },
+  {
+    "id": "EV_ADV_02",
+    "kind": "历练",
+    "chain": "",
+    "step": 0,
+    "roles": {
+      "A": {
+        "conditions": [
+          {
+            "op": "returned"
+          }
+        ],
+        "allowAway": true
+      }
+    },
+    "trigger": {
+      "conditions": [],
+      "chance": 1,
+      "cadence": "step"
+    },
+    "hint": "{A}风尘仆仆回山了",
+    "text": "{A}推开山门，衣角破了，眼睛很亮。",
+    "options": [
+      {
+        "label": "设宴接风",
+        "effects": [
+          {
+            "type": "adventure"
+          },
+          {
+            "type": "need",
+            "key": "mood",
+            "value": 15,
+            "target": "A"
+          }
+        ],
+        "cost": {
+          "stone": 10
+        },
+        "default": true,
+        "conditions": []
+      },
+      {
+        "label": "直接入库",
+        "effects": [
+          {
+            "type": "adventure"
+          }
+        ],
+        "cost": {},
+        "default": false,
+        "conditions": []
+      }
+    ],
+    "priority": 0,
+    "cooldown": 0,
+    "pity": 0,
+    "branches": []
+  },
+  {
+    "id": "EV_SEC_01",
+    "kind": "宗门",
+    "chain": "",
+    "step": 0,
+    "roles": {},
+    "trigger": {
+      "conditions": [
+        {
+          "op": "resource",
+          "key": "reputation",
+          "value": 25
+        },
+        {
+          "op": "vacancy"
+        }
+      ],
+      "chance": 1,
+      "cadence": "step"
+    },
+    "hint": "山门外有人求入门",
+    "text": "一名少年跪在山门外，说愿从劈柴做起。",
+    "options": [
+      {
+        "label": "收下",
+        "effects": [
+          {
+            "type": "recruit"
+          },
+          {
+            "type": "resources",
+            "values": {
+              "reputation": 2
+            }
+          }
+        ],
+        "cost": {},
+        "default": true,
+        "conditions": []
+      },
+      {
+        "label": "婉拒",
+        "effects": [
+          {
+            "type": "resources",
+            "values": {
+              "reputation": 2
+            }
+          }
+        ],
+        "cost": {},
+        "default": false,
+        "conditions": []
+      },
+      {
+        "label": "考验三日",
+        "effects": [
+          {
+            "type": "recruitLater",
+            "value": 3
+          }
+        ],
+        "cost": {},
+        "default": false,
+        "conditions": []
+      }
+    ],
+    "priority": 1,
+    "cooldown": 2,
+    "pity": 0,
+    "branches": []
+  },
+  {
+    "id": "EV_SEC_02",
+    "kind": "宗门",
+    "chain": "",
+    "step": 0,
+    "roles": {},
+    "trigger": {
+      "conditions": [
+        {
+          "op": "building",
+          "key": "B_HALL",
+          "value": 2
+        },
+        {
+          "op": "notCompleted",
+          "key": "EV_SEC_02"
+        }
+      ],
+      "chance": 1,
+      "cadence": "step"
+    },
+    "hint": "主殿重光，宗门升格",
+    "text": "新匾挂上，朱砂未干，山下人开始叫这里仙府。",
+    "options": [
+      {
+        "label": "大宴三日",
+        "effects": [
+          {
+            "type": "need",
+            "key": "mood",
+            "value": 20,
+            "target": "all"
+          },
+          {
+            "type": "resources",
+            "values": {
+              "reputation": 10
+            }
+          },
+          {
+            "type": "report"
+          }
+        ],
+        "cost": {
+          "stone": 50
+        },
+        "default": true,
+        "conditions": []
+      },
+      {
+        "label": "从俭",
+        "effects": [
+          {
+            "type": "resources",
+            "values": {
+              "reputation": 5
+            }
+          },
+          {
+            "type": "report"
+          }
+        ],
+        "cost": {},
+        "default": false,
+        "conditions": []
+      }
+    ],
+    "priority": 1,
+    "cooldown": 0,
+    "pity": 0,
+    "branches": []
+  },
+  {
+    "id": "EV_A1",
+    "kind": "争执",
+    "chain": "A",
+    "step": 1,
+    "roles": {
+      "A": {
+        "conditions": [
+          {
+            "op": "trait",
+            "values": ["T_PROUD"]
+          }
+        ]
+      },
+      "B": {
+        "conditions": [
+          {
+            "op": "trait",
+            "values": ["T_ALOOF", "T_DILIGENT"]
+          }
+        ]
+      }
+    },
+    "trigger": {
+      "conditions": [
+        {
+          "op": "sameLocation",
+          "values": ["空地", "静修室"]
+        },
+        {
+          "op": "relation",
+          "value": 10,
+          "compare": "lte"
+        }
+      ],
+      "chance": 1,
+      "cadence": "step"
+    },
+    "hint": "{A}与{B}起了口角",
+    "text": "{A}嫌{B}读书误剑，{B}只回了两个字：聒噪。",
+    "options": [
+      {
+        "label": "各自回房",
+        "effects": [
+          {
+            "type": "relation",
+            "value": -10
+          }
+        ],
+        "cost": {},
+        "default": true,
+        "conditions": []
+      },
+      {
+        "label": "当众调解",
+        "effects": [
+          {
+            "type": "mediate"
+          }
+        ],
+        "cost": {},
+        "default": false,
+        "conditions": []
+      }
+    ],
+    "priority": 3,
+    "cooldown": 0,
+    "pity": 2,
+    "branches": []
+  },
+  {
+    "id": "EV_A2",
+    "kind": "争执",
+    "chain": "A",
+    "step": 2,
+    "roles": {
+      "A": {
+        "conditions": [
+          {
+            "op": "trait",
+            "values": ["T_PROUD"]
+          }
+        ]
+      },
+      "B": {
+        "conditions": [
+          {
+            "op": "trait",
+            "values": ["T_ALOOF", "T_DILIGENT"]
+          }
+        ]
+      }
+    },
+    "trigger": {
+      "conditions": [
+        {
+          "op": "completed",
+          "key": "EV_A1",
+          "value": 1
+        },
+        {
+          "op": "relation",
+          "value": -5,
+          "compare": "lte"
+        }
+      ],
+      "chance": 1,
+      "cadence": "step"
+    },
+    "hint": "{A}向{B}下了战书",
+    "text": "战书钉在静修室门上：三日后后山，点到为止。",
+    "options": [
+      {
+        "label": "准了，派人看着",
+        "effects": [
+          {
+            "type": "duel"
+          }
+        ],
+        "cost": {},
+        "default": true,
+        "conditions": []
+      },
+      {
+        "label": "禁止私斗",
+        "effects": [
+          {
+            "type": "relation",
+            "value": -10
+          },
+          {
+            "type": "need",
+            "key": "drive",
+            "value": -15,
+            "target": "A"
+          }
+        ],
+        "cost": {},
+        "default": false,
+        "conditions": []
+      }
+    ],
+    "priority": 3,
+    "cooldown": 0,
+    "pity": 0,
+    "branches": []
+  },
+  {
+    "id": "EV_A3",
+    "kind": "修炼",
+    "chain": "A",
+    "step": 3,
+    "roles": {
+      "A": {
+        "conditions": [
+          {
+            "op": "trait",
+            "values": ["T_PROUD"]
+          }
+        ]
+      },
+      "B": {
+        "conditions": [
+          {
+            "op": "trait",
+            "values": ["T_ALOOF", "T_DILIGENT"]
+          }
+        ]
+      }
+    },
+    "trigger": {
+      "conditions": [
+        {
+          "op": "completed",
+          "key": "EV_A2",
+          "value": 1
+        }
+      ],
+      "chance": 1,
+      "cadence": "step"
+    },
+    "hint": "后山那场比剑有了下文",
+    "text": "{B}把一卷剑谱放在{A}门口，页边写满批注。",
+    "options": [
+      {
+        "label": "让{A}收下",
+        "effects": [
+          {
+            "type": "relation",
+            "value": 40
+          },
+          {
+            "type": "flag",
+            "key": "剑书同修",
+            "value": true,
+            "target": "both"
+          }
+        ],
+        "cost": {},
+        "default": true,
+        "conditions": []
+      },
+      {
+        "label": "让{A}去道谢",
+        "effects": [
+          {
+            "type": "relation",
+            "value": 25
+          },
+          {
+            "type": "need",
+            "key": "mood",
+            "value": 10,
+            "target": "A"
+          }
+        ],
+        "cost": {},
+        "default": false,
+        "conditions": []
+      }
+    ],
+    "priority": 3,
+    "cooldown": 0,
+    "pity": 0,
+    "branches": [
+      {
+        "conditions": [
+          {
+            "op": "relation",
+            "value": -20,
+            "compare": "lte"
+          }
+        ],
+        "text": "{A}的剑穗断了，众人都看向{B}。",
+        "options": [
+          {
+            "label": "冷处理",
+            "effects": [
+              {
+                "type": "tag",
+                "key": "宿敌"
+              }
+            ],
+            "cost": {},
+            "default": true,
+            "conditions": []
+          },
+          {
+            "label": "罚二人同扫山门",
+            "effects": [
+              {
+                "type": "relation",
+                "value": 20
+              },
+              {
+                "type": "need",
+                "key": "mood",
+                "value": -10,
+                "target": "both"
+              }
+            ],
+            "cost": {},
+            "default": false,
+            "conditions": []
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "EV_B1",
+    "kind": "宗门",
+    "chain": "B",
+    "step": 1,
+    "roles": {
+      "A": {
+        "conditions": [
+          {
+            "op": "field",
+            "key": "stage",
+            "value": "迟暮",
+            "compare": "eq",
+            "who": "A"
+          }
+        ],
+        "allowDead": true
+      },
+      "B": {
+        "conditions": [
+          {
+            "op": "any",
+            "conditions": [
+              {
+                "op": "field",
+                "key": "stage",
+                "value": "少年",
+                "compare": "eq",
+                "who": "A"
+              },
+              {
+                "op": "field",
+                "key": "stage",
+                "value": "青年",
+                "compare": "eq",
+                "who": "A"
+              }
+            ]
+          }
+        ],
+        "select": "highestRelation"
+      }
+    },
+    "trigger": {
+      "conditions": [
+        {
+          "op": "field",
+          "key": "remainingSeasons",
+          "value": 4,
+          "compare": "lte",
+          "who": "A"
+        }
+      ],
+      "chance": 1,
+      "cadence": "step"
+    },
+    "hint": "{A}咳了一夜",
+    "text": "{A}把带血的帕子塞进袖里，说只是着凉。",
+    "options": [
+      {
+        "label": "请他静养",
+        "effects": [
+          {
+            "type": "flag",
+            "key": "静养",
+            "value": true,
+            "target": "A"
+          },
+          {
+            "type": "lifespan",
+            "value": 1
+          }
+        ],
+        "cost": {},
+        "default": true,
+        "conditions": []
+      },
+      {
+        "label": "装作不知",
+        "effects": [
+          {
+            "type": "concern"
+          }
+        ],
+        "cost": {},
+        "default": false,
+        "conditions": []
+      }
+    ],
+    "priority": 3,
+    "cooldown": 0,
+    "pity": 2,
+    "branches": []
+  },
+  {
+    "id": "EV_B2",
+    "kind": "宗门",
+    "chain": "B",
+    "step": 2,
+    "roles": {
+      "A": {
+        "conditions": [
+          {
+            "op": "field",
+            "key": "stage",
+            "value": "迟暮",
+            "compare": "eq",
+            "who": "A"
+          }
+        ],
+        "allowDead": true
+      },
+      "B": {
+        "conditions": [
+          {
+            "op": "any",
+            "conditions": [
+              {
+                "op": "field",
+                "key": "stage",
+                "value": "少年",
+                "compare": "eq",
+                "who": "A"
+              },
+              {
+                "op": "field",
+                "key": "stage",
+                "value": "青年",
+                "compare": "eq",
+                "who": "A"
+              }
+            ]
+          }
+        ],
+        "select": "highestRelation"
+      }
+    },
+    "trigger": {
+      "conditions": [
+        {
+          "op": "completed",
+          "key": "EV_B1",
+          "value": 0
+        },
+        {
+          "op": "field",
+          "key": "remainingSeasons",
+          "value": 2,
+          "compare": "lte",
+          "who": "A"
+        }
+      ],
+      "chance": 1,
+      "cadence": "step"
+    },
+    "hint": "{A}有话要交代",
+    "text": "丹药留给孩子们。若不嫌弃，这身修为传给{B}。",
+    "options": [
+      {
+        "label": "炼延寿丹",
+        "effects": [
+          {
+            "type": "lifespan",
+            "value": 8
+          },
+          {
+            "type": "need",
+            "key": "mood",
+            "value": 20,
+            "target": "A"
+          }
+        ],
+        "cost": {
+          "pill": 5,
+          "stone": 50
+        },
+        "default": false,
+        "conditions": []
+      },
+      {
+        "label": "传功给{B}",
+        "effects": [
+          {
+            "type": "xp",
+            "value": 150,
+            "target": "B"
+          },
+          {
+            "type": "flag",
+            "key": "薪火",
+            "value": true,
+            "target": "B"
+          },
+          {
+            "type": "remaining",
+            "value": 1
+          }
+        ],
+        "cost": {},
+        "default": true,
+        "conditions": []
+      },
+      {
+        "label": "顺其自然",
+        "effects": [],
+        "cost": {},
+        "default": false,
+        "conditions": []
+      }
+    ],
+    "priority": 3,
+    "cooldown": 0,
+    "pity": 0,
+    "branches": []
+  },
+  {
+    "id": "EV_B3",
+    "kind": "宗门",
+    "chain": "B",
+    "step": 3,
+    "roles": {
+      "A": {
+        "conditions": [
+          {
+            "op": "field",
+            "key": "stage",
+            "value": "迟暮",
+            "compare": "eq",
+            "who": "A"
+          }
+        ],
+        "allowDead": true
+      },
+      "B": {
+        "conditions": [
+          {
+            "op": "any",
+            "conditions": [
+              {
+                "op": "field",
+                "key": "stage",
+                "value": "少年",
+                "compare": "eq",
+                "who": "A"
+              },
+              {
+                "op": "field",
+                "key": "stage",
+                "value": "青年",
+                "compare": "eq",
+                "who": "A"
+              }
+            ]
+          }
+        ],
+        "select": "highestRelation"
+      }
+    },
+    "trigger": {
+      "conditions": [
+        {
+          "op": "completed",
+          "key": "EV_B2",
+          "value": 0
+        },
+        {
+          "op": "field",
+          "key": "remainingSeasons",
+          "value": 0,
+          "compare": "eq",
+          "who": "A"
+        }
+      ],
+      "chance": 1,
+      "cadence": "step"
+    },
+    "hint": "{A}于松下坐化",
+    "text": "{A}在打坐中走了，面带笑意，酒壶还温着。",
+    "options": [
+      {
+        "label": "立衣冠冢",
+        "effects": [
+          {
+            "type": "resources",
+            "values": {
+              "reputation": 10
+            }
+          },
+          {
+            "type": "need",
+            "key": "mood",
+            "value": -10,
+            "target": "all"
+          },
+          {
+            "type": "legacy"
+          }
+        ],
+        "cost": {
+          "stone": 20
+        },
+        "default": true,
+        "conditions": []
+      },
+      {
+        "label": "遗物赐{B}",
+        "effects": [
+          {
+            "type": "inherit"
+          },
+          {
+            "type": "need",
+            "key": "mood",
+            "value": -20,
+            "target": "B"
+          },
+          {
+            "type": "legacy"
+          }
+        ],
+        "cost": {},
+        "default": false,
+        "conditions": []
+      }
+    ],
+    "priority": 3,
+    "cooldown": 0,
+    "pity": 0,
+    "branches": []
+  },
+  {
+    "id": "EV_C1",
+    "kind": "情缘",
+    "chain": "C",
+    "step": 1,
+    "roles": {
+      "A": {
+        "conditions": [
+          {
+            "op": "trait",
+            "values": ["T_AMOROUS", "T_WINE"]
+          }
+        ]
+      },
+      "B": {
+        "conditions": [
+          {
+            "op": "trait",
+            "values": ["T_ALOOF"]
+          }
+        ]
+      }
+    },
+    "trigger": {
+      "conditions": [
+        {
+          "op": "relation",
+          "value": 0,
+          "compare": "gte"
+        },
+        {
+          "op": "field",
+          "key": "state.behavior",
+          "value": "社交",
+          "compare": "eq",
+          "who": "A"
+        },
+        {
+          "op": "field",
+          "key": "state.behavior",
+          "value": "修炼",
+          "compare": "eq",
+          "who": "B"
+        },
+        {
+          "op": "alone",
+          "who": "B"
+        }
+      ],
+      "chance": 1,
+      "cadence": "step"
+    },
+    "hint": "{A}给{B}送了一壶酒",
+    "text": "{B}说自己不喝酒，却没把酒壶还回去。",
+    "options": [
+      {
+        "label": "随他们去",
+        "effects": [
+          {
+            "type": "relation",
+            "value": 15
+          }
+        ],
+        "cost": {},
+        "default": true,
+        "conditions": []
+      },
+      {
+        "label": "提醒{B}专心修炼",
+        "effects": [
+          {
+            "type": "relation",
+            "value": 5
+          },
+          {
+            "type": "need",
+            "key": "drive",
+            "value": 10,
+            "target": "B"
+          }
+        ],
+        "cost": {},
+        "default": false,
+        "conditions": []
+      }
+    ],
+    "priority": 3,
+    "cooldown": 0,
+    "pity": 3,
+    "branches": []
+  },
+  {
+    "id": "EV_C2",
+    "kind": "情缘",
+    "chain": "C",
+    "step": 2,
+    "roles": {
+      "A": {
+        "conditions": [
+          {
+            "op": "trait",
+            "values": ["T_AMOROUS", "T_WINE"]
+          }
+        ]
+      },
+      "B": {
+        "conditions": [
+          {
+            "op": "trait",
+            "values": ["T_ALOOF"]
+          }
+        ]
+      }
+    },
+    "trigger": {
+      "conditions": [
+        {
+          "op": "completed",
+          "key": "EV_C1",
+          "value": 0
+        },
+        {
+          "op": "relation",
+          "value": 30,
+          "compare": "gte"
+        },
+        {
+          "op": "building",
+          "key": "B_MEDIT",
+          "value": 1
+        }
+      ],
+      "chance": 1,
+      "cadence": "step"
+    },
+    "hint": "静修室多了个蒲团",
+    "text": "{B}的蒲团旁，多了个总在打瞌睡的人。",
+    "options": [
+      {
+        "label": "默许",
+        "effects": [
+          {
+            "type": "studyTogether",
+            "value": 2
+          }
+        ],
+        "cost": {},
+        "default": true,
+        "conditions": []
+      },
+      {
+        "label": "分开安排",
+        "effects": [
+          {
+            "type": "relation",
+            "value": 3
+          },
+          {
+            "type": "studyApart"
+          }
+        ],
+        "cost": {},
+        "default": false,
+        "conditions": []
+      }
+    ],
+    "priority": 3,
+    "cooldown": 0,
+    "pity": 0,
+    "branches": []
+  },
+  {
+    "id": "EV_C3",
+    "kind": "情缘",
+    "chain": "C",
+    "step": 3,
+    "roles": {
+      "A": {
+        "conditions": [
+          {
+            "op": "trait",
+            "values": ["T_AMOROUS", "T_WINE"]
+          }
+        ]
+      },
+      "B": {
+        "conditions": [
+          {
+            "op": "trait",
+            "values": ["T_ALOOF"]
+          }
+        ]
+      }
+    },
+    "trigger": {
+      "conditions": [
+        {
+          "op": "completed",
+          "key": "EV_C2",
+          "value": 0
+        },
+        {
+          "op": "relation",
+          "value": 60,
+          "compare": "gte"
+        }
+      ],
+      "chance": 1,
+      "cadence": "step"
+    },
+    "hint": "{A}与{B}想结为道侣",
+    "text": "二人跪在主殿前，{B}耳根通红，{A}在笑。",
+    "options": [
+      {
+        "label": "成全",
+        "effects": [
+          {
+            "type": "tag",
+            "key": "道侣"
+          },
+          {
+            "type": "need",
+            "key": "mood",
+            "value": 15,
+            "target": "all"
+          },
+          {
+            "type": "resources",
+            "values": {
+              "reputation": 5
+            }
+          }
+        ],
+        "cost": {
+          "stone": 30
+        },
+        "default": true,
+        "conditions": []
+      },
+      {
+        "label": "再等等",
+        "effects": [
+          {
+            "type": "relation",
+            "value": -10
+          },
+          {
+            "type": "retry"
+          }
+        ],
+        "cost": {},
+        "default": false,
+        "conditions": []
+      }
+    ],
+    "priority": 3,
+    "cooldown": 1,
+    "pity": 0,
+    "branches": []
+  },
+  {
+    "id": "EV_D1",
+    "kind": "机缘",
+    "chain": "D",
+    "step": 1,
+    "roles": {
+      "A": {
+        "conditions": [
+          {
+            "op": "trait",
+            "values": ["T_LAZY"]
+          }
+        ]
+      }
+    },
+    "trigger": {
+      "conditions": [
+        {
+          "op": "field",
+          "key": "state.behavior",
+          "value": "做工",
+          "compare": "eq",
+          "who": "A"
+        },
+        {
+          "op": "field",
+          "key": "needs.energy",
+          "value": 50,
+          "compare": "gte",
+          "who": "A"
+        }
+      ],
+      "chance": 0.3,
+      "cadence": "round"
+    },
+    "hint": "{A}干活时睡着了",
+    "text": "锄头还插在地里，{A}已在树荫下打起呼噜。",
+    "options": [
+      {
+        "label": "由他去",
+        "effects": [
+          {
+            "type": "need",
+            "key": "energy",
+            "value": 30,
+            "target": "A"
+          },
+          {
+            "type": "flag",
+            "key": "yieldDebt",
+            "value": 10,
+            "target": "A"
+          }
+        ],
+        "cost": {},
+        "default": true,
+        "conditions": []
+      },
+      {
+        "label": "罚去后山挖石",
+        "effects": [
+          {
+            "type": "need",
+            "key": "mood",
+            "value": -10,
+            "target": "A"
+          },
+          {
+            "type": "flag",
+            "key": "D2Weight",
+            "value": 3,
+            "target": "A"
+          }
+        ],
+        "cost": {},
+        "default": false,
+        "conditions": []
+      }
+    ],
+    "priority": 3,
+    "cooldown": 0,
+    "pity": 3,
+    "branches": []
+  },
+  {
+    "id": "EV_D2",
+    "kind": "机缘",
+    "chain": "D",
+    "step": 2,
+    "roles": {
+      "A": {
+        "conditions": [
+          {
+            "op": "trait",
+            "values": ["T_LAZY"]
+          }
+        ]
+      }
+    },
+    "trigger": {
+      "conditions": [
+        {
+          "op": "completed",
+          "key": "EV_D1",
+          "value": 1
+        },
+        {
+          "op": "field",
+          "key": "state.behavior",
+          "value": "做工",
+          "compare": "eq",
+          "who": "A"
+        }
+      ],
+      "chance": 1,
+      "cadence": "step"
+    },
+    "hint": "{A}在后山挖到东西",
+    "text": "{A}抱回一块发光的石头，说自己一直在找。",
+    "options": [
+      {
+        "label": "充入库房",
+        "effects": [
+          {
+            "type": "treasure",
+            "value": 40
+          }
+        ],
+        "cost": {},
+        "default": true,
+        "conditions": []
+      },
+      {
+        "label": "当作奖励",
+        "effects": [
+          {
+            "type": "need",
+            "key": "mood",
+            "value": 30,
+            "target": "A"
+          },
+          {
+            "type": "motivation",
+            "value": 2
+          }
+        ],
+        "cost": {},
+        "default": false,
+        "conditions": []
+      },
+      {
+        "label": "献给主殿",
+        "effects": [
+          {
+            "type": "resources",
+            "values": {
+              "reputation": 10
+            }
+          },
+          {
+            "type": "hallDiscount",
+            "value": 30
+          }
+        ],
+        "cost": {},
+        "default": false,
+        "conditions": []
+      }
+    ],
+    "priority": 3,
+    "cooldown": 0,
+    "pity": 0,
+    "branches": []
+  }
+]

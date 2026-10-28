@@ -22,6 +22,9 @@ describe('确定性模拟', () => {
   });
   it('自然老去、被动产出、默认事件处理', () => {
     const w = world();
+    // 隔离被动产出与自然寿元；M2 自动建造和薪火延寿另有集成测试。
+    w.flags.autoMaster = false;
+    for (const id of ['EV_B1', 'EV_B2', 'EV_B3']) w.flags[`done:${id}`] = 0;
     w.disciples.forEach((d) => {
       d.state.behavior = '休息';
       d.needs.energy = 0;
@@ -31,7 +34,7 @@ describe('确定性模拟', () => {
     expect(w.resources.stone).toBe(before + 1);
     advance(w, 179);
     expect(w.disciples[5].stage).toBe('坐化');
-    expect(w.events).toHaveLength(0);
+    expect(w.events.every((e) => w.tick - e.createdTick < 30)).toBe(true);
     expect(w.resources.stone).toBeLessThanOrEqual(w.capacity.stone);
   });
   it('数据错误带文件与字段路径', () => {

@@ -1,69 +1,26 @@
-export const CONFIG = {
-  stepMs: 10_000,
-  stepsPerRound: 30,
-  seasonsPerYear: 4,
-  autosaveMs: 30_000,
-  needMax: 100,
-  youthYears: 16,
-  adultYears: 40,
-  elderlyRatio: 0.85,
-  restBelow: 30,
-  restUntil: 80,
-  restGain: 6,
-  moodDecay: 0.4,
-  driveDecay: 1,
-  energyCost: { 修炼: 0.5, 做工: 2, 社交: 1, 休息: 0 },
-  socialGain: 4,
-  meditationDrive: 4,
-  workScore: 40,
-  vacancyScore: 10,
-  vacancies: 2,
-  policyMultiplier: 1.5,
-  lowDriveMultiplier: 1.5,
-  durationMin: 4,
-  durationRange: 5,
-  socialDurationMin: 3,
-  socialDurationRange: 3,
-  xpPerStep: 5,
-  lowMoodMultiplier: 0.5,
-  passiveStone: 1,
-  workStone: 2,
-  workHerb: 1.5,
-  elementalBonus: 1.2,
-  diligentXp: 1.2,
-  diligentDecay: 0.7,
-  lazyYield: 0.8,
-  xpThreshold: [100, 150, 200],
-  breakthroughBase: 0.6,
-  majorBase: 0.5,
-  proudBonus: 0.1,
-  goodMood: 70,
-  moodBonus: 0.1,
-  chanceCap: 0.95,
-  majorChanceCap: 0.9,
-  failureXp: 0.7,
-  majorFailureXp: 0.5,
-  failureMood: 20,
-  majorPills: 3,
-  lifespan: { 炼气: 400, 筑基: 720 },
-  breakthroughReputation: 3,
-  majorReputation: 15,
-  rootXp: { 天灵根: 1.6, 双灵根: 1.2, 三灵根: 1, 杂灵根: 0.7 },
-  rootChance: { 天灵根: 0.15, 双灵根: 0.05, 三灵根: 0, 杂灵根: -0.1 },
-  logLimit: 100,
-  queueLimit: 5,
-  offlineQueueLimit: 3,
-  offlineHintLimit: 10,
-  offlineAgeRounds: 8,
-  offlineBreakthroughs: 2,
-  offline: {
-    maxMs: 7 * 24 * 3600_000,
-    roundMs: 300_000,
-    bands: [
-      { end: 3600_000, rate: 1 },
-      { end: 8 * 3600_000, rate: 0.4 },
-      { end: 24 * 3600_000, rate: 0.15 },
-      { end: 7 * 24 * 3600_000, rate: 0.05 },
-    ],
-  },
-} as const;
+import raw from '../../data/balance.json';
+import { z } from 'zod';
+import { validate } from './catalog';
+// 对每个配置叶子验证类型和有限性，禁止缺字段；键来自完整的发布配置。
+function shape(value: unknown): z.ZodType {
+  if (typeof value === 'boolean') return z.boolean();
+  if (typeof value === 'number') return z.number().finite();
+  if (typeof value === 'string') return z.string().min(1);
+  if (Array.isArray(value)) return z.array(shape(value[0])).min(1);
+  return z
+    .object(
+      Object.fromEntries(
+        Object.entries(value as Record<string, unknown>).map(([k, v]) => [
+          k,
+          shape(v),
+        ]),
+      ),
+    )
+    .strict();
+}
+export const configSchema = shape(raw);
+export const CONFIG = validate(
+  configSchema,
+  raw,
+  'data/balance.json',
+) as typeof raw;

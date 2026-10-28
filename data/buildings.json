@@ -1,0 +1,136 @@
+[
+  {
+    "id": "B_HALL",
+    "name": "主殿",
+    "maxLevel": 2,
+    "capacity": 2,
+    "cost": {
+      "stone": 250
+    },
+    "duration": 12,
+    "unlock": [
+      {
+        "op": "resource",
+        "key": "reputation",
+        "value": 50
+      },
+      {
+        "op": "building",
+        "key": "B_DORM",
+        "value": 1
+      },
+      {
+        "op": "building",
+        "key": "B_GARDEN",
+        "value": 1
+      },
+      {
+        "op": "building",
+        "key": "B_MEDIT",
+        "value": 1
+      },
+      {
+        "op": "building",
+        "key": "B_ALCHEMY",
+        "value": 1
+      }
+    ],
+    "output": {
+      "stone": 2,
+      "reputationPerRound": 1,
+      "storageMultiplier": 2
+    },
+    "slot": [330, 135],
+    "initialLevel": 1
+  },
+  {
+    "id": "B_DORM",
+    "name": "弟子居舍",
+    "maxLevel": 2,
+    "capacity": 6,
+    "cost": {
+      "stone": 80
+    },
+    "duration": 6,
+    "unlock": [
+      {
+        "op": "resource",
+        "key": "reputation",
+        "value": 20
+      }
+    ],
+    "output": {
+      "energy": 6,
+      "moodLevel2": 1,
+      "capacityLevel2": 9
+    },
+    "slot": [145, 235],
+    "initialLevel": 1
+  },
+  {
+    "id": "B_GARDEN",
+    "name": "药圃",
+    "maxLevel": 1,
+    "capacity": 2,
+    "cost": {
+      "stone": 40
+    },
+    "duration": 6,
+    "unlock": [],
+    "output": {
+      "herb": 1.5
+    },
+    "slot": [410, 250],
+    "initialLevel": 0
+  },
+  {
+    "id": "B_MEDIT",
+    "name": "静修室",
+    "maxLevel": 1,
+    "capacity": 3,
+    "cost": {
+      "stone": 60,
+      "herb": 10
+    },
+    "duration": 6,
+    "unlock": [
+      {
+        "op": "resource",
+        "key": "reputation",
+        "value": 10
+      }
+    ],
+    "output": {
+      "xp": 1.5
+    },
+    "slot": [160, 110],
+    "initialLevel": 0
+  },
+  {
+    "id": "B_ALCHEMY",
+    "name": "炼丹房",
+    "maxLevel": 1,
+    "capacity": 1,
+    "cost": {
+      "stone": 100,
+      "herb": 30
+    },
+    "duration": 9,
+    "unlock": [
+      {
+        "op": "building",
+        "key": "B_GARDEN",
+        "value": 1
+      }
+    ],
+    "output": {
+      "batchSteps": 5,
+      "herbCost": 6,
+      "stoneCost": 4,
+      "chance": 0.7,
+      "pill": 1
+    },
+    "slot": [480, 130],
+    "initialLevel": 0
+  }
+]

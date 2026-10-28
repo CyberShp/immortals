@@ -1,0 +1,8 @@
+{
+  "状态": "未运行",
+  "通过": false,
+  "原因": "六图 e2e 尝试中系统 Chrome 在页面创建前 SIGABRT 退出；因此跳过相同启动路径的挂机测试。",
+  "游戏秒": 0,
+  "已关闭自启Preview": true,
+  "复跑": "node scripts/e2e.mjs http://localhost:4173 --soak"
+}

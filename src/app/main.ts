@@ -1,6 +1,20 @@
 import { CONFIG as C } from '../sim/config';
 import { loadData, traitName } from '../sim/data';
-import { createWorld, resolveEvent, step } from '../sim/world';
+import {
+  createWorld,
+  resolveEvent,
+  step,
+  advance,
+  setPolicy,
+  build,
+  buildingOrder,
+  costText,
+  optionAvailable,
+  defaultOption,
+  relationTier,
+} from '../sim/world';
+import { buildingDefinitions, traitDefinitions } from '../sim/catalog';
+import type { Disciple } from '../sim/data';
 import {
   applyOffline,
   computeOffline,
@@ -38,10 +52,11 @@ export async function start() {
   let child: Window | null = null;
   let offline: OfflineSummary | null = null;
   let background = false;
+  let debugLastSeen = false;
   const loop = new FixedLoop();
   let previous = performance.now();
   const root = document.querySelector<HTMLDivElement>('#app')!;
-  root.innerHTML = `<div id="game"><header><div class="seal">仙</div><div><p class="eyebrow">宗门起居录 · 骨架试行</p><h1>模拟仙府</h1></div><span id="season"></span><nav><button id="small">小窗</button><button id="settings-open">设置</button><button id="save-open">存档</button></nav></header><section id="resources" class="resources" aria-label="宗门资源"></section><main><section class="disciples"><div class="section-head"><h2>山中门人</h2><span>各循其道，自有生息</span></div><div id="disciples"></div></section><aside><section class="map-panel"><div class="section-head"><h2>宗门山</h2><span>占位图</span></div><div id="map"></div><p class="caption">一脉青山，半卷人间。</p></section><section class="journal"><div class="section-head"><h2>山门纪事</h2><span>近事百条</span></div><div id="events"></div><ol id="logs"></ol></section></aside></main><footer>十秒一步 · 三十步一季 <span>按反引号隐藏 · 定期导出存档，留一份山门底册</span></footer></div><div id="cover" hidden><header><h1>季度工作台账</h1><span>内部资料 · 工作底稿</span></header><table><thead><tr><th>事项</th><th>负责人</th><th>进度</th><th>备注</th></tr></thead><tbody><tr><td>资料整理</td><td>项目组</td><td>已完成</td><td>归档备查</td></tr><tr><td>季度复核</td><td>综合组</td><td>进行中</td><td>等待反馈</td></tr></tbody></table></div><p id="notice" role="status"></p><dialog id="modal"><button id="close" class="close" aria-label="关闭">×</button><div id="modal-body"></div></dialog>`;
+  root.innerHTML = `<div id="game"><header><div class="seal">仙</div><div><p class="eyebrow">宗门起居录 · 数据与事件</p><h1>模拟仙府</h1></div><span id="season"></span><nav><button id="small">小窗</button><button id="settings-open">设置</button><button id="save-open">存档</button></nav></header><section id="resources" class="resources" aria-label="宗门资源"></section><main><section class="disciples"><div class="section-head"><h2>山中门人</h2><span>各循其道，自有生息</span></div><div id="disciples"></div></section><aside><section class="map-panel"><div class="section-head"><h2>宗门山</h2><span>占位图</span></div><div id="map"></div><p class="caption">一脉青山，半卷人间。</p></section><section class="buildings"><div class="section-head"><h2>山场营造</h2><span id="reputation"></span></div><div id="buildings"></div></section><section class="legacy"><h2>传承录</h2><div id="legacy"></div></section><section class="story"><button id="story-open">本局故事回顾</button></section><section class="journal"><div class="section-head"><h2>山门纪事</h2><span>近事百条</span></div><div id="events"></div><ol id="logs"></ol></section></aside></main><footer>十秒一步 · 三十步一季 <span>按反引号隐藏 · 定期导出存档，留一份山门底册</span></footer></div><div id="cover" hidden><header><h1>季度工作台账</h1><span>内部资料 · 工作底稿</span></header><table><thead><tr><th>事项</th><th>负责人</th><th>进度</th><th>备注</th></tr></thead><tbody><tr><td>资料整理</td><td>项目组</td><td>已完成</td><td>归档备查</td></tr><tr><td>季度复核</td><td>综合组</td><td>进行中</td><td>等待反馈</td></tr></tbody></table></div><p id="notice" role="status"></p><dialog id="modal"><button id="close" class="close" aria-label="关闭">×</button><div id="modal-body"></div></dialog>`;
   const el = <T extends HTMLElement = HTMLElement>(id: string) =>
     document.getElementById(id) as T;
   const dialog = el<HTMLDialogElement>('modal');
@@ -113,20 +128,62 @@ export async function start() {
   function render() {
     el('season').textContent =
       `第 ${world.round + 1} 季 · ${world.season} / ${(world.tick % C.stepsPerRound) + 1} 步${settings.speed > 1 ? ` · 调试 ×${settings.speed}` : ''}`;
-    el('resources').innerHTML = (
-      ['stone', 'herb', 'pill', 'reputation'] as const
-    )
+    el('resources').innerHTML = (['stone', 'herb', 'pill'] as const)
       .map(
         (key, i) =>
-          `<div><span>${['灵石', '灵草', '丹药', '声望'][i]}</span><strong>${fmt(world.resources[key])}</strong><small>${key === 'reputation' ? '宗门名望' : ` / ${world.capacity[key] * (world.buildings.find((b) => b.id === 'B_HALL')?.level ?? 1)}`}</small></div>`,
+          `<div><span>${['灵石', '灵草', '丹药', '声望'][i]}</span><strong>${fmt(world.resources[key])}</strong><small>${` / ${world.capacity[key] * (world.buildings.find((b) => b.id === 'B_HALL')?.level ?? 1)}`}</small></div>`,
       )
       .join('');
     el('disciples').innerHTML = world.disciples
       .map(
         (d) =>
-          `<article class="disciple"><div class="portrait">${escape(d.name.slice(-1))}</div><div class="disciple-body"><div class="name-line"><h3>${escape(d.name)}</h3><span>${d.ageSeasons / 4} 岁 · ${d.realm.major}${d.realm.layer}层</span></div><p class="detail">${d.root.grade} · ${d.root.elements.join('')} <span>${d.stage === '坐化' ? '已坐化' : d.state.behavior + ' · ' + d.state.location}</span></p><div class="needs">${(['energy', 'mood', 'drive'] as const).map((k, i) => `<label>${['精力', '心境', '道心'][i]} <meter min="0" max="100" value="${d.needs[k]}">${fmt(d.needs[k])}</meter></label>`).join('')}</div><div class="traits">${d.traits.map((t) => `<span>${escape(traitName(t))}</span>`).join('')}<small>修为 ${fmt(d.realm.xp)} · 余寿 ${d.remainingSeasons} 季</small></div></div></article>`,
+          `<article class="disciple"><div class="portrait" style="border:2px solid ${C.elements[d.root.elements[0]].color}">${escape(d.name.slice(-1))}<small>占位</small></div><div class="disciple-body"><div class="name-line"><h3>${escape(d.name)}</h3><span>${d.ageSeasons / 4} 岁 · ${d.stage} · ${d.realm.major}${d.realm.layer}层</span></div><p class="detail">${d.root.grade} · ${d.root.elements.join('')} <span>${d.stage === '坐化' ? '已坐化' : d.state.behavior + ' · ' + d.state.location}</span></p><div class="needs">${(['energy', 'mood', 'drive'] as const).map((k, i) => `<label>${['精力', '心境', '道心'][i]} <meter min="0" max="100" value="${d.needs[k]}">${fmt(d.needs[k])}</meter></label>`).join('')}</div><div class="traits">${d.traits.map((t) => `<span title="占位配饰：${escape(traitDefinitions.find((x) => x.id === t)?.accessory ?? t)}">◇ ${escape(traitName(t))}</span>`).join('')}<small>修为 ${fmt(d.realm.xp)} · 余寿 ${d.remainingSeasons} 季</small></div><label class="policy">方针 <select data-policy="${d.id}" aria-label="${escape(d.name)}的方针">${['均衡', '专修', '勤工'].map((p) => `<option ${p === d.policy ? 'selected' : ''}>${p}</option>`).join('')}</select></label><p class="relations">${Object.entries(
+            d.relations,
+          )
+            .map(
+              ([id, r]) =>
+                `${escape(world.disciples.find((x) => x.id === id)?.name ?? id)} ${relationTier(r.value)} ${r.tags.map(escape).join('·')}`,
+            )
+            .join(' / ')}</p></div></article>`,
       )
       .join('');
+    el('reputation').textContent = `声望 ${fmt(world.resources.reputation)}`;
+    el('buildings').innerHTML = buildingDefinitions
+      .map((def) => {
+        const b = world.buildings.find((b) => b.id === def.id),
+          order = buildingOrder(world, def.id);
+        return `<article><h3>${def.name} <small>${b?.level ? `Lv${b.level}` : '预留位'}</small></h3><p>${costText(order.cost)} · ${def.duration} 步</p>${b?.targetLevel ? `<progress value="${b.progress}" max="${def.duration}"></progress><small>建造 ${Math.floor((b.progress / def.duration) * 100)}%</small>` : `<button data-build="${def.id}" ${order.available ? '' : 'disabled'} title="${order.reason}">${order.reason || (b?.level ? '升级' : '建造')}</button>`}</article>`;
+      })
+      .join('');
+    el('legacy').innerHTML =
+      world.disciples
+        .filter((d) => d.stage === '坐化')
+        .map(
+          (d) =>
+            `<p>${escape(d.name)} · ${d.realm.major} · ${d.flags.薪火 ? '薪火' : '山门留名'}</p>`,
+        )
+        .join('') || '<p>青山仍在，故人未远。</p>';
+    el('story-open').hidden = !world.flags.storyReport;
+    document.querySelectorAll<HTMLSelectElement>('[data-policy]').forEach(
+      (select) =>
+        (select.onchange = () => {
+          setPolicy(
+            world,
+            select.dataset.policy!,
+            select.value as Disciple['policy'],
+          );
+          render();
+          void persist();
+        }),
+    );
+    document.querySelectorAll<HTMLButtonElement>('[data-build]').forEach(
+      (button) =>
+        (button.onclick = () => {
+          build(world, button.dataset.build!);
+          render();
+          void persist();
+        }),
+    );
     el('events').innerHTML =
       world.events
         .map(
@@ -151,12 +208,20 @@ export async function start() {
     if (!hidden) map?.draw(world);
     title();
     renderChild();
+    if (
+      world.flags.storyReport &&
+      !world.flags.reportRead &&
+      !dialog.open &&
+      innerWidth > 600 &&
+      !hidden
+    )
+      showStory();
   }
   function eventModal(id: string) {
     const event = world.events.find((e) => e.id === id);
     if (!event) return;
     show(
-      `<p class="eyebrow">山门来信</p><h2>${escape(event.hint)}</h2><p>${escape(event.text)}</p><div class="actions">${event.options.map((o, i) => `<button data-choice="${i}">${escape(o)}${i === event.defaultOption ? ' · 默认' : ''}</button>`).join('')}</div>`,
+      `<p class="eyebrow">◇ ${escape(event.kind)} · 图标占位</p><h2>${escape(event.hint)}</h2><p>${escape(event.text)}</p><div class="actions">${event.options.map((o, i) => `<button data-choice="${i}" ${optionAvailable(world, event, i) ? '' : 'disabled'}>${escape(o)}${i === (defaultOption(world, event) < 0 ? event.defaultOption : defaultOption(world, event)) ? ' · ★默认' : ''}<small>${costText(event.choices[i]?.cost ?? {})}${optionAvailable(world, event, i) ? '' : ' · 条件或资源不足'}</small></button>`).join('')}</div>`,
     );
     el('modal-body')
       .querySelectorAll<HTMLButtonElement>('[data-choice]')
@@ -166,15 +231,46 @@ export async function start() {
             resolveEvent(world, id, Number(b.dataset.choice));
             dialog.close();
             render();
+            if (
+              world.flags.storyReport &&
+              !world.flags.reportRead &&
+              innerWidth > 600
+            )
+              showStory();
             void persist();
           }),
       );
   }
+  function showStory() {
+    world.flags.reportRead = true;
+    const lines = ['A', 'B', 'C', 'D'].map(
+      (c, i) =>
+        `${['剑与书', '薪火', '冰与酒', '摸鱼仙'][i]}：${world.flags[`done:EV_${c}${c === 'D' ? 2 : 3}`] !== undefined ? '已完成' : '未完成'}`,
+    );
+    const favorite = [...world.disciples].sort(
+      (a, b) =>
+        Number(b.realm.major === '筑基') - Number(a.realm.major === '筑基') ||
+        b.realm.layer - a.realm.layer ||
+        b.realm.xp - a.realm.xp,
+    )[0];
+    show(
+      `<p class="eyebrow">山门卷宗</p><h2>本局故事回顾</h2><ul>${lines.map((t) => `<li>${t}</li>`).join('')}</ul><h3>本命弟子 · ${escape(favorite.name)}</h3><p>${favorite.root.grade} · ${favorite.realm.major}${favorite.realm.layer}层 · ${favorite.traits.map(traitName).join('、')}</p><p>山门升格，故事继续。</p>`,
+    );
+  }
+  el('story-open').onclick = showStory;
   function showOffline() {
     if (!offline) return;
     const s = offline;
     show(
-      `<p class="eyebrow">重返山门</p><h2>离线期间发生的事</h2><p>离线 ${(s.elapsedMs / 3600000).toFixed(2)} 小时，有效 ${(s.effectiveMs / 60000).toFixed(1)} 分钟，共 ${s.rounds} 轮。</p><p>灵石 +${fmt(s.resources.stone)} · 灵草 +${fmt(s.resources.herb)} · 丹药 ${fmt(s.resources.pill)} · 声望 +${fmt(s.resources.reputation)}</p><p>${s.clockRollback ? '检测到时钟回拨或无效时间，本次未补算。' : ''}${s.clamped === 'over7d' ? '已按七天上限结算。' : ''}${s.warehouseFull ? '库房已满，溢出资源已舍弃。' : ''}</p><ul>${s.hints.map((t) => `<li>${escape(t)}</li>`).join('')}</ul><p>离线不筑基、不坐化；年龄最多推进八季。</p><button id="offline-ok">已阅，回山</button>`,
+      `<p class="eyebrow">重返山门</p><h2>离线期间发生的事</h2><p>离线 ${(s.elapsedMs / 3600000).toFixed(2)} 小时，有效 ${(s.effectiveMs / 60000).toFixed(1)} 分钟，共 ${s.rounds} 轮。</p><p>灵石 +${fmt(s.resources.stone)} · 灵草 +${fmt(s.resources.herb)} · 丹药 ${fmt(s.resources.pill)} · 声望 +${fmt(s.resources.reputation)}</p><p>${s.clockRollback ? '检测到时钟回拨或无效时间，本次未补算。' : ''}${s.clamped === 'over7d' ? '已按七天上限结算。' : ''}${s.warehouseFull ? '库房已满，溢出资源已舍弃。' : ''}</p><ul>${[
+        ...s.relations,
+        ...s.hints,
+      ]
+        .slice(0, 10)
+        .map((t) => `<li>${escape(t)}</li>`)
+        .join(
+          '',
+        )}</ul><p>离线不筑基、不坐化；年龄最多推进八季。</p><button id="offline-ok">已阅，回山</button>`,
     );
     el('offline-ok').onclick = () => {
       offline = null;
@@ -201,7 +297,7 @@ export async function start() {
     loop.reset();
     previous = performance.now();
     render();
-    if (offline && window.innerWidth > 480) showOffline();
+    if (offline && window.innerWidth > 600) showOffline();
     void persist(backupOverride);
   }
   const active = () =>
@@ -211,13 +307,13 @@ export async function start() {
     if (next === background) return;
     background = next;
     if (next) {
-      lastSeen = Date.now();
+      if (!debugLastSeen) lastSeen = Date.now();
       void persist();
     } else catchUp();
   }
   document.addEventListener('visibilitychange', visibility);
   window.addEventListener('pagehide', () => {
-    if (!background) lastSeen = Date.now();
+    if (!background && !debugLastSeen) lastSeen = Date.now();
     void persist();
   });
   window.addEventListener('blur', () => {
@@ -232,7 +328,7 @@ export async function start() {
   window.addEventListener('keydown', keyHandler);
   el('settings-open').onclick = () => {
     show(
-      `<h2>山门设置</h2><form id="settings-form"><label>老板键<input name="bossKey" maxlength="20" value="${escape(settings.bossKey)}" required></label><label>自定义标题<input name="title" maxlength="40" value="${escape(settings.title)}" required></label><label><input type="checkbox" name="hideOnBlur" ${settings.hideOnBlur ? 'checked' : ''}> 失焦自动隐藏</label><label><input type="checkbox" name="sound" ${settings.sound ? 'checked' : ''}> 声音（预留开关，当前无音频）</label><label>加速调试（默认一倍，仅前台）<input type="number" name="speed" min="1" max="300" value="${settings.speed}" required></label><button>保存设置</button></form>`,
+      `<h2>山门设置</h2><form id="settings-form"><label>老板键<input name="bossKey" maxlength="20" value="${escape(settings.bossKey)}" required></label><label>自定义标题<input name="title" maxlength="40" value="${escape(settings.title)}" required></label><label><input type="checkbox" name="hideOnBlur" ${settings.hideOnBlur ? 'checked' : ''}> 失焦自动隐藏</label><label><input type="checkbox" name="autoMaster" ${world.flags.autoMaster !== false ? 'checked' : ''}> 自动掌门（按节奏排建造）</label><label><input type="checkbox" name="sound" ${settings.sound ? 'checked' : ''}> 声音（预留开关，当前无音频）</label><label>加速调试（默认一倍，仅前台）<input type="number" name="speed" min="1" max="300" value="${settings.speed}" required></label><button>保存设置</button></form>`,
     );
     el<HTMLFormElement>('settings-form').onsubmit = (e) => {
       e.preventDefault();
@@ -241,6 +337,8 @@ export async function start() {
       settings.title = String(form.get('title'));
       settings.hideOnBlur = form.has('hideOnBlur');
       settings.sound = form.has('sound');
+      world.flags.autoMaster = form.has('autoMaster');
+      void persist();
       settings.speed = Number(form.get('speed'));
       try {
         storeSettings(settings);
@@ -353,6 +451,31 @@ export async function start() {
       }
     })();
   };
+  if (new URLSearchParams(location.search).get('debug') === '1') {
+    const hook = {
+      world: () => structuredClone(world),
+      advance: (steps: number) => {
+        advance(world, steps);
+        render();
+      },
+      save: async () => {
+        await manager.write(snapshot(world, lastSeen));
+      },
+      setLastSeen: async (value: number) => {
+        debugLastSeen = true;
+        lastSeen = value;
+        await manager.write(snapshot(world, lastSeen));
+      },
+      export: () => JSON.stringify(snapshot(world, lastSeen)),
+      reset: () => {
+        world = createWorld(42, loadData());
+        lastSeen = Date.now();
+        offline = null;
+        render();
+      },
+    };
+    Object.assign(window, { __xianfu: hook });
+  }
   if (loaded.recovered) notice('主档损坏，已从备份恢复。请及时导出。');
   void navigator.storage?.persist?.().catch(() => false);
   catchUp();
@@ -362,7 +485,7 @@ export async function start() {
     if (!background) {
       const before = world.tick;
       loop.advance(now - previous, settings.speed, () => step(world));
-      lastSeen = Date.now();
+      if (!debugLastSeen) lastSeen = Date.now();
       if (world.tick !== before) render();
     }
     previous = now;
