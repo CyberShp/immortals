@@ -101,6 +101,6 @@ it('building labels rise at most 20 and fade when any head still overlaps', () =
     { x: 0, y: 0, width: 20, height: 50 },
   ]);
   expect(blocked.rise).toBe(20);
-  expect(blocked.alpha).toBe(0.35);
+  expect(blocked.alpha).toBe(0);
   expect(avoidDiscipleHeads(box, []).alpha).toBe(1);
 });

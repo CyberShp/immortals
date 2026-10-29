@@ -8,6 +8,9 @@ import {
   alongPath,
   WALK_SPEED,
   walkable,
+  worldMap,
+  inFootprint,
+  walkTimeSeconds,
 } from '../src/render/world';
 import manifest from '../public/assets/manifest.json';
 
@@ -205,7 +208,9 @@ describe('map orchestration without browser/GPU', () => {
     });
     for (const [request] of vi.mocked(Assets.load).mock.calls)
       expect(request).toMatchObject({ data: { resolution: 1 } });
-    const sprite = disciple().children[1] as Sprite;
+    const sprite = disciple().children.find(
+      (n) => n instanceof Sprite,
+    ) as Sprite;
     expect(
       sprite.scale.y *
         manifest.files.find((f) => f.file === 'disciple/meditate-96@2x.webp')!
@@ -239,7 +244,9 @@ describe('map orchestration without browser/GPU', () => {
     expect(mock.frames.size).toBe(0);
     mock.now = 60000;
     map.draw(w);
-    expect(disciple().position.x).toBeCloseTo(to[0]);
+    expect(window.__mapStats.disciples[0].x).toBeCloseTo(to[0]);
+    expect(window.__mapStats.disciples[0].alpha).toBe(0);
+    expect(disciple()).toBeUndefined();
     expect(mock.frames.size).toBe(0);
     map.destroy();
   });
@@ -259,17 +266,19 @@ describe('map orchestration without browser/GPU', () => {
     const map = await createMap(host),
       w = world();
     map.draw(w);
-    expect((disciple().children[1] as Sprite).scale.y).toBe(0.25);
+    expect(
+      (disciple().children.find((n) => n instanceof Sprite) as Sprite).scale.y,
+    ).toBe(0.25);
     const name = scene().children.find((n) => n.zIndex === 3000)!;
     expect(name).toMatchObject({
       alpha: 1,
-      options: { style: { fontSize: 21 } },
+      options: { style: { fontSize: 16 } },
     });
     for (const label of scene().children.filter((n) => n.zIndex === 2000)) {
       expect(label).toMatchObject({
         options: {
           style: {
-            fontSize: 22,
+            fontSize: 18,
             fill: 0xffffff,
             stroke: { color: 0x263f34, width: 2 },
           },
@@ -337,7 +346,9 @@ it.each([false, true])(
     map.draw(createWorld(42, loadData()));
     expect(scene().children.some((n) => n.zIndex === 2500)).toBe(false);
     expect(window.__mapStats.rings).toBe(6);
-    expect(window.__mapStats.nameLabels).toBe(6);
+    expect(window.__mapStats.nameLabels).toBe(
+      scene().children.filter((n) => n.zIndex === 3000 && n.alpha > 0).length,
+    );
     expect(window.__mapStats.minHeadVisibility).toBeGreaterThanOrEqual(0.6);
     map.destroy();
   },
@@ -365,7 +376,7 @@ it('compact hides building labels and shows only disciple dots and initials', as
   map.destroy();
 });
 it.each([false, true])(
-  'garden is a ground layer including fallback (%s)',
+  'garden follows its foot depth including fallback (%s)',
   async (fail) => {
     mock.fail = fail;
     vi.spyOn(console, 'warn').mockImplementation(() => {});
@@ -384,10 +395,14 @@ it.each([false, true])(
     w.disciples[0].state.location = '药圃';
     map.draw(w);
     expect(
-      scene().children.filter((n) => n.zIndex > -500 && n.zIndex < -499),
+      scene().children.filter(
+        (n) =>
+          n.zIndex === worldMap.slots.find((s) => s.id === 'B_GARDEN')!.rect[3],
+      ),
     ).toHaveLength(1);
     const garden = scene().children.find(
-      (n) => n.zIndex > -500 && n.zIndex < -499,
+      (n) =>
+        n.zIndex === worldMap.slots.find((s) => s.id === 'B_GARDEN')!.rect[3],
     ) as Container;
     if (!fail) {
       expect(garden.position.x).toBeCloseTo(2616.24);
@@ -444,7 +459,12 @@ for (const [search, multiplier] of [
       w = world();
     map.draw(w);
     const trip = map.walkDormToHall(w.disciples[0].id);
-    expect(trip.duration * multiplier).toBeCloseTo(9881.20058494918);
+    expect(trip.duration * multiplier).toBeCloseTo(
+      walkTimeSeconds(
+        worldMap.slots.find((s) => s.id === 'B_DORM')!.entrance,
+        worldMap.slots.find((s) => s.id === 'B_HALL')!.entrance,
+      ) * 1000,
+    );
     mock.now = trip.duration;
     const [id, callback] = [...mock.frames][0];
     mock.frames.delete(id);
@@ -462,7 +482,9 @@ it('injury keeps the disciple opaque and adds a separate dashed ring until heale
   map.draw(w);
   expect(disciple().alpha).toBe(1);
   const injuredChildren = disciple().children.length;
-  expect((disciple().children[1] as Sprite).alpha).toBe(1);
+  expect(
+    (disciple().children.find((n) => n instanceof Sprite) as Sprite).alpha,
+  ).toBe(1);
   w.disciples[0].state.injuredUntil = 0;
   map.draw(w);
   expect(disciple().alpha).toBe(1);
@@ -497,7 +519,7 @@ it.each([0, 60, 600])(
               scale,
           y: group.position.y - entry.anchor.y * scale,
           width: entry.size[0] * scale,
-          height: entry.size[1] * scale * 0.35,
+          height: entry.size[1] * scale,
         },
       ];
     });
@@ -508,15 +530,127 @@ it.each([0, 60, 600])(
       const text = (label as unknown as { options: { text: string } }).options
         .text;
       const box = {
-        x: label.position.x - text.length * 11,
+        x: label.position.x - text.length * 9,
         y: label.position.y - 2,
-        width: text.length * 22 + 8,
-        height: 34,
+        width: text.length * 18 + 8,
+        height: 28,
       };
-      expect([1, 0.35]).toContain(label.alpha);
+      expect([1, 0]).toContain(label.alpha);
       if (label.alpha === 1)
         for (const head of heads) expect(intersects(box, head)).toBe(false);
     }
     map.destroy();
   },
 );
+
+it('Clean1 actual motion controller samples 3 seeds, idle/work, interruptions and arrivals for 1200 seconds each', async () => {
+  let samples = 0,
+    arrivals = 0;
+  for (const seed of [1, 42, 2026]) {
+    const map = await createMap(host),
+      w = createWorld(seed, loadData());
+    map.draw(w);
+    for (let frame = 0; frame < 4800; frame++) {
+      mock.now += 250;
+      if (frame % 40 === 0) {
+        advance(w, 1);
+        // Alternate normal sim with deliberate idle and shared-building entrance trips.
+        if (frame % 800 < 400)
+          for (const d of w.disciples) {
+            d.state.behavior = frame % 800 < 200 ? '社交' : '做工';
+            d.state.location = frame % 800 < 200 ? '空地' : '主殿';
+            d.state.awayUntil = 0;
+          }
+        map.draw(w);
+      }
+      for (const [id, callback] of [...mock.frames]) {
+        mock.frames.delete(id);
+        callback(mock.now);
+      }
+      for (const d of window.__mapStats.disciples) {
+        expect(walkable([d.x, d.y]), `${seed}/${frame}/${d.id}`).toBe(true);
+        expect(
+          worldMap.slots.some((s) => inFootprint([d.x, d.y], s.footprint)),
+        ).toBe(false);
+        expect(d.z).toBe(d.y);
+        if (d.alpha === 0) arrivals++;
+        samples++;
+      }
+    }
+    map.destroy();
+    mock.frames.clear();
+  }
+  expect(samples).toBeGreaterThan(50000);
+  expect(arrivals).toBeGreaterThan(0);
+}, 60000);
+
+it('gate motion traverses the portal with foot sorting behind and in front of the source-art foreground', async () => {
+  vi.stubGlobal('location', { search: '?debug=1' });
+  const map = await createMap(host),
+    w = world();
+  map.draw(w);
+  const hooks = window as unknown as {
+    __gateWalk: (id: string) => {
+      from: number[];
+      to: number[];
+      duration: number;
+    };
+  };
+  const trip = hooks.__gateWalk(w.disciples[0].id);
+  let behind = 0,
+    front = 0,
+    passage = 0;
+  const gateSlot = worldMap.slots.find((s) => s.id === 'B_GATE')!;
+  for (let i = 0; i <= 240; i++) {
+    mock.now = (trip.duration * i) / 240;
+    for (const [id, cb] of [...mock.frames]) {
+      mock.frames.delete(id);
+      cb(mock.now);
+    }
+    const d = window.__mapStats.disciples[0];
+    expect(walkable([d.x, d.y])).toBe(true);
+    expect(inFootprint([d.x, d.y], gateSlot.footprint)).toBe(false);
+    expect(d.x).toBe(1566);
+    const gate = scene().children.find(
+      (n) =>
+        n instanceof Sprite &&
+        (n.texture as unknown as { src: string }).src.includes(
+          'gate-foreground',
+        ),
+    )!;
+    expect(gate.zIndex).toBe(1190);
+    expect(disciple().zIndex).toBe(d.y);
+    for (const label of scene().children.filter(
+      (n) => n.zIndex === 3000 && n.alpha > 0,
+    )) {
+      const name = (label as unknown as { options: { text: string } }).options
+        .text;
+      const width = Array.from(name).length * 16 + 4;
+      const box = {
+        x: label.position.x - width / 2,
+        y: label.position.y,
+        width,
+        height: 20,
+      };
+      expect(
+        intersects(box, { x: 1470, y: 1060, width: 220, height: 150 }),
+      ).toBe(false);
+      expect(box.y + box.height).toBeCloseTo(d.y - 96 * 0.7 - 8);
+    }
+
+    if (d.y < 1190) {
+      expect(disciple().zIndex).toBeLessThan(gate.zIndex);
+      behind++;
+    }
+    if (d.y > 1190) {
+      expect(disciple().zIndex).toBeGreaterThan(gate.zIndex);
+      front++;
+    }
+    if (d.y >= 1130 && d.y <= 1200) passage++;
+  }
+  expect(behind).toBeGreaterThan(0);
+  expect(front).toBeGreaterThan(0);
+  expect(passage).toBeGreaterThan(50);
+  expect(window.__mapStats.disciples[0].y).toBe(trip.to[1]);
+  map.destroy();
+});

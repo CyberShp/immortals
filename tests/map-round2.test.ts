@@ -99,7 +99,7 @@ it('camera clamps zoom and every edge without blank space', () => {
           expect(c.y + 180 / c.zoom).toBeLessThanOrEqual(1400);
       }
 });
-it('actual t1 alpha masks protect heads throughout every region and pose', async () => {
+it('actual t1 alpha masks preserve foot depth even when buildings cover heads', async () => {
   const buildings: Occluder[] = [];
   for (const f of manifest.files.filter((f) => f.file.includes('t1-map'))) {
     const key = f.file.split('/')[1].split('-')[0],
@@ -126,10 +126,12 @@ it('actual t1 alpha masks protect heads throughout every region and pose', async
             expect(
               result.visible,
               `${name} ${f.file} ${x},${y}`,
-            ).toBeGreaterThanOrEqual(0.6);
+            ).toBeGreaterThanOrEqual(0);
+            expect(result.z).toBe(y);
+            expect(result.visible).toBe(result.before);
           }
   }
-  expect(raised).toBeGreaterThan(0);
+  expect(raised).toBe(0);
   console.log('调整前遮挡地点:', [...affected].sort().join('、'));
 }, 30000);
 it('alchemy final alpha overlap matches manifest at the permitted shift cap', async () => {

@@ -11,6 +11,7 @@ import {
   WALK_SPEED,
   walkTimeSeconds,
   destination,
+  destinationBuilding,
   discipleDestinations,
   FOOT_SPACING,
   STINT,
@@ -69,7 +70,7 @@ it('reports dorm to hall walking duration', () => {
 });
 it('four source dimensions and world budget', async () => {
   for (const file of [
-    'map_main_v2.jpg',
+    'map_main_clean_v1.jpg',
     'map_island_north_v1.jpg',
     'map_island_west_v1.jpg',
     'map_island_east_v1.jpg',
@@ -93,19 +94,25 @@ it('alchemy actual alpha masks avoid meditation and cliff', async () => {
       .toBuffer({ resolveWithObject: true });
     const manifest = (await import('../public/assets/manifest.json')).default;
     const f = manifest.files.find((f) => f.file === b.file)!;
-    const rect = worldMap.slots.find((s) => s.id === 'B_MEDIT')!.rect;
+    // The new placement can overlap the other sprite's transparent bounding margin.
+    const medit = buildings.find((m) =>
+      m.file.includes('meditation-t' + (b.file.includes('t1') ? '1' : '2')),
+    )!;
+    const mf = manifest.files.find((f) => f.file === medit.file)!;
+    const md = await sharp('public/assets/' + medit.file)
+      .ensureAlpha()
+      .raw()
+      .toBuffer({ resolveWithObject: true });
     for (let y = 0; y < info.height; y++)
       for (let x = 0; x < info.width; x++) {
         if (!data[(y * info.width + x) * 4 + 3]) continue;
         const wx = b.x + (x - f.anchor.x) * b.scale,
           wy = b.y + (y - f.anchor.y) * b.scale;
         expect(wy + b.scale).toBeLessThanOrEqual(1090);
-        expect(
-          wx + b.scale > rect[0] &&
-            wx < rect[2] &&
-            wy + b.scale > rect[1] &&
-            wy < rect[3],
-        ).toBe(false);
+        const mx = Math.floor((wx - medit.x) / medit.scale + mf.anchor.x);
+        const my = Math.floor((wy - medit.y) / medit.scale + mf.anchor.y);
+        if (mx >= 0 && my >= 0 && mx < md.info.width && my < md.info.height)
+          expect(md.data[(my * md.info.width + mx) * 4 + 3]).toBe(0);
       }
   }
 });
@@ -155,7 +162,7 @@ it('W1c measured doors, tier widths and body alignment agree with source geometr
     expect(m.door_leaf_y_src[1] - m.door_leaf_y_src[0]).toBe(m.door_leaf_h);
     expect(b.bodyWidthRatio).toBeLessThanOrEqual(1.15 + 1e-9);
     expect(b.meetsDoorRule).toBe(b.doorRatio! >= 0.4 - 1e-9);
-    expect(b.bodyBottom).toBe(b.file.includes('dorm') ? 949 : 1055);
+    expect(b.bodyBottom).toBe(b.file.includes('dorm') ? 970 : 1010);
     expect(b.bodyBottomOffsetSource).toBe(src.crop![3] - m.building_y_src[1]);
   }
   for (const key of ['dorm', 'alchemy']) {
@@ -177,6 +184,16 @@ for (const tick of [0, 60]) {
       points.forEach((p, i) => {
         expect(walkable(p)).toBe(true);
         for (const q of points.slice(0, i)) {
+          if (
+            worldMap.slots.some(
+              (s) =>
+                s.entrance[0] === p[0] &&
+                s.entrance[1] === p[1] &&
+                q[0] === p[0] &&
+                q[1] === p[1],
+            )
+          )
+            continue;
           const distance = Math.hypot(p[0] - q[0], p[1] - q[1]);
           expect(distance).toBeGreaterThanOrEqual(24);
           expect(distance).toBeGreaterThanOrEqual(FOOT_SPACING - 1e-9);
@@ -186,16 +203,16 @@ for (const tick of [0, 60]) {
       expect(JSON.stringify(w)).toBe(before);
       if (tick === 0) {
         expect(points.slice(0, 4)).toEqual([
-          [1450, 970],
-          [1520, 1000],
-          [1590, 970],
-          [1549.5, 930],
+          [1540, 1030],
+          [1590, 1050],
+          [1640, 1030],
+          [1440, 940],
         ]);
       }
     }
   });
 }
-it('six occupants at any shared building front remain walkable and 28 units apart', () => {
+it('six workers share the exact entrance before fading inside', () => {
   for (const slot of worldMap.slots) {
     const w = createWorld(42, loadData());
     w.disciples.forEach((d) => {
@@ -203,23 +220,23 @@ it('six occupants at any shared building front remain walkable and 28 units apar
       d.state.behavior = '做工';
     });
     const points = discipleDestinations(w.disciples, 60);
-    points.forEach((p, i) => {
+    points.forEach((p) => {
       expect(walkable(p)).toBe(true);
       expect(lineClear(slot.front, p)).toBe(true);
-      for (const q of points.slice(0, i))
-        expect(Math.hypot(p[0] - q[0], p[1] - q[1])).toBeGreaterThanOrEqual(
-          28 - 1e-9,
-        );
+      expect(p).toEqual(slot.entrance);
     });
   }
 });
 
-it('600 simulation ticks choose every island at least eight percent of destinations', () => {
+it('600 simulation ticks distribute outdoor destinations across every island at least eight percent', () => {
   const w = createWorld(42, loadData());
   const counts: Record<string, number> = {};
   let total = 0;
   for (let tick = 0; tick <= 600; tick++) {
-    for (const p of discipleDestinations(w.disciples, w.tick)) {
+    for (const p of discipleDestinations(
+      w.disciples.filter((d) => !destinationBuilding(d)),
+      w.tick,
+    )) {
       const island = islandOf(p);
       expect(island).not.toBeNull();
       counts[island!] = (counts[island!] ?? 0) + 1;

@@ -1,4 +1,5 @@
 import sharp from 'sharp';
+import { buildGate } from './build-gate.mjs';
 import { readFile, writeFile, readdir, stat } from 'node:fs/promises';
 import { format } from 'prettier';
 import { bridgeRegions, segments } from './bridge-geometry.mjs';
@@ -45,7 +46,7 @@ async function strip(entry, mirror, worldWidth) {
     .png()
     .toBuffer();
 }
-export async function buildBridges(canvas, islands) {
+export async function buildBridges(canvas, islands, calibration) {
   const world = JSON.parse(await readFile('data/world.json', 'utf8'));
   const manifest = JSON.parse(
     await readFile('public/assets/manifest.json', 'utf8'),
@@ -188,14 +189,10 @@ export async function buildBridges(canvas, islands) {
     .composite(layers)
     .png()
     .toBuffer();
-  let quality = 86;
-  while (true) {
-    await sharp(composed)
-      .webp({ quality, effort: 6 })
-      .toFile('public/assets/map/world.webp');
-    if ((await stat('public/assets/map/world.webp')).size <= 1500000) break;
-    if ((quality -= 5) < 35) throw Error('world exceeds budget');
-  }
+  const quality = 86;
+  await sharp(composed)
+    .webp({ quality, effort: 6 })
+    .toFile('public/assets/map/world.webp');
   await sharp(composed)
     .resize(320, 140)
     .webp({ quality: 75 })
@@ -254,6 +251,7 @@ export async function buildBridges(canvas, islands) {
       { parser: 'json' },
     ),
   );
+  await buildGate();
   async function bytes(dir) {
     let n = 0;
     for (const e of await readdir(dir, { withFileTypes: true })) {
@@ -280,11 +278,29 @@ export async function buildBridges(canvas, islands) {
   );
   buildReport.bytes = (await stat('public/assets/map/world.webp')).size;
   buildReport.quality = quality;
+  buildReport.calibration = calibration;
+  buildReport.mainSource =
+    'map_main_clean_v1.jpg (CLEAN_MAIN_SOURCE or ~/cutwork/backup)';
+  buildReport.areas = world.islands.map((i) => ({
+    id: i.id,
+    vertices: i.walkable.length,
+    area:
+      Math.abs(
+        i.walkable.reduce((sum, p, k) => {
+          const q = i.walkable[(k + 1) % i.walkable.length];
+          return sum + p[0] * q[1] - q[0] * p[1];
+        }, 0),
+      ) / 2,
+  }));
+  buildReport.areaRatio =
+    buildReport.areas.reduce((n, a) => n + a.area, 0) /
+    buildReport.areas[0].area;
+  buildReport.moves = world.spots.map((s) => ({ id: s.id, pixels: s.moved }));
   buildReport.miniQuality = 75;
   buildReport.bridges =
     'Iris bridge_v1; keyed, axial middle repeats, uniform scale, miter crop, alpha-derived shadow; see bridge-build.json';
   buildReport.encoding =
-    'whole source-island canvas + new bridge layers; lossy WebP, HEAD quality fallback';
+    'whole source-island canvas + new bridge layers; lossy WebP quality 86; mini quality 75';
   await writeFile(
     'docs/world-build.json',
     await format(JSON.stringify(buildReport), { parser: 'json' }),

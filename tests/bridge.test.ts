@@ -1,5 +1,6 @@
 import { expect, it } from 'vitest';
 import sharp from 'sharp';
+import { homedir } from 'node:os';
 import { readFile } from 'node:fs/promises';
 import { execFileSync } from 'node:child_process';
 import manifest from '../public/assets/manifest.json';
@@ -62,7 +63,7 @@ it('Iris shore anchors are fixed and both ends have source-island overlap of exa
   for (const island of worldMap.islands) {
     const source =
       island.id === 'main'
-        ? 'public/assets/map/base@2x.webp'
+        ? homedir() + '/cutwork/backup/map_main_clean_v1.jpg'
         : `/Volumes/Media/immortal-qa/design/art/concept/map_island_${island.id}_v1.jpg`;
     originals.set(
       island.id,
@@ -201,6 +202,10 @@ it('whole-image lossy encoding preserves outside-bridge pixels within codec tole
     let changedInside = 0;
     for (let y = 0; y < before.info.height; y++)
       for (let x = 0; x < before.info.width; x++) {
+        const factor = name === 'world' ? 1 : 10;
+        // Clean1 intentionally replaces the main source rectangle; preserve all other islands.
+        if (x >= 940 / factor && x < 2240 / factor && y >= 610 / factor)
+          continue;
         const inside = regions.some(
           (r) =>
             x >= r.left &&
@@ -327,14 +332,12 @@ it('north right rail survives middle cropping, rotation and lower-half repetitio
   expect(report.northRail.toY - report.northRail.fromY + 1).toBe(114);
   expect(report.northRail.missingRows).toEqual([]);
 });
-it('all non-bridge world.json bytes match the pinned pre-Bridge1 revision', async () => {
-  const before = execFileSync(
-    'git',
-    ['show', `${report.baselineCommit}:data/world.json`],
-    { encoding: 'utf8' },
-  );
+it('Clean1 preserves bridge and other-island geometry bytes from HEAD', async () => {
+  const before = execFileSync('git', ['show', 'HEAD:data/world.json'], {
+    encoding: 'utf8',
+  });
   const after = await readFile('data/world.json', 'utf8');
-  const withoutBridges = (s: string) =>
-    s.replace(/  "bridges": \[[\s\S]*?\n  "slots":/, '  "slots":');
-  expect(withoutBridges(after)).toBe(withoutBridges(before));
+  const fixed = (s: string) =>
+    s.slice(s.indexOf('    {\n      "id": "north"'), s.indexOf('  "slots":'));
+  expect(fixed(after)).toBe(fixed(before));
 });

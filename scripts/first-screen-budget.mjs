@@ -13,6 +13,7 @@ const paths = new Set([
     .map((f) => `assets/${f.file}`),
   'assets/map/world.webp',
   'assets/map/world-mini.webp',
+  'assets/map/gate-foreground.webp',
   ...['stone', 'herb', 'pill', 'fame'].map(
     (n) => `assets/icon/resource-${n}-32@2x.webp`,
   ),

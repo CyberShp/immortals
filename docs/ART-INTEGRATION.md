@@ -118,3 +118,45 @@ node scripts/e2e.mjs http://127.0.0.1:4173 --bridges
 新增截图保存于 `/Volumes/Media/GrokBot/workspace/xianfu-bridge-panorama.png` 和 `xianfu-bridge-cross-{north,west,east}.png`。可用 `BRIDGE_SCREENSHOT_DIR=/tmp` 改目录。沿用真实寻路/移动采样，将相机放大至 1.5；截图前后要求同一弟子仍在对应桥的离岛段，否则重试，并把两次位置写入 e2e-report 的 `bridgeScreenshots`。三个截图缺任一个即失败；现有 bridgeCrossings 与其他检查保留。
 
 `--bridges` 仅执行现有岛间移动验收和新增截图，报告写至同目录 `xianfu-bridge-report.json`；无该参数执行完整 e2e。主图实测 280,714 字节（quality 86）；首屏预算通过 `node scripts/first-screen-budget.mjs` 检查，静态上界为 1,390,133 字节（39 个文件，包含全部构建 bundle，限额 2,500,000 字节），不替代浏览器 Resource Timing 或完整 e2e。本次仍未启动浏览器。
+
+### Clean1（2026-10-29；B 方案、山门通道与名牌）
+
+主岛改用 `~/cutwork/backup/map_main_clean_v1.jpg`（测试比对 design 原图 SHA-256，只读）；`CLEAN_MAIN_SOURCE` 可覆盖来源。`scripts/clean-main-geometry.json` 保存新草地可走多边形、真实树石障碍及包含崖壁的外轮廓。主岛外轮廓向外羽化 12px，清除外围奶油底；其余三岛及 bridges 几何逐字保留。重测主岛地形是本任务明确授权的几何扩展。世界图有损 quality 86 / effort 6，小地图维持 320×140 / quality 75；取消降质量兜底，预算不变。
+
+主殿保留本地 (490,310)，居舍 (310,350)、静修室 (860,280)、炼丹房 (790,390)，聚会中心 (640,430)，药圃仍在东岛。`scripts/clean-building-scales.json` 固定改动前两个等级的缩放；prebuild 只重算放置与测量，不再反复向 STATUS 追加大段记录。未建位置保留标签及原有交互，不画虚构石框。所有 slot 新增世界坐标 footprint/entrance；药圃保留整个地面占用范围。
+
+主殿采用已确认的 B 方案：位置 (490,310)、两个等级缩放和完整脚印均不变，空路为本地 x=605–700、y=115–430。脚印最右缘 x=603.5，距走廊左边 1.5px。测试同时锁定主殿 rect/footprint、走廊不与任何脚印相交、北桥头至广场中心寻路可达和直线可通行。
+
+山门沿用新底图绘制，仅将原有像素重新分层。逻辑 slot 的 rect/锚点 (619,512) 保留；按图上墙柱量取两翼碰撞矩形：本地 [533,510,589,568] 与 [643,519,702,580]，中心净通道 x=589–643（54px，接近要求的约 60px）。入口改为台阶前的 (616,580)。`slots[].footprint` 兼容单矩形和矩形数组，统一由 `footprintRects` / `inFootprint` 读取；寻路边界、长时间采样、e2e 和静态预览同步处理两翼。
+
+`scripts/clean-gate-art.json` 记录原画裁切范围、遮挡多边形与脚底深度；`scripts/build-gate.mjs` 从最终 world.webp 裁切并抠出屋顶、门楣、立柱和侧翼，生成无损 `map/gate-foreground.webp`，不生成或补画美术像素。门洞透明，所有不透明 RGB 像素与原世界图逐字节相等。该前景以世界脚底 y=1190 排序：北侧弟子被门楣/柱遮住，走到前方后自然盖在前景之前，角色 z 不提升。底图仍在原位，两层不透明像素完全对齐，视觉上是一座山门。测试覆盖南北中心线、两翼密集采样、真实运动控制器 240 帧穿门及前后排序；debug `__gateWalk` 仅修改表现层路线。
+
+建筑阴影为 Pixi 多层深褐椭圆，宽为本体底宽×1.05，高为宽×0.18，中心下移 3px，重叠中心 alpha 约 27.6%，统一在地面之上、建筑之下。弟子脚下同色软阴影；灵根圆环 22×7、alpha 0.6，打坐阴影宽 26。建筑按脚底排序，移除“头部被挡就抬到建筑前面”的提升逻辑。所有去建筑的行为（含居舍休息、静修）以入口为终点，抵达后 350ms 淡出；离开时从入口走出。共享入口允许多位弟子进入，室外落点仍分散。移除已进入者的名字和点击区域。
+
+寻路使用 slot 脚印作为闭区间障碍。原先每 2px 采样 lineClear 会漏掉短拐角穿越，现按所有多边形边界交点切分线段再检查，并拒绝擦过建筑脚印边角。真实表现层运动控制器用 3 种 seed 各采样 1,200 秒（每 250ms 一帧），覆盖闲逛、进门、途中改道与插值；另测试入口/资源点、所有桥头、新图源哈希、两级缩放与炼丹房 alpha 底边。炼丹房底边本地 y≈391/396，逐列底部 alpha 像素到保守草地边界最小距离约 100.7/105.6px，不越悬崖；其右侧仍靠近画死的石头，保留静态预览供视觉判断。
+
+弟子名牌字号从 21 降到 16，固定在人物头顶上方 8 个世界单位，保持水平居中；固定位置若撞到任一建筑图（含山门屋顶）、其他弟子身体或已显示名牌，则暂时隐藏，空出后恢复，文字不漂移。建筑牌字号 22→18，检查人物完整身体而非仅头部；向上让位 20px 仍冲突就隐藏。测试覆盖固定偏移、字号、建筑屋顶、身体/名牌互斥，以及穿门时名牌避让。
+
+本次静态结果：build、lint、2.5MB 首屏预算通过；全量 vitest 298/298，四组 sim 与 `~/cutwork/baseline368/` 逐字一致。首屏清单新增山门前景文件，限额不变；最终字节数以 `node scripts/first-screen-budget.mjs` 为准。旧 Bridge1 图像差分仅排除明确替换的主岛范围，其他区域沿用原阈值。外部生成的 `docs/screenshots/e2e-report.json` 按授权仅修正 Prettier 格式，不作为本次浏览器结果。
+
+静态组合预览：`node scripts/clean-preview.mjs` → `/tmp/xianfu-clean-preview.png`（原素材合成；红框脚印、绿点入口、蓝线可走区、绿框走廊、橙色树石障碍）。没有用脚本生成建筑/地形美术像素。桥头源像素和可走性断言通过，静态图三桥均接草地；北桥直角接岸、栏杆透视与羽化崖壁仍需外部 Chrome 实看。
+
+本次没有启动浏览器、提交或推送。外部验收：
+
+```sh
+npm run build
+npm run preview -- --host 127.0.0.1 --port 4173
+# 另一终端
+node scripts/e2e.mjs http://127.0.0.1:4173 --clean
+```
+
+`--clean` 在两级建筑下分别采样 1,200 帧（walkScale=8），检查脚印、实际弟子 z、建筑屏幕包围盒中的后方遮挡、入口消失，输出 `/Volumes/Media/GrokBot/workspace/xianfu-clean-{panorama,main,disciples-48}.png` 与 `xianfu-clean-report.json`；`CLEAN_SCREENSHOT_DIR` 可覆盖目录。长时采样后额外驱动一名弟子穿过门洞，记录 `portalSamples/gateBehind/gateFront` 并验证两翼和深度关系。三张截图统一关闭弹窗、等待重绘并前后断言无可见 dialog/overlay。截图另开冻结场景：32-unit 精灵在 1.5 倍相机下约 48 CSS px，按实际位置裁 600×360 近景，检查完整弟子、打坐与入口附近落点；正式缩放不变。浏览器结果待外部运行，不以静态预览替代 GPU 验收。
+
+Clean1 改动文件清单：
+
+- 几何：`data/world.json`、`scripts/clean-main-geometry.json`、`scripts/clean-building-scales.json`、`scripts/clean-gate-art.json`。
+- 生成脚本：`scripts/build-world.mjs`、`scripts/build-bridges.mjs`、`scripts/world-buildings.mjs`、`scripts/clean-preview.mjs`、`scripts/build-gate.mjs`、`scripts/first-screen-budget.mjs`。
+- 表现与寻路：`src/render/map.ts`、`src/render/world.ts`、`src/render/visibility.ts`、`src/render/layout.ts`。
+- 验证：`scripts/e2e.mjs`、`tests/clean.test.ts`、`tests/world.test.ts`、`tests/map.test.ts`、`tests/map-round2.test.ts`、`tests/bridge.test.ts`、`tests/clean-names.test.ts`、`tests/clean-screenshots.test.mjs`、`tests/map-final.test.ts`。
+- 生成产物：`public/assets/map/world.webp`、`public/assets/map/world-mini.webp`、`public/assets/manifest.json`、`docs/bridge-build.json`、`docs/world-build.json`、`docs/world-buildings.json`、`public/assets/map/gate-foreground.webp`。
+- 记录：`STATUS.md`、`docs/ART-INTEGRATION.md`；`docs/screenshots/e2e-report.json` 只做格式修正。

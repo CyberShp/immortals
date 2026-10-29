@@ -1,19 +1,19 @@
 {
   "mode": "whole",
-  "bytes": 280714,
+  "bytes": 275816,
   "quality": 86,
   "calibration": [
-    { "id": "main", "before": [244, 236, 220], "after": [241, 232, 212] },
+    { "id": "main", "before": [244, 235, 220], "after": [241, 232, 212] },
     { "id": "north", "before": [245, 236, 221], "after": [241, 232, 212] },
     { "id": "west", "before": [244, 235, 220], "after": [241, 232, 212] },
     { "id": "east", "before": [245, 236, 221], "after": [241, 232, 212] }
   ],
   "bridges": "Iris bridge_v1; keyed, axial middle repeats, uniform scale, miter crop, alpha-derived shadow; see bridge-build.json",
   "areas": [
-    { "id": "main", "area": 272567.5, "vertices": 39 },
-    { "id": "north", "area": 88525, "vertices": 39 },
-    { "id": "west", "area": 102522.5, "vertices": 39 },
-    { "id": "east", "area": 148076.5, "vertices": 40 }
+    { "id": "main", "vertices": 41, "area": 307161 },
+    { "id": "north", "vertices": 39, "area": 113704 },
+    { "id": "west", "vertices": 39, "area": 150600 },
+    { "id": "east", "vertices": 40, "area": 168344 }
   ],
   "moves": [
     { "id": "west-sword-0", "pixels": 0 },
@@ -27,11 +27,12 @@
     { "id": "north-meditate-8", "pixels": 4.47213595499958 },
     { "id": "north-social-9", "pixels": 0 },
     { "id": "north-social-10", "pixels": 0 },
-    { "id": "main-social-11", "pixels": 0 },
-    { "id": "main-social-12", "pixels": 0 },
-    { "id": "main-social-13", "pixels": 0 }
+    { "id": "main-social-11", "pixels": 108.16653826391968 },
+    { "id": "main-social-12", "pixels": 86.02325267042627 },
+    { "id": "main-social-13", "pixels": 78.10249675906655 }
   ],
-  "areaRatio": 2.2441835508635477,
-  "encoding": "whole source-island canvas + new bridge layers; lossy WebP, HEAD quality fallback",
-  "miniQuality": 75
+  "areaRatio": 2.4085381933253247,
+  "encoding": "whole source-island canvas + new bridge layers; lossy WebP quality 86; mini quality 75",
+  "miniQuality": 75,
+  "mainSource": "map_main_clean_v1.jpg (CLEAN_MAIN_SOURCE or ~/cutwork/backup)"
 }

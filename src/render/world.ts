@@ -1,9 +1,9 @@
 import { z } from 'zod';
 import raw from '../../data/world.json';
-import buildingMasks from '../../docs/world-buildings.json';
 import type { Disciple } from '../sim/data';
 const point = z.tuple([z.number().finite(), z.number().finite()]);
 const polygon = z.array(point).min(3);
+const rect = z.tuple([z.number(), z.number(), z.number(), z.number()]);
 export const worldSchema = z.object({
   width: z.literal(3200),
   height: z.literal(1400),
@@ -31,9 +31,11 @@ export const worldSchema = z.object({
         id: z.string(),
         rect: z.tuple([z.number(), z.number(), z.number(), z.number()]),
         front: point,
+        entrance: point,
+        footprint: z.union([rect, z.array(rect).min(1)]),
       }),
     )
-    .length(5),
+    .length(6),
   spots: z.array(
     z.object({
       id: z.string(),
@@ -73,54 +75,24 @@ export function segmentDistance(p: Point, a: Point, b: Point) {
     );
   return Math.hypot(p[0] - a[0] - t * dx, p[1] - a[1] - t * dy);
 }
-const gardenGround = buildingMasks.flatMap((b) => {
-  if (!('footprintWorld' in b) || !b.footprintWorld) return [];
-  const c = b.footprintWorld;
-  const poly = [c.left, c.top, c.right, c.bottom] as Point[];
-  return [
-    {
-      poly,
-      left: Math.min(...poly.map((p) => p[0])) - 2,
-      right: Math.max(...poly.map((p) => p[0])) + 2,
-      top: Math.min(...poly.map((p) => p[1])) - 2,
-      bottom: Math.max(...poly.map((p) => p[1])) + 2,
-    },
-  ];
-});
+export type FootprintRect = [number, number, number, number];
+export type Footprint = FootprintRect | FootprintRect[];
+export function footprintRects(footprint: Footprint): FootprintRect[] {
+  return typeof footprint[0] === 'number'
+    ? [footprint as FootprintRect]
+    : (footprint as FootprintRect[]);
+}
+export function inFootprint(p: Point, footprint: Footprint) {
+  return footprintRects(footprint).some((rect) => inRect(p, rect));
+}
+function inRect(p: Point, rect: readonly number[]) {
+  return (
+    p[0] >= rect[0] && p[0] <= rect[2] && p[1] >= rect[1] && p[1] <= rect[3]
+  );
+}
 export function walkable(p: Point) {
-  // Both tiers reserve their entire ground parallelogram, including its edges.
-  for (const g of gardenGround) {
-    if (p[0] < g.left || p[0] > g.right || p[1] < g.top || p[1] > g.bottom)
-      continue;
-    if (
-      inPolygon(p, g.poly) ||
-      g.poly.some((a, i) => segmentDistance(p, a, g.poly[(i + 1) % 4]) <= 2)
-    )
-      return false;
-  }
-  // Reserve the union of tier base silhouettes as well as the plot lower half.
-  if (
-    buildingMasks.some(
-      (b) =>
-        p[0] >= b.left - 2 &&
-        p[0] <= b.right + 2 &&
-        p[1] >= b.bottom - 12 &&
-        p[1] <= b.bottom + 2,
-    )
-  )
-    return false;
-
   if (p[0] < 0 || p[1] < 0 || p[0] >= 3200 || p[1] >= 1400) return false;
-  if (
-    worldMap.slots.some(
-      (s) =>
-        p[0] >= s.rect[0] - 4 &&
-        p[0] <= s.rect[2] + 4 &&
-        p[1] >= (s.rect[1] + s.rect[3]) / 2 - 4 &&
-        p[1] <= s.rect[3] + 4,
-    )
-  )
-    return false;
+  if (worldMap.slots.some((s) => inFootprint(p, s.footprint))) return false;
   return (
     worldMap.bridges.some((b) => inPolygon(p, b.walkable)) ||
     worldMap.islands.some((d) => {
@@ -131,17 +103,64 @@ export function walkable(p: Point) {
     })
   );
 }
+const navigationPolygons: Point[][] = [
+  ...worldMap.islands.flatMap((i) =>
+    [i.walkable, ...i.obstacles].map((poly) =>
+      poly.map((p) => [p[0] + i.offset[0], p[1] + i.offset[1]] as Point),
+    ),
+  ),
+  ...worldMap.bridges.map((b) => b.walkable),
+  ...worldMap.slots.flatMap((s) =>
+    footprintRects(s.footprint).map(([l, t, r, b]) => {
+      return [
+        [l, t],
+        [r, t],
+        [r, b],
+        [l, b],
+      ] as Point[];
+    }),
+  ),
+];
+const navigationEdges = navigationPolygons.flatMap((poly) =>
+  poly.map((a, i) => [a, poly[(i + 1) % poly.length]]),
+);
 export function lineClear(a: Point, b: Point) {
-  const n = Math.ceil(Math.hypot(b[0] - a[0], b[1] - a[1]) / 2);
-  for (let i = 0; i <= n; i++)
+  if (!walkable(a) || !walkable(b)) return false;
+  const dx = b[0] - a[0],
+    dy = b[1] - a[1],
+    cuts = [0, 1];
+  // Partition at every geometry boundary, then test each open interval.
+  // Fixed-distance sampling can miss a short corner crossing during interpolation.
+  for (const [p, q] of navigationEdges) {
     if (
-      !walkable([
-        a[0] + ((b[0] - a[0]) * i) / (n || 1),
-        a[1] + ((b[1] - a[1]) * i) / (n || 1),
-      ])
+      Math.max(p[0], q[0]) < Math.min(a[0], b[0]) ||
+      Math.min(p[0], q[0]) > Math.max(a[0], b[0]) ||
+      Math.max(p[1], q[1]) < Math.min(a[1], b[1]) ||
+      Math.min(p[1], q[1]) > Math.max(a[1], b[1])
     )
-      return false;
-  return true;
+      continue;
+    const ex = q[0] - p[0],
+      ey = q[1] - p[1],
+      det = dx * ey - dy * ex;
+    if (Math.abs(det) < 1e-10) continue;
+    const px = p[0] - a[0],
+      py = p[1] - a[1];
+    const t = (px * ey - py * ex) / det,
+      u = (px * dy - py * dx) / det;
+    if (t >= 0 && t <= 1 && u >= 0 && u <= 1) cuts.push(t);
+  }
+  cuts.sort((a, b) => a - b);
+  for (let i = 1; i < cuts.length; i++) {
+    const t = (cuts[i - 1] + cuts[i]) / 2;
+    if (!walkable([a[0] + dx * t, a[1] + dy * t])) return false;
+  }
+  // Closed footprints also reject tangencies, so the exact corner cannot be occupied.
+  return cuts.every(
+    (t) =>
+      !worldMap.slots.some((s) =>
+        inFootprint([a[0] + dx * t, a[1] + dy * t], s.footprint),
+      ),
+  );
 }
 const CELL = 10,
   COLS = 320,
@@ -345,9 +364,8 @@ export function islandOf(p: Point) {
     )?.id ?? null
   );
 }
-export function destination(d: Disciple, tick: number, index = 0): Point {
-  const hash = idHash(`${d.id}:${stintOf(d.id, tick)}`);
-  const building = d.state.location.startsWith('工地:')
+export function destinationBuilding(d: Disciple) {
+  return d.state.location.startsWith('工地:')
     ? d.state.location.slice(3)
     : (
         {
@@ -358,6 +376,10 @@ export function destination(d: Disciple, tick: number, index = 0): Point {
           药圃: 'B_GARDEN',
         } as Record<string, string>
       )[d.state.location];
+}
+export function destination(d: Disciple, tick: number, index = 0): Point {
+  const hash = idHash(`${d.id}:${stintOf(d.id, tick)}`);
+  const building = destinationBuilding(d);
   let p: Point;
   const kind =
     d.traits.includes('T_SWORD') || String(d.state.behavior) === '练功'
@@ -383,8 +405,7 @@ export function destination(d: Disciple, tick: number, index = 0): Point {
       Math.floor(index / anchors.length),
     );
   }
-  if (building && d.state.behavior === '做工')
-    p = worldMap.slots.find((s) => s.id === building)!.front;
+  if (building) return worldMap.slots.find((s) => s.id === building)!.entrance;
   else if (d.state.behavior === '做工' && d.state.location === '采石点')
     p = nearestWalkable([1720, 752]);
   else {
@@ -434,7 +455,11 @@ export function discipleDestinations(
   const occupied: Point[] = [];
   for (const [i, d] of disciples.entries()) {
     const anchor = destination(d, tick, tick === 0 ? i : 0);
-    occupied.push(spacedLanding(anchor, occupied));
+    occupied.push(
+      tick > 0 && destinationBuilding(d)
+        ? anchor
+        : spacedLanding(anchor, occupied),
+    );
   }
   return occupied;
 }

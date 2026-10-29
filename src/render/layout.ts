@@ -249,3 +249,30 @@ export function compactSlot(
     y: region.center[1],
   };
 }
+
+export const overheadNameFontSize = 16;
+export const overheadNameGap = 8;
+/** Keep a stable head anchor; occluded labels yield instead of drifting across the map. */
+export function overheadNames(points: NamePoint[], obstacles: Box[] = []) {
+  const bodies = points.map((p) => ({
+    x: p.x - (p.bodyWidth ?? p.height ?? 48) / 2,
+    y: p.y - (p.height ?? 48),
+    width: p.bodyWidth ?? p.height ?? 48,
+    height: p.height ?? 48,
+  }));
+  const accepted: Box[] = [];
+  return points.map((p) => {
+    const width = Array.from(p.name).length * overheadNameFontSize + 4;
+    const box = {
+      x: p.x - width / 2,
+      y: p.y - (p.height ?? 48) - overheadNameGap - 20,
+      width,
+      height: 20,
+    };
+    const visible = ![...bodies, ...obstacles, ...accepted].some((b) =>
+      intersects(box, b),
+    );
+    if (visible) accepted.push(box);
+    return { ...box, visible };
+  });
+}

@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 const base = process.argv.find((a) => /^https?:/.test(a));
 if (!base)
   throw new Error(
-    '用法：node scripts/e2e.mjs http://localhost:4173 [--soak | --bridges]',
+    '用法：node scripts/e2e.mjs http://localhost:4173 [--soak | --bridges | --clean]',
   );
 const soak = process.argv.includes('--soak');
 await mkdir('docs/screenshots', { recursive: true });
@@ -193,6 +193,315 @@ async function recordArt(page, name) {
   screenshotStats[name] = sample;
   return sample;
 }
+// BEGIN CLEAN SCREENSHOT HELPERS (also exercised without a browser in vitest)
+const cleanOverlaySelector = [
+  'dialog:visible',
+  '[role="dialog"]:visible',
+  '[aria-modal="true"]:visible',
+  '#cover:visible',
+  '#disciple-card:visible',
+  '.overlay:visible',
+  '.modal-overlay:visible',
+  '.modal-backdrop:visible',
+  '[data-overlay]:visible',
+].join(',');
+async function cleanScreenshot(page, path, clip) {
+  // Escape uses the application's closeAll handler, including card cleanup.
+  // Never hide DOM/CSS or alter story flags to manufacture an unobstructed shot.
+  await page.keyboard.press('Escape');
+  if (await page.locator('#close').isVisible())
+    await page.locator('#close').click();
+  for (
+    let attempt = 0;
+    attempt < 20 && (await page.locator(cleanOverlaySelector).count());
+    attempt++
+  )
+    await page.waitForTimeout(50);
+  await page.evaluate(
+    () =>
+      new Promise((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(resolve)),
+      ),
+  );
+  const overlays = page.locator(cleanOverlaySelector);
+  // Locator count covers every matching overlay, not merely the known story dialog.
+  assert.equal(
+    await overlays.count(),
+    0,
+    `visible dialog/overlay before ${path}`,
+  );
+  const sample = await page.evaluate(() => ({
+    camera: window.__camera.get(),
+    stats: window.__mapStats,
+  }));
+  if (clip) await page.screenshot({ path, clip, scale: 'css' });
+  else await page.locator('#map canvas').screenshot({ path, scale: 'css' });
+  assert.equal(
+    await overlays.count(),
+    0,
+    `dialog/overlay reopened during ${path}`,
+  );
+  return sample;
+}
+function cleanCloseupCamera(disciples, zoom = 1.5) {
+  const visible = disciples.filter((d) => d.alpha >= 0.95);
+  assert.ok(
+    visible.length >= 2,
+    'closeup needs at least two visible disciples',
+  );
+  return {
+    zoom,
+    x: visible.reduce((n, d) => n + d.x, 0) / visible.length,
+    y: visible.reduce((n, d) => n + d.y, 0) / visible.length - 20 / zoom,
+  };
+}
+function cleanCloseupEvidence(sample, canvas, world, slots, spriteHeight) {
+  const width = Math.min(600, canvas.width),
+    height = Math.min(360, canvas.height);
+  const local = {
+    x: (canvas.width - width) / 2,
+    y: (canvas.height - height) / 2,
+    width,
+    height,
+  };
+  const screenHeight = spriteHeight * sample.camera.zoom;
+  assert.ok(
+    screenHeight >= 46 && screenHeight <= 50,
+    `expected ~48 CSS px, got ${screenHeight}`,
+  );
+  const visible = sample.stats.disciples.filter(
+    (d) =>
+      d.alpha >= 0.95 &&
+      d.screenX >= local.x + 24 &&
+      d.screenX <= local.x + width - 24 &&
+      d.screenY - screenHeight >= local.y + 8 &&
+      d.screenY <= local.y + height - 12,
+  );
+  assert.ok(
+    visible.length >= 2,
+    'closeup must contain two complete disciples and their rings',
+  );
+  const meditating = visible.filter((d) =>
+    world.disciples.some((w) => w.id === d.id && w.state.behavior === '修炼'),
+  );
+  assert.ok(
+    sample.stats.poses.meditate > 0 && meditating.length > 0,
+    'closeup must show seated meditation',
+  );
+  const nearEntrance = visible.filter((d) =>
+    slots.some(
+      (s) => Math.hypot(d.x - s.entrance[0], d.y - s.entrance[1]) <= 40,
+    ),
+  );
+  assert.ok(
+    nearEntrance.length > 0,
+    'closeup must include a disciple near a building entrance',
+  );
+  return {
+    clip: { ...local, x: canvas.x + local.x, y: canvas.y + local.y },
+    screenHeight,
+    visible: visible.map((d) => d.id),
+    meditating: meditating.map((d) => d.id),
+    nearEntrance: nearEntrance.map((d) => d.id),
+  };
+}
+// END CLEAN SCREENSHOT HELPERS
+async function verifyClean(context) {
+  const page = await context.newPage();
+  page.on('pageerror', (e) => errors.push(e.message));
+  const url = new URL(base);
+  url.searchParams.set('debug', '1');
+  url.searchParams.set('walkScale', '8');
+  url.searchParams.set('discipleHeight', '48');
+  await page.goto(url.href);
+  await page.waitForFunction(() => window.__mapReady && window.__xianfu);
+  await page.evaluate(() => {
+    window.__xianfu.freeze(true);
+    window.__xianfu.reset();
+    window.__xianfu.artAllBuilt(1);
+  });
+  let samples = 0,
+    hidden = 0,
+    behind = 0;
+  const check = async () => {
+    const sample = await page.evaluate(() => ({
+      stats: window.__mapStats,
+      slots: window.__world.slots,
+    }));
+    for (const d of sample.stats.disciples) {
+      for (const slot of sample.slots) {
+        const rects =
+          typeof slot.footprint[0] === 'number'
+            ? [slot.footprint]
+            : slot.footprint;
+        for (const [l, t, r, b] of rects) {
+          assert.ok(
+            !(d.x >= l && d.x <= r && d.y >= t && d.y <= b),
+            `footprint ${slot.id}: ${JSON.stringify(d)}`,
+          );
+        }
+      }
+      assert.equal(d.z, d.y, 'disciple depth must equal its actual foot');
+      if (d.alpha === 0) hidden++;
+      for (const b of sample.stats.buildings) {
+        // Screen-space foot projection into the art bounds is legal only behind
+        // the building; in-front feet must be below the building's foot anchor.
+        const inBounds =
+          d.screenX >= b.x &&
+          d.screenX <= b.x + b.width &&
+          d.screenY >= b.y &&
+          d.screenY <= b.y + b.height;
+        if (d.alpha > 0 && inBounds && d.y < b.z) {
+          assert.ok(d.z < b.z, `roof overlay ${b.id}/${d.id}`);
+          behind++;
+        }
+      }
+      samples++;
+    }
+    assert.equal(sample.stats.raisedForVisibility, 0);
+  };
+  for (const tier of [1, 2]) {
+    await page.evaluate((tier) => window.__xianfu.artAllBuilt(tier), tier);
+    for (let frame = 0; frame < 1200; frame++) {
+      if (frame % 20 === 0)
+        await page.evaluate(() => window.__xianfu.advance(1));
+      await page.waitForTimeout(62.5);
+      await check();
+    }
+  }
+  // Explicit portal trip: exercise both sides of the foreground depth plane.
+  const gateTrip = await page.evaluate(() => {
+    window.__xianfu.reset();
+    window.__xianfu.artAllBuilt(1);
+    const id = window.__mapStats.disciples[0].id;
+    return { id, ...window.__gateWalk(id) };
+  });
+  let portalSamples = 0,
+    gateBehind = 0,
+    gateFront = 0;
+  for (let frame = 0; frame < 80; frame++) {
+    await page.waitForTimeout(25);
+    await check();
+    const sample = await page.evaluate(() => window.__mapStats);
+    const d = sample.disciples.find((d) => d.id === gateTrip.id);
+    const gate = sample.buildings.find((b) => b.id === 'B_GATE');
+    assert.ok(gate, 'gate foreground must be loaded');
+    if (d.y >= 1130 && d.y <= 1200) {
+      portalSamples++;
+      assert.ok(d.x > 1539 && d.x < 1593);
+    }
+    if (d.y < gate.z) {
+      gateBehind++;
+      assert.ok(d.z < gate.z);
+    }
+    if (d.y > gate.z) {
+      gateFront++;
+      assert.ok(d.z > gate.z);
+    }
+  }
+  assert.ok(
+    portalSamples > 0 && gateBehind > 0 && gateFront > 0,
+    'must sample both sides of gate passage',
+  );
+  assert.ok(samples > 5000);
+  assert.ok(hidden > 0, 'must sample entrance disappearance');
+  assert.ok(behind > 0, 'must sample a disciple behind building art');
+  const output =
+    process.env.CLEAN_SCREENSHOT_DIR ?? '/Volumes/Media/GrokBot/workspace';
+  // Keep the validated 48-unit motion sampling above unchanged. A fresh,
+  // frozen screenshot scene uses 32 world units at 1.5 zoom for 48 CSS px.
+  const screenshotSpriteHeight = 32;
+  url.searchParams.set('discipleHeight', String(screenshotSpriteHeight));
+  await page.goto(url.href);
+  await page.waitForFunction(() => window.__mapReady && window.__xianfu);
+  await page.evaluate(() => {
+    window.__xianfu.freeze(true);
+    window.__xianfu.reset();
+    window.__xianfu.artAllBuilt(1);
+    window.__camera.panorama();
+  });
+  const captures = {};
+  captures.panorama = await cleanScreenshot(
+    page,
+    `${output}/xianfu-clean-panorama.png`,
+  );
+  await page.evaluate(() =>
+    window.__camera.set({ zoom: 0.95, x: 1590, y: 970 }),
+  );
+  captures.main = await cleanScreenshot(
+    page,
+    `${output}/xianfu-clean-main.png`,
+  );
+  // Fresh tick-zero subjects are stationary meditators; no sim advances between
+  // framing and capture, so they cannot walk out of the selected crop.
+  const subjects = await page.evaluate(() => window.__mapStats.disciples);
+  await page.evaluate(
+    (camera) => window.__camera.set(camera),
+    cleanCloseupCamera(subjects),
+  );
+  await page.evaluate(
+    () =>
+      new Promise((resolve) =>
+        requestAnimationFrame(() => requestAnimationFrame(resolve)),
+      ),
+  );
+  const closeup = await page.evaluate(() => ({
+    camera: window.__camera.get(),
+    stats: window.__mapStats,
+  }));
+  const scene = await page.evaluate(() => ({
+    world: window.__xianfu.world(),
+    slots: window.__world.slots,
+  }));
+  const canvas = await page.locator('#map canvas').boundingBox();
+  assert.ok(canvas);
+  const evidence = cleanCloseupEvidence(
+    closeup,
+    canvas,
+    scene.world,
+    scene.slots,
+    screenshotSpriteHeight,
+  );
+  assert.ok(
+    closeup.camera.zoom >= captures.main.camera.zoom * 1.5,
+    'closeup must visibly magnify main view',
+  );
+  const captured = await cleanScreenshot(
+    page,
+    `${output}/xianfu-clean-disciples-48.png`,
+    evidence.clip,
+  );
+  // Validate the frame immediately adjacent to the screenshot, not a stale target.
+  captures.disciples48 = {
+    ...captured,
+    ...cleanCloseupEvidence(
+      captured,
+      canvas,
+      scene.world,
+      scene.slots,
+      screenshotSpriteHeight,
+    ),
+  };
+  assert.deepEqual(errors, []);
+  await writeFile(
+    `${output}/xianfu-clean-report.json`,
+    JSON.stringify(
+      {
+        samples,
+        hidden,
+        behind,
+        portalSamples,
+        gateBehind,
+        gateFront,
+        errors,
+        captures,
+      },
+      null,
+      2,
+    ) + '\n',
+  );
+  await page.close();
+}
 let browser;
 try {
   browser = await chromium.launch({
@@ -205,7 +514,9 @@ try {
     viewport: { width: 1280, height: 900 },
     acceptDownloads: true,
   });
-  if (process.argv.includes('--bridges')) {
+  if (process.argv.includes('--clean')) {
+    await verifyClean(context);
+  } else if (process.argv.includes('--bridges')) {
     await mkdir(bridgeOutput, { recursive: true });
     await verifyIslandWalking(context, base);
     assert.deepEqual(errors, []);
@@ -381,7 +692,7 @@ try {
     assert.equal(stats.fallbacks, 0);
     assert.equal((await page.evaluate(() => window.__camera.get())).zoom, 1);
     assert.equal(stats.mode, 'full');
-    assert.ok(stats.minHeadVisibility >= 0.6);
+    assert.equal(stats.raisedForVisibility, 0);
     assert.equal(await page.locator('#resources .art-icon').count(), 4);
     assert.ok(stats.visibleDisciples >= 3);
     assert.equal(await page.locator('.roster:visible').count(), 0);
@@ -477,7 +788,7 @@ try {
       (start) => performance.now() - start,
       walk.start,
     );
-    assert.ok(walkDormToHallMs >= 8000 && walkDormToHallMs <= 15000);
+    assert.ok(Math.abs(walkDormToHallMs - walk.duration) < 1200);
 
     await page.getByRole('button', { name: '地图全景', exact: true }).click();
     assert.equal(
@@ -495,17 +806,7 @@ try {
     assert.ok(compact.markerCssDiameter >= 12);
     assert.equal(compact.discipleSprites, 0);
     assert.equal(compact.buildingLabels, 0);
-    const present = await page.evaluate(
-      () =>
-        window.__xianfu
-          .world()
-          .disciples.filter(
-            (d) =>
-              d.stage !== '坐化' &&
-              !d.state.awayUntil &&
-              d.state.behavior !== '历练',
-          ).length,
-    );
+    const present = compact.disciples.filter((d) => d.alpha > 0).length;
     assert.equal(compact.markers, present);
     await shot('09-art-compact', false);
     await shot('22-world-compact', false);
@@ -515,7 +816,7 @@ try {
     await page.setViewportSize({ width: 1440, height: 900 });
     await prepareArt(page);
     assert.ok(
-      (await recordArt(page, '10-art-disciples-48')).minHeadVisibility >= 0.6,
+      (await recordArt(page, '10-art-disciples-48')).raisedForVisibility === 0,
     );
     await page.screenshot({
       path: 'docs/screenshots/10-art-disciples-48.png',
@@ -661,7 +962,10 @@ try {
     const fallbackStats = await fallbackPage.evaluate(() => window.__mapStats);
     assert.ok(fallbackStats.fallbacks > 0);
     assert.ok(fallbackStats.rings > 0);
-    assert.equal(fallbackStats.rings, fallbackStats.nameLabels);
+    assert.ok(
+      fallbackStats.nameLabels > 0 &&
+        fallbackStats.nameLabels <= fallbackStats.rings,
+    );
     assert.equal(fallbackStats.baseLoaded, false);
     await fallbackPage.waitForFunction(
       () => document.querySelectorAll('#resources img').length === 0,

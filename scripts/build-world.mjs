@@ -1,4 +1,9 @@
 import sharp from 'sharp';
+import { readFile } from 'node:fs/promises';
+import { homedir } from 'node:os';
+const clean = JSON.parse(
+  await readFile(new URL('./clean-main-geometry.json', import.meta.url)),
+);
 import { buildBridges } from './build-bridges.mjs';
 const root = '/Volumes/Media/immortal-qa/design/art/concept/';
 const target = [241, 232, 212],
@@ -8,63 +13,12 @@ const definitions = [
   {
     id: 'main',
     offset: [950, 620],
-    source: 'public/assets/map/base@2x.webp',
-    envelope: [
-      [285, 170],
-      [460, 102],
-      [690, 94],
-      [820, 174],
-      [1040, 230],
-      [1100, 310],
-      [1090, 375],
-      [980, 420],
-      [905, 468],
-      [800, 490],
-      [760, 550],
-      [730, 605],
-      [580, 665],
-      [400, 630],
-      [310, 590],
-      [430, 542],
-      [520, 438],
-      [360, 395],
-      [170, 355],
-      [195, 300],
-      [250, 230],
-    ],
-    holes: [
-      [
-        [255, 245],
-        [290, 239],
-        [321, 280],
-        [293, 302],
-        [249, 291],
-      ],
-      [
-        [855, 363],
-        [904, 361],
-        [934, 405],
-        [873, 417],
-      ],
-      [
-        [1008, 279],
-        [1064, 277],
-        [1080, 344],
-        [1030, 354],
-      ],
-      [
-        [342, 142],
-        [381, 140],
-        [400, 196],
-        [355, 201],
-      ],
-      [
-        [529, 455],
-        [710, 459],
-        [737, 565],
-        [532, 561],
-      ],
-    ],
+    source:
+      process.env.CLEAN_MAIN_SOURCE ??
+      homedir() + '/cutwork/backup/map_main_clean_v1.jpg',
+    envelope: clean.walkable,
+    holes: clean.obstacles,
+    cutout: clean.cutout,
   },
   {
     id: 'north',
@@ -500,7 +454,29 @@ for (const d of definitions) {
       const wx = x + d.offset[0],
         wy = y + d.offset[1];
       if (wx >= W || wy >= H) continue;
-      const fade = Math.min(1, x / 70, y / 70, (1279 - x) / 70, (719 - y) / 70);
+      let fade = Math.min(1, x / 70, y / 70, (1279 - x) / 70, (719 - y) / 70);
+      if (d.cutout) {
+        const contained = inside([x, y], d.cutout);
+        let edge = Infinity;
+        for (let i = 0; i < d.cutout.length; i++) {
+          const a = d.cutout[i],
+            b = d.cutout[(i + 1) % d.cutout.length];
+          const dx = b[0] - a[0],
+            dy = b[1] - a[1];
+          const t = Math.max(
+            0,
+            Math.min(
+              1,
+              ((x - a[0]) * dx + (y - a[1]) * dy) / (dx * dx + dy * dy),
+            ),
+          );
+          edge = Math.min(
+            edge,
+            Math.hypot(x - a[0] - t * dx, y - a[1] - t * dy),
+          );
+        }
+        fade *= contained ? 1 : Math.max(0, 1 - edge / 12);
+      }
       for (let c = 0; c < 3; c++) {
         const v = Math.round(
           target[c] + (calibrated[(y * 1280 + x) * 3 + c] - target[c]) * fade,
@@ -519,8 +495,8 @@ for (const d of definitions) {
   islands.push({
     id: d.id,
     offset: d.offset,
-    walkable: trace(data, d.envelope),
+    walkable: d.id === 'main' ? clean.walkable : trace(data, d.envelope),
     obstacles: d.holes,
   });
 }
-await buildBridges(canvas, islands);
+await buildBridges(canvas, islands, calibration);

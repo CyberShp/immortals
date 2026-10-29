@@ -15,9 +15,9 @@ import { buildingDefinitions } from '../sim/catalog';
 import {
   behaviorPose,
   compactMetrics,
-  buildingDepth,
   type NamePoint,
-  placeNames,
+  overheadNames,
+  overheadNameFontSize,
   shortName,
   rootRingColors,
   buildingArt,
@@ -33,6 +33,7 @@ import {
 } from './visibility';
 import manifest from '../../public/assets/manifest.json';
 import worldBuildings from '../../docs/world-buildings.json';
+import gateArt from '../../scripts/clean-gate-art.json';
 import {
   worldMap,
   walkable,
@@ -45,6 +46,7 @@ import {
   pathLength,
   alongPath,
   discipleDestinations,
+  destinationBuilding,
   walkTimeSeconds,
   type Point,
 } from './world';
@@ -63,11 +65,27 @@ function buildingLabelPosition(id: string): Point {
 function buildingLabelBox(id: string, text: string) {
   const [x, y] = buildingLabelPosition(id);
   return {
-    x: x - text.length * 11,
+    x: x - text.length * 9,
     y: y - 2,
-    width: text.length * 22 + 8,
-    height: 34,
+    width: text.length * 18 + 8,
+    height: 28,
   };
+}
+
+// Layered translucent ellipses give a soft edge without a raster art generator.
+function groundShadow(width: number, y = 3) {
+  const g = new Graphics();
+  for (const [size, alpha] of [
+    [1, 0.06],
+    [0.88, 0.08],
+    [0.72, 0.09],
+    [0.54, 0.08],
+  ])
+    g.ellipse(0, y, (width * size) / 2, (width * 0.18 * size) / 2).fill({
+      color: 0x3b2a1a,
+      alpha,
+    });
+  return g;
 }
 
 type Motion = {
@@ -109,7 +127,23 @@ declare global {
       discipleSprites: number;
       fallbacks: number;
       poses: Record<string, number>;
-      disciples: { id: string; x: number; y: number }[];
+      disciples: {
+        id: string;
+        x: number;
+        y: number;
+        z: number;
+        alpha: number;
+        screenX: number;
+        screenY: number;
+      }[];
+      buildings: {
+        id: string;
+        z: number;
+        x: number;
+        y: number;
+        width: number;
+        height: number;
+      }[];
       discipleScale: number;
       walkSpeed: number;
       dormToHallSeconds: number;
@@ -143,6 +177,7 @@ export async function createMap(
         walkable: (x: number, y: number) => walkable([x, y]),
         islandOf: (x: number, y: number) => islandOf([x, y]),
         bridges: worldMap.bridges,
+        slots: worldMap.slots,
         bridgeAt: (x: number, y: number) =>
           worldMap.bridges
             .filter((b) =>
@@ -183,6 +218,7 @@ export async function createMap(
   const mapEntries = [
     { file: 'map/world.webp', size: [3200, 1400], anchor: { x: 0, y: 0 } },
     { file: 'map/world-mini.webp', size: [320, 140], anchor: { x: 0, y: 0 } },
+    { file: gateArt.file, size: gateArt.crop.slice(2), anchor: { x: 0, y: 0 } },
   ];
   for (const entry of mapEntries)
     entries.set(entry.file, entry as (typeof manifest.files)[number]);
@@ -228,7 +264,12 @@ export async function createMap(
   app.stage.addChild(mini);
   const masks = new Map<string, Mask>();
   for (const [file, texture] of textures) {
-    if (!file.includes('-map@') && !file.includes('-96@')) continue;
+    if (
+      !file.includes('-map@') &&
+      !file.includes('-96@') &&
+      file !== gateArt.file
+    )
+      continue;
     const entry = entries.get(file)!;
     const scale = file.startsWith('disciple/')
       ? height / 96
@@ -385,7 +426,8 @@ export async function createMap(
       discipleSprites: 0,
       fallbacks: 0,
       poses: {} as Record<string, number>,
-      disciples: [] as { id: string; x: number; y: number }[],
+      disciples: [] as Window['__mapStats']['disciples'],
+      buildings: [] as Window['__mapStats']['buildings'],
       discipleScale: DISCIPLE_SCALE,
       walkSpeed,
       dormToHallSeconds: walkTimeSeconds(
@@ -408,6 +450,30 @@ export async function createMap(
     ground.zIndex = -1000;
 
     scene.addChild(ground);
+    const gate = art(gateArt.file, 1);
+    if (gate) {
+      gate.position.set(gateArt.crop[0], gateArt.crop[1]);
+      gate.zIndex = gateArt.footY;
+      scene.addChild(gate);
+      const mask = masks.get(gateArt.file);
+      if (mask)
+        occluders.push({
+          key: 'B_GATE',
+          mask,
+          x: gateArt.crop[0],
+          y: gateArt.crop[1],
+          z: gateArt.footY,
+        });
+      stats.buildings.push({
+        id: 'B_GATE',
+        z: gate.zIndex,
+        x: bounds.width / 2 + (gateArt.crop[0] - cam.x) * cam.zoom,
+        y: bounds.height / 2 + (gateArt.crop[1] - cam.y) * cam.zoom,
+        width: gateArt.crop[2] * cam.zoom,
+        height: gateArt.crop[3] * cam.zoom,
+      });
+    }
+
     let breathingGlow = false;
     for (const def of buildingDefinitions) {
       const p = worldMap.slots.find((s) => s.id === def.id)!.rect,
@@ -417,15 +483,9 @@ export async function createMap(
       const b = world.buildings.find((b) => b.id === def.id);
       const group = new Container();
       group.position.set(x, y);
-      group.zIndex = buildingDepth(def.id, y);
-      if (!b) {
-        group.addChild(
-          new Graphics()
-            .rect(p[0] - x, p[1] - y, p[2] - p[0], p[3] - p[1])
-            .fill({ color: 0xf5eddc, alpha: 0.25 })
-            .stroke({ color: 0x8a8578, alpha: 0.5, width: 1 }),
-        );
-      } else {
+      group.zIndex = baseY;
+      // Empty sites keep their label/click target, without painting fictional stone plots.
+      if (b) {
         const tier =
           (def.id === 'B_GARDEN' ? b.level : Math.min(b.level, def.maxLevel)) >=
           2
@@ -436,7 +496,7 @@ export async function createMap(
         drawX = placement?.x ?? x;
         y = placement?.y ?? baseY;
         group.position.set(drawX, y);
-        group.zIndex = buildingDepth(def.id, y);
+        group.zIndex = baseY;
         const sprite = art(
           file,
           worldBuildings.find((b) => b.file === file)?.scale ?? 1,
@@ -448,9 +508,31 @@ export async function createMap(
             mask,
             x: drawX,
             y,
-            z: buildingDepth(def.id, y),
+            z: baseY,
           });
         if (sprite) {
+          const shadow = groundShadow(
+            (placement?.bodyWidth ?? p[2] - p[0]) * 1.05,
+          );
+          shadow.position.set(drawX, baseY);
+          shadow.zIndex = -900;
+          scene.addChild(shadow);
+          const entry = entries.get(file)!;
+          const scale = placement?.scale ?? 1;
+          const sb = {
+            x: -entry.anchor.x * scale,
+            y: -entry.anchor.y * scale,
+            width: entry.size[0] * scale,
+            height: entry.size[1] * scale,
+          };
+          stats.buildings.push({
+            id: def.id,
+            z: group.zIndex,
+            x: bounds.width / 2 + (drawX + sb.x - cam.x) * cam.zoom,
+            y: bounds.height / 2 + (y + sb.y - cam.y) * cam.zoom,
+            width: sb.width * cam.zoom,
+            height: sb.height * cam.zoom,
+          });
           sprite.alpha = b.level === 0 ? 0.45 : 1;
           group.addChild(sprite);
           if (def.id === 'B_GARDEN' && tier === 2) {
@@ -478,7 +560,7 @@ export async function createMap(
         const text = b
           ? `${b.name} Lv${b.level}${b.targetLevel && b.targetLevel > b.level ? ' ⚒' : ''}`
           : `${def.name}预留位`;
-        const t = label(text, 22, true);
+        const t = label(text, 18, true);
         const box = buildingLabelBox(def.id, text);
         // Use measured Pixi bounds when wider/taller than the conservative estimate.
         const width = Math.max(box.width, t.width || 0);
@@ -497,6 +579,27 @@ export async function createMap(
     }
     if (params.get('debug') === '1')
       Object.assign(window, {
+        __gateWalk: (id: string) => {
+          const m = motions.get(id);
+          if (!m) throw Error('Gate walker absent');
+          const from: Point = [1566, 1090],
+            to: Point = [1566, 1230];
+          const path = findPath(from, to);
+          if (!path.length) throw Error('Gate passage unreachable');
+          Object.assign(m, {
+            x: from[0],
+            y: from[1],
+            toX: to[0],
+            toY: to[1],
+            path,
+            start: performance.now(),
+            duration:
+              (pathLength(path) / (routeSpeed(path) * walkScale)) * 1000,
+          });
+          cancelFrame();
+          frame = requestFrame(paint);
+          return { from, to, duration: m.duration };
+        },
         __worldMotions: () =>
           [...motions.entries()].map(([id, m]) => ({
             id,
@@ -531,7 +634,27 @@ export async function createMap(
         (((now - m.start) * routeSpeed(m.path)) / WALK_SPEED) * walkScale,
       );
       stats.poses[pose] = (stats.poses[pose] ?? 0) + 1;
-      stats.disciples.push({ id: d.id, x: m.x, y: m.y });
+      const entering =
+        world.tick > 0 &&
+        destinationBuilding(d) &&
+        worldMap.slots.some(
+          (s) =>
+            s.id === destinationBuilding(d) &&
+            Math.hypot(m.toX - s.entrance[0], m.toY - s.entrance[1]) < 0.1,
+        );
+      const alpha =
+        entering && !moving ? Math.max(0, 1 - (elapsed - m.duration) / 350) : 1;
+      active ||= !!entering && !moving && alpha > 0;
+      stats.disciples.push({
+        id: d.id,
+        x: m.x,
+        y: m.y,
+        z: group.zIndex,
+        alpha,
+        screenX: bounds.width / 2 + (m.x - cam.x) * cam.zoom,
+        screenY: bounds.height / 2 + (m.y - cam.y) * cam.zoom,
+      });
+      if (alpha === 0) continue;
       if (
         Math.abs(m.x - cam.x) * cam.zoom <= bounds.width / 2 &&
         Math.abs(m.y - cam.y) * cam.zoom <= bounds.height / 2
@@ -566,7 +689,10 @@ export async function createMap(
           y <= 12,
       };
       const colors = rootRingColors(d.root.elements);
+      if (!compact)
+        group.addChild(groundShadow(pose === 'meditate' ? 26 : 18, 2));
       const ring = new Graphics();
+      ring.alpha = compact ? 1 : 0.6;
       colors.forEach((color, i) => {
         const start = (i * Math.PI * 2) / colors.length,
           end = ((i + 1) * Math.PI * 2) / colors.length;
@@ -574,8 +700,8 @@ export async function createMap(
         for (let j = 0; j <= 24; j++) {
           const angle = start + ((end - start) * j) / 24;
           points.push(
-            Math.cos(angle) * (compact ? marker.diameter / 2 / cam.zoom : 26),
-            Math.sin(angle) * (compact ? marker.diameter / 2 / cam.zoom : 8),
+            Math.cos(angle) * (compact ? marker.diameter / 2 / cam.zoom : 11),
+            Math.sin(angle) * (compact ? marker.diameter / 2 / cam.zoom : 3.5),
           );
         }
         ring.poly(points).fill(color);
@@ -584,8 +710,8 @@ export async function createMap(
         .ellipse(
           0,
           0,
-          compact ? marker.diameter / 2 / cam.zoom : 26,
-          compact ? marker.diameter / 2 / cam.zoom : 8,
+          compact ? marker.diameter / 2 / cam.zoom : 11,
+          compact ? marker.diameter / 2 / cam.zoom : 3.5,
         )
         .stroke({ width: 1, color: 0x263f34 });
       group.addChild(ring);
@@ -621,9 +747,8 @@ export async function createMap(
           stats.minHeadVisibility,
           result.visible,
         );
-      } else if (!compact) {
-        group.zIndex = Math.max(m.y, ...occluders.map((b) => b.z + 0.01));
       }
+      stats.disciples.at(-1)!.z = group.zIndex;
       if (compact) stats.markers++;
       if (sprite) {
         if (pose !== 'meditate') sprite.scale.x *= m.facing;
@@ -633,7 +758,7 @@ export async function createMap(
         group.addChild(new Graphics().circle(0, -8, 9).fill(0x4f8a8b));
         stats.fallbacks++;
       }
-      group.alpha = 1;
+      group.alpha = alpha;
       if (d.state.injuredUntil > world.tick) {
         const injuryRing = new Graphics();
         const rx = compact ? marker.diameter / 2 / cam.zoom + 3 / cam.zoom : 30;
@@ -663,7 +788,7 @@ export async function createMap(
               scale,
           y: m.y - entry.anchor.y * scale,
           width: entry.size[0] * scale,
-          height: entry.size[1] * scale * 0.35,
+          height: entry.size[1] * scale,
         });
       }
       if (compact) {
@@ -683,6 +808,7 @@ export async function createMap(
           y: m.y,
           row: 0,
           height: compact ? 10 : height,
+          bodyWidth: (entries.get(file)!.size[0] * height) / 96,
           name: compact ? d.name.slice(0, 1) : shortName(d.name),
         });
       const event = relatedEvents(world, d.id)[0];
@@ -747,31 +873,45 @@ export async function createMap(
           r.y + r.height > bounds.top,
       );
     stats.labelOverlaps = labelOverlaps(labels, occluders);
-    placeNames(
-      namePoints.map((p) => ({
-        ...p,
-        x: p.x / 2,
-        y: p.y / 2,
-        height: (p.height ?? 96) / 2,
-      })),
-      labels.map(({ box: b }) => ({
-        x: b.x / 2,
-        y: b.y / 2,
-        width: b.width / 2,
-        height: b.height / 2,
-      })),
-      4 / (2 * cam.zoom),
-    ).forEach((box, i) => {
-      const t = label(namePoints[i].name, 21, true);
+    const buildingBoxes = [
+      ...worldBuildings
+        .filter((b) =>
+          world!.buildings.some((w) =>
+            b.file.includes('/' + buildingArt[w.id] + '-'),
+          ),
+        )
+        .map((b) => {
+          const entry = entries.get(b.file)!;
+          return {
+            x: b.x - entry.anchor.x * b.scale,
+            y: b.y - entry.anchor.y * b.scale,
+            width: entry.size[0] * b.scale,
+            height: entry.size[1] * b.scale,
+          };
+        }),
+      {
+        x: gateArt.crop[0],
+        y: gateArt.crop[1],
+        width: gateArt.crop[2],
+        height: gateArt.crop[3],
+      },
+      ...labels.filter((l) => l.text.alpha > 0).map((l) => l.box),
+    ];
+    overheadNames(namePoints, buildingBoxes).forEach((box, i) => {
+      const t = label(namePoints[i].name, overheadNameFontSize, true);
       t.anchor.set(0.5, 0);
-      t.position.set(box.x * 2 + box.width, box.y * 2);
+      t.position.set(box.x + box.width / 2, box.y);
       t.zIndex = 3000;
+      t.alpha = Number(box.visible);
       scene.addChild(t);
-      stats.nameLabels++;
+      stats.nameLabels += Number(box.visible);
     });
     for (const [id, hit] of hits) {
       if (
         !motions.has(id.replace('event:', '')) ||
+        stats.disciples.some(
+          (d) => d.id === id.replace('event:', '') && d.alpha === 0,
+        ) ||
         (id.startsWith('event:') && !relatedEvents(world, id.slice(6)).length)
       ) {
         hit.destroy();

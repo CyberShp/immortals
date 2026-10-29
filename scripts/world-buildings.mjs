@@ -1,5 +1,5 @@
 import sharp from 'sharp';
-import { readFile, writeFile, appendFile } from 'node:fs/promises';
+import { readFile, writeFile } from 'node:fs/promises';
 import { format } from 'prettier';
 import { tsImport } from 'tsx/esm/api';
 const { DISCIPLE_SCALE, DISCIPLE_HEIGHT: H } = await tsImport(
@@ -21,9 +21,12 @@ const names = {
   alchemy: 'B_ALCHEMY',
   garden: 'B_GARDEN',
 };
+const fixedScales = JSON.parse(
+  await readFile(new URL('./clean-building-scales.json', import.meta.url)),
+);
 const buildings = [];
-const bodyCaps = {};
-for (let pass = 0; pass < 2; pass++) {
+
+{
   buildings.length = 0;
   for (const f of manifest.files.filter((f) => f.file.includes('-map@'))) {
     const key = f.file.split('/')[1].split('-')[0],
@@ -56,7 +59,7 @@ for (let pass = 0; pass < 2; pass++) {
         right = -Infinity;
       const neighbors = [
         ...world.slots.filter((s) => s.id !== slot.id),
-        { id: 'plaza', rect: [1413, 920, 1631, 1046] },
+        { id: 'plaza', rect: [1540, 1025, 1640, 1075] },
       ];
       const overlapsBySlot = Object.fromEntries(
         neighbors.map((s) => [s.id, 0]),
@@ -115,31 +118,7 @@ for (let pass = 0; pass < 2; pass++) {
         ]),
       );
     }
-    if (key !== 'garden') {
-      const widthScale = (r - l) / bodyWidth;
-      const desired = Math.max(widthScale, (target * H) / doorPixels);
-      const cap = Math.min(
-        widthScale * 1.15,
-        bodyCaps[key] ? bodyCaps[key] / bodyWidth : Infinity,
-      );
-      let maxScale = cap;
-      if (key === 'alchemy' || key === 'meditation') {
-        let lo = 0,
-          hi = cap;
-        for (let i = 0; i < 40; i++) {
-          const mid = (lo + hi) / 2;
-          const a = inspect(mid / exportScale);
-          if (
-            a.overlapNeighborSlots === 0 &&
-            (key !== 'alchemy' || a.bottom <= 1090)
-          )
-            lo = mid;
-          else hi = mid;
-        }
-        maxScale = lo;
-      }
-      scale = Math.min(desired, maxScale) / exportScale;
-    }
+    if (key !== 'garden') scale = fixedScales[f.file];
     const bounds = inspect(scale);
     buildings.push({
       file: f.file,
@@ -171,24 +150,10 @@ for (let pass = 0; pass < 2; pass++) {
           : null,
     });
   }
-  if (pass === 0) {
-    for (const key of ['dorm', 'alchemy'])
-      bodyCaps[key] =
-        1.1 *
-        Math.min(
-          ...buildings
-            .filter((b) => b.file.includes('/' + key + '-'))
-            .map((b) => b.bodyWidth),
-        );
-  }
 }
 await writeFile(
   'docs/world-buildings.json',
   await format(JSON.stringify(buildings), { parser: 'json' }),
-);
-await appendFile(
-  'STATUS.md',
-  `- ${new Date().toLocaleString('sv-SE', { timeZone: 'Asia/Shanghai' })} W1c 建筑测量：${JSON.stringify(buildings)}；scale 为 map 导出图倍率，sourceScale 为源像素最终倍率；两级按本体宽归一，炼丹房按 alpha 全像素约束。\n`,
 );
 
 for (const f of manifest.files) {

@@ -88,13 +88,7 @@ export function visibilityOrder(
   facing = 1,
 ) {
   const before = headVisibility(m, x, y, y, buildings, facing);
-  let z = y;
-  if (before < 0.6)
-    for (const b of [...buildings].sort((a, b) => a.z - b.z)) {
-      if (b.z < z) continue;
-      z = b.z + 0.01;
-      if (headVisibility(m, x, y, z, buildings, facing) >= 0.6) break;
-    }
+  const z = y;
   return {
     z,
     before,
@@ -157,5 +151,5 @@ export function avoidDiscipleHeads(box: Box, heads: Box[]) {
     if (!heads.some((head) => intersects(candidate, head)))
       return { box: candidate, rise, alpha: 1 };
   }
-  return { box: { ...box, y: box.y - 20 }, rise: 20, alpha: 0.35 };
+  return { box: { ...box, y: box.y - 20 }, rise: 20, alpha: 0 };
 }
