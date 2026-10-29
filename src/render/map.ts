@@ -9,10 +9,24 @@ import {
   Assets,
   Container,
   Graphics,
+  Matrix,
   Sprite,
   Text,
   type Texture,
 } from 'pixi.js';
+import {
+  INDOOR_INSET,
+  indoorSpot,
+  insideInset,
+  layerMatrix,
+  offsetPoints,
+  retargetRoof,
+  roofAlpha,
+  roofAnimating,
+  roofFadeBuildings,
+  roofFadeEnabled,
+  type RoofTween,
+} from './roof-fade';
 import { DISCIPLE_HEIGHT } from './world-scale';
 import { relatedEvents } from '../app/ui-model';
 import type { World } from '../sim/world';
@@ -102,6 +116,12 @@ type Motion = {
   lastPaint?: number;
   pendingDistance?: number;
   cycles?: number;
+  /** roofFade：同一建筑内的室内站位序号（仅表现层）。 */
+  indoorIndex?: number;
+  /** roofFade 调试：把该弟子当作进入此建筑。 */
+  roofDebug?: string;
+  /** roofFade：门口→室内站位这段表现层小路，换目的地时从这里接着走。 */
+  roofIndoor?: { from: Point; to: Point; start: number };
 };
 declare global {
   interface Window {
@@ -184,6 +204,8 @@ export async function createMap(
       ? Math.min(100, requestedScale)
       : 1;
   const walkSpeed = WALK_SPEED * walkScale;
+  // 开发开关：封闭房屋屋顶淡出。默认关闭，关闭时渲染与改动前一致。
+  const roofFade = roofFadeEnabled(location.search);
   if (params.get('debug') === '1')
     Object.assign(window, {
       __world: {
@@ -264,8 +286,14 @@ export async function createMap(
   for (const entry of mapEntries)
     entries.set(entry.file, entry as (typeof manifest.files)[number]);
   Assets.setPreferences({ preferWorkers: false });
+  // roofFade 素材只在开关打开时加载，不进首屏。
+  const roofEntries = roofFade
+    ? Object.values(roofFadeBuildings).flatMap((b) =>
+        [b.exterior, b.shadow, b.interior].map((l) => ({ file: l.file })),
+      )
+    : [];
   await Promise.all(
-    [...needed, ...mapEntries].map(async ({ file }) => {
+    [...needed, ...mapEntries, ...roofEntries].map(async ({ file }) => {
       try {
         textures.set(
           file,
@@ -371,6 +399,57 @@ export async function createMap(
       ),
     });
   }
+  // roofFade 外观的遮挡掩码（世界 px，左上角对齐变换后的素材左上角）。
+  const roofMasks = new Map<string, Mask>();
+  for (const [id, roof] of Object.entries(roofFadeBuildings)) {
+    const resource = textures.get(roof.exterior.file)?.source?.resource;
+    if (!resource) continue;
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.max(
+      1,
+      Math.round(roof.exterior.width * roof.exterior.matrix.a),
+    );
+    canvas.height = Math.max(
+      1,
+      Math.round(roof.exterior.height * roof.exterior.matrix.d),
+    );
+    const ctx = canvas.getContext('2d', { willReadFrequently: true })!;
+    ctx.drawImage(
+      resource as CanvasImageSource,
+      0,
+      0,
+      canvas.width,
+      canvas.height,
+    );
+    const rgba = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+    roofMasks.set(id, {
+      width: canvas.width,
+      height: canvas.height,
+      anchorX: 0,
+      anchorY: 0,
+      alpha: Uint8Array.from(
+        { length: canvas.width * canvas.height },
+        (_, i) => rgba[i * 4 + 3],
+      ),
+    });
+  }
+  const roofTweens = new Map<string, RoofTween>();
+  let roofHold: number | undefined;
+  const roofState = () =>
+    Object.fromEntries(
+      Object.keys(roofFadeBuildings).map((id) => {
+        const now = performance.now();
+        const tween = roofTweens.get(id);
+        return [
+          id,
+          {
+            alpha: roofHold ?? roofAlpha(tween, now),
+            target: tween?.to ?? 1,
+            animating: roofAnimating(tween, now),
+          },
+        ];
+      }),
+    );
   const visibilityCache = new Map<string, ReturnType<typeof visibilityOrder>>();
   const motions = new Map<string, Motion>();
   let frame = 0;
@@ -447,6 +526,31 @@ export async function createMap(
   }[] = [];
   const labelRects = () => screenLabels.map((r) => ({ ...r }));
   if (params.get('debug') === '1') window.__labels = labelRects;
+  const roofIndoor = (
+    d: World['disciples'][number],
+    m: Motion,
+    elapsed: number,
+    moving: boolean,
+  ) => {
+    if (moving || !world || (world.tick <= 0 && !m.roofDebug)) return;
+    const id = m.roofDebug ?? destinationBuilding(d);
+    const roof = id ? roofFadeBuildings[id] : undefined;
+    if (!id || !roof || !textures.has(roof.exterior.file)) return;
+    const entrance = worldMap.slots.find((s) => s.id === id)!.entrance as Point;
+    if (Math.hypot(m.toX - entrance[0], m.toY - entrance[1]) >= 0.1) return;
+    const spot = indoorSpot(roof, entrance, m.indoorIndex ?? 0);
+    const leg: [Point, Point] = [entrance, spot.point];
+    const walked = ((elapsed - m.duration) / 1000) * walkSpeed;
+    const length = pathLength(leg);
+    return {
+      id,
+      leg,
+      start: m.start + m.duration,
+      point: alongPath(leg, walked),
+      moving: walked < length,
+      seat: spot.seat && walked >= length,
+    };
+  };
   let lastPaint = 0;
   let lastTap = { id: '', at: 0 };
   let miniDrag = false;
@@ -550,6 +654,63 @@ export async function createMap(
     }
 
     let breathingGlow = false;
+    // 屋顶淡出：内景紧贴在原建筑排序层之下（后墙能挡住屋后的弟子），外观在原建筑排序层，
+    // 室内弟子抬到两者之上；淡变只改外观 alpha。
+    const paintRoofBuilding = (
+      id: string,
+      level: number,
+      group: Container,
+    ): boolean => {
+      const roof = roofFade ? roofFadeBuildings[id] : undefined;
+      if (!roof) return false;
+      const exteriorTexture = textures.get(roof.exterior.file),
+        interiorTexture = textures.get(roof.interior.file),
+        shadowTexture = textures.get(roof.shadow.file);
+      if (!exteriorTexture || !interiorTexture) return false;
+      const entrance = worldMap.slots.find((s) => s.id === id)!
+        .entrance as Point;
+      const base = level === 0 ? 0.45 : 1;
+      const alpha = roofHold ?? roofAlpha(roofTweens.get(id), now);
+      const place = (texture: Texture, layer: typeof roof.exterior) => {
+        const sprite = new Sprite(texture);
+        const m = layerMatrix(layer, entrance);
+        sprite.setFromMatrix(new Matrix(m.a, m.b, m.c, m.d, m.tx, m.ty));
+        sprite.eventMode = 'none';
+        return sprite;
+      };
+      if (shadowTexture) {
+        const shadow = place(shadowTexture, roof.shadow);
+        shadow.zIndex = -905;
+        shadow.alpha = base;
+        scene.addChild(shadow);
+      }
+      const interior = place(interiorTexture, roof.interior);
+      interior.label = `roof-interior:${id}`;
+      interior.zIndex = group.zIndex - 0.5;
+      interior.alpha = base;
+      interior.visible = alpha < 1;
+      scene.addChild(interior);
+      const exterior = place(exteriorTexture, roof.exterior);
+      exterior.label = `roof-exterior:${id}`;
+      exterior.zIndex = group.zIndex;
+      exterior.alpha = alpha * base;
+      exterior.visible = alpha > 0;
+      scene.addChild(exterior);
+      const m = layerMatrix(roof.exterior, entrance);
+      const mask = roofMasks.get(id);
+      if (mask && alpha >= 0.5)
+        occluders.push({ key: id, mask, x: m.tx, y: m.ty, z: group.zIndex });
+      stats.buildings.push({
+        id,
+        z: group.zIndex,
+        x: bounds.width / 2 + (m.tx - cam.x) * cam.zoom,
+        y: bounds.height / 2 + (m.ty - cam.y) * cam.zoom,
+        width: roof.exterior.width * m.a * cam.zoom,
+        height: roof.exterior.height * m.d * cam.zoom,
+      });
+      stats.buildingSprites++;
+      return true;
+    };
     for (const def of buildingDefinitions) {
       const p = worldMap.slots.find((s) => s.id === def.id)!.rect,
         [x, baseY] = plotFoot(def.id);
@@ -560,7 +721,7 @@ export async function createMap(
       group.position.set(x, y);
       group.zIndex = buildingSortY(def.id, baseY);
       // Empty sites keep their label/click target, without painting fictional stone plots.
-      if (b) {
+      if (b && !paintRoofBuilding(def.id, b.level, group)) {
         const tier =
           (def.id === 'B_GARDEN' ? b.level : Math.min(b.level, def.maxLevel)) >=
           2
@@ -765,6 +926,82 @@ export async function createMap(
             return { from, to, path, duration: m.duration };
           },
         },
+        ...(roofFade
+          ? {
+              __roofFade: {
+                state: roofState,
+                hold: (alpha?: number) => {
+                  roofHold = alpha;
+                  cancelFrame();
+                  paint(performance.now());
+                },
+                /** 调试：让弟子从门前空地走到门口再进屋。 */
+                enter: (id: string, building: string, pose?: string) => {
+                  const m = motions.get(id);
+                  if (!m) throw Error('Unknown disciple');
+                  const entrance = worldMap.slots.find(
+                    (s) => s.id === building,
+                  )!.entrance as Point;
+                  const from = nearestWalkable([
+                    entrance[0] - 36,
+                    entrance[1] + 22,
+                  ]);
+                  const path = findPath(from, entrance);
+                  if (!path.length) throw Error('Entrance unreachable');
+                  Object.assign(m, {
+                    debugControlled: true,
+                    debugPose: pose,
+                    roofDebug: building,
+                    roofIndoor: undefined,
+                    indoorIndex: [...motions.values()].filter(
+                      (o) => o !== m && o.roofDebug === building,
+                    ).length,
+                    x: from[0],
+                    y: from[1],
+                    toX: entrance[0],
+                    toY: entrance[1],
+                    path,
+                    start: performance.now(),
+                    duration:
+                      (pathLength(path) / routeSpeed(path) / walkScale) * 1000,
+                    pendingDistance: 0,
+                    lastPaint: performance.now(),
+                  });
+                  cancelFrame();
+                  paint(performance.now());
+                  return { from, entrance, duration: m.duration };
+                },
+                /** 调试：从当前位置（室内）走回门口再到门前空地。 */
+                leave: (id: string) => {
+                  const m = motions.get(id);
+                  if (!m?.roofDebug) throw Error('Not inside');
+                  const entrance = worldMap.slots.find(
+                    (s) => s.id === m.roofDebug,
+                  )!.entrance as Point;
+                  const to = nearestWalkable([
+                    entrance[0] - 36,
+                    entrance[1] + 22,
+                  ]);
+                  const path: Point[] = [[m.x, m.y], ...findPath(entrance, to)];
+                  Object.assign(m, {
+                    roofDebug: undefined,
+                    roofIndoor: undefined,
+                    toX: to[0],
+                    toY: to[1],
+                    path,
+                    start: performance.now(),
+                    duration:
+                      (pathLength(path) / routeSpeed(path) / walkScale) * 1000,
+                    pendingDistance: 0,
+                    lastPaint: performance.now(),
+                  });
+                  cancelFrame();
+                  paint(performance.now());
+                  return { to, duration: m.duration };
+                },
+              },
+            }
+          : {}),
         __worldMotions: () =>
           [...motions.entries()].map(([id, m]) => ({
             id,
@@ -776,16 +1013,26 @@ export async function createMap(
       });
     const namePoints: (NamePoint & { id: string })[] = [];
     let active = false;
+    const roofOccupied = new Set<string>();
     for (const d of world.disciples) {
       const m = motions.get(d.id);
       if (!m) continue;
       const elapsed = Math.max(0, now - m.start);
       const moving = elapsed < m.duration;
       active ||= moving;
-      const positionOnPath = alongPath(
+      const pathFoot = alongPath(
         m.path,
         (elapsed / 1000) * routeSpeed(m.path) * walkScale,
       );
+      // roofFade：到门口后不再淡出消失，走一小段表现层路线到室内站位。
+      const indoor = roofFade ? roofIndoor(d, m, elapsed, moving) : undefined;
+      m.roofIndoor = indoor
+        ? { from: indoor.leg[0], to: indoor.leg[1], start: indoor.start }
+        : undefined;
+      const positionOnPath = indoor?.point ?? pathFoot;
+      const stepping = moving || !!indoor?.moving;
+      active ||= stepping;
+      if (indoor) roofOccupied.add(indoor.id);
       const dt = Math.max(0, (now - (m.lastPaint ?? now)) / 1000);
       const directionDt = Math.max(0, (now - (m.directionAt ?? now)) / 1000);
       const vx = directionDt > 0 ? (positionOnPath[0] - m.x) / directionDt : 0,
@@ -796,7 +1043,7 @@ export async function createMap(
       const travelled =
         Math.hypot(positionOnPath[0] - m.x, positionOnPath[1] - m.y) +
         (m.pendingDistance ?? 0);
-      const gait = advanceGait(m.cycles ?? 0, travelled, dt, moving, height);
+      const gait = advanceGait(m.cycles ?? 0, travelled, dt, stepping, height);
       m.cycles = gait.cycles;
       m.pendingDistance = 0;
       m.lastPaint = now;
@@ -804,7 +1051,7 @@ export async function createMap(
       const group = new Container();
       group.position.set(m.x, m.y);
       group.zIndex = m.y;
-      const pose = moving
+      const pose = stepping
         ? gait.pose
         : (m.debugPose ?? behaviorPose(d.state.behavior, false));
       const renderedFile = discipleArtFile(d.gender, pose);
@@ -819,8 +1066,23 @@ export async function createMap(
             Math.hypot(m.toX - s.entrance[0], m.toY - s.entrance[1]) < 0.1,
         );
       const alpha =
-        entering && !moving ? Math.max(0, 1 - (elapsed - m.duration) / 350) : 1;
-      active ||= !!entering && !moving && alpha > 0;
+        entering && !moving && !indoor
+          ? Math.max(0, 1 - (elapsed - m.duration) / 350)
+          : 1;
+      active ||= !!entering && !moving && alpha > 0 && !indoor;
+      if (roofFade)
+        for (const [id, roof] of Object.entries(roofFadeBuildings)) {
+          const entrance = worldMap.slots.find((s) => s.id === id)!
+            .entrance as Point;
+          if (
+            insideInset(
+              [m.x, m.y],
+              offsetPoints(roof.foundationTop, entrance),
+              INDOOR_INSET,
+            )
+          )
+            roofOccupied.add(id);
+        }
       stats.disciples.push({
         id: d.id,
         x: m.x,
@@ -917,12 +1179,14 @@ export async function createMap(
           compact ? marker.diameter / 2 / cam.zoom : 3.5,
         )
         .stroke({ width: 1, color: 0x263f34 });
-      if (groundMarks.ring || !sprite) {
+      // 坐在蒲团上不画灵根彩环。
+      if ((groundMarks.ring && !indoor?.seat) || !sprite) {
         group.addChild(ring);
         stats.rings++;
       }
       const mask = masks.get(file);
-      if (mask && !compact) {
+      // 室内弟子按脚底 y 排在外观之下，不做“露头抬层”。
+      if (mask && !compact && !indoor) {
         const facing = flip;
         const key = JSON.stringify([
           file,
@@ -951,6 +1215,12 @@ export async function createMap(
           result.visible,
         );
       }
+      // roofFade：室内弟子画在内景与外观之上（外观此时正淡出或已隐藏）。
+      if (indoor)
+        group.zIndex = Math.max(
+          group.zIndex,
+          buildingSortY(indoor.id, plotFoot(indoor.id)[1]) + 0.5,
+        );
       stats.disciples.at(-1)!.z = group.zIndex;
       if (compact) stats.markers++;
       if (sprite) {
@@ -1023,6 +1293,16 @@ export async function createMap(
       }
       scene.addChild(group);
     }
+    if (roofFade)
+      for (const id of Object.keys(roofFadeBuildings)) {
+        const next = retargetRoof(
+          roofTweens.get(id),
+          roofOccupied.has(id),
+          now,
+        );
+        if (next) roofTweens.set(id, next);
+        active ||= roofAnimating(next, now);
+      }
     screenLabels = labels
       .filter((l) => l.text.visible && l.text.alpha > 0)
       .map((l) => {
@@ -1119,11 +1399,19 @@ export async function createMap(
         d.stage !== '坐化' && !d.state.awayUntil && d.state.behavior !== '历练',
     );
     const destinations = discipleDestinations(visibleDisciples, w.tick);
+    const indoorCounts = new Map<string, number>();
     for (const [i, d] of visibleDisciples.entries()) {
       visible.add(d.id);
       const [x, y] = destinations[i];
       const row = i > 2 ? 1 : 0;
       const m = motions.get(d.id);
+      const roofId = roofFade ? destinationBuilding(d) : undefined;
+      const indoorIndex =
+        roofId && roofFadeBuildings[roofId]
+          ? (indoorCounts.get(roofId) ?? 0)
+          : undefined;
+      if (roofId && indoorIndex !== undefined)
+        indoorCounts.set(roofId, indoorIndex + 1);
       if (m?.debugControlled) continue;
       if (!m)
         motions.set(d.id, {
@@ -1138,9 +1426,11 @@ export async function createMap(
           row,
           path: [[x, y]],
           duration: 0,
+          indoorIndex,
         });
       else {
         m.row = row;
+        m.indoorIndex = indoorIndex;
         if (m.toX !== x || m.toY !== y) {
           const previousFoot: [number, number] = [m.x, m.y];
           [m.x, m.y] = alongPath(
@@ -1149,11 +1439,21 @@ export async function createMap(
               routeSpeed(m.path) *
               walkScale,
           );
+          const indoor = m.roofIndoor;
+          if (indoor)
+            [m.x, m.y] = alongPath(
+              [indoor.from, indoor.to],
+              ((now - indoor.start) / 1000) * walkSpeed,
+            );
           m.pendingDistance =
             (m.pendingDistance ?? 0) +
             Math.hypot(m.x - previousFoot[0], m.y - previousFoot[1]);
-          const path = findPath([m.x, m.y], [x, y]);
+          // 从室内站位先走回门口，再接正常寻路，不瞬移。
+          const outdoor = findPath(indoor ? indoor.from : [m.x, m.y], [x, y]);
+          const path: Point[] =
+            indoor && outdoor.length ? [[m.x, m.y], ...outdoor] : outdoor;
           if (!path.length) continue;
+          m.roofIndoor = undefined;
           m.path = path;
           m.duration =
             (pathLength(path) / (routeSpeed(path) * walkScale)) * 1000;

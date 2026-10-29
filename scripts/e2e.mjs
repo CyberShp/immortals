@@ -1,12 +1,13 @@
 import { verifyWalk, verifyWalkDirections } from './e2e-walk.mjs';
 import { verifyPedestals } from './e2e-pedestal.mjs';
+import { verifyRoofFade } from './e2e-roof.mjs';
 import { chromium } from 'playwright-core';
 import { mkdir, readFile, writeFile, readdir, stat } from 'node:fs/promises';
 import assert from 'node:assert/strict';
 const base = process.argv.find((a) => /^https?:/.test(a));
 if (!base)
   throw new Error(
-    '用法：node scripts/e2e.mjs http://localhost:4173 [--soak | --bridges | --clean | --grounded | --garden | --platform]',
+    '用法：node scripts/e2e.mjs http://localhost:4173 [--soak | --bridges | --clean | --grounded | --garden | --platform | --roof-fade]',
   );
 const soak = process.argv.includes('--soak');
 await mkdir('docs/screenshots', { recursive: true });
@@ -783,6 +784,12 @@ try {
         assertDefaultDiscipleSize,
       );
     await browser.close();
+    process.exit(0);
+  }
+  if (process.argv.includes('--roof-fade')) {
+    const report = await verifyRoofFade(browser, base, cleanScreenshot);
+    await browser.close();
+    console.log('Roof fade verified.', JSON.stringify(report.buildings));
     process.exit(0);
   }
   if (process.argv.includes('--platform')) {
