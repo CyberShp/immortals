@@ -1,3 +1,4 @@
+import { horizontalFacing, spriteFlip } from './disciple-facing';
 import platform from '../../scripts/platform-geometry.json';
 import { groundedLayer, insideGroundedBody } from './grounded-layers';
 import { discipleArtFile } from './world-scale';
@@ -91,6 +92,7 @@ type Motion = {
   row: number;
   path: Point[];
   duration: number;
+  directionAt?: number;
 };
 declare global {
   interface Window {
@@ -128,6 +130,10 @@ declare global {
         alpha: number;
         screenX: number;
         screenY: number;
+        vx: number;
+        vy: number;
+        facing: number;
+        flip: number;
       }[];
       buildings: {
         id: string;
@@ -693,18 +699,22 @@ export async function createMap(
         m.path,
         (elapsed / 1000) * routeSpeed(m.path) * walkScale,
       );
-      if (positionOnPath[0] !== m.x)
-        m.facing = positionOnPath[0] > m.x ? 1 : -1;
+      const directionDt = Math.max(0, (now - (m.directionAt ?? now)) / 1000);
+      const vx = directionDt > 0 ? (positionOnPath[0] - m.x) / directionDt : 0,
+        vy = directionDt > 0 ? (positionOnPath[1] - m.y) / directionDt : 0;
+      m.directionAt = now;
+      m.facing = horizontalFacing(vx, m.facing);
       [m.x, m.y] = positionOnPath;
       const group = new Container();
-      const position = m;
-      group.position.set(position.x, position.y);
+      group.position.set(m.x, m.y);
       group.zIndex = m.y;
       const pose = behaviorPose(
         d.state.behavior,
         moving,
         (((now - m.start) * routeSpeed(m.path)) / WALK_SPEED) * walkScale,
       );
+      const renderedFile = discipleArtFile(d.gender, pose);
+      const flip = spriteFlip(renderedFile, m.facing);
       stats.poses[pose] = (stats.poses[pose] ?? 0) + 1;
       const entering =
         world.tick > 0 &&
@@ -725,6 +735,10 @@ export async function createMap(
         alpha,
         screenX: bounds.width / 2 + (m.x - cam.x) * cam.zoom,
         screenY: bounds.height / 2 + (m.y - cam.y) * cam.zoom,
+        vx,
+        vy,
+        facing: m.facing,
+        flip,
       });
       if (alpha === 0) continue;
       if (
@@ -797,7 +811,7 @@ export async function createMap(
       const sprite = compact ? undefined : art(file, height / 96);
       const mask = masks.get(file);
       if (mask && !compact) {
-        const facing = pose === 'meditate' ? 1 : m.facing;
+        const facing = flip;
         const key = JSON.stringify([
           file,
           m.x,
@@ -828,7 +842,7 @@ export async function createMap(
       stats.disciples.at(-1)!.z = group.zIndex;
       if (compact) stats.markers++;
       if (sprite) {
-        if (pose !== 'meditate') sprite.scale.x *= m.facing;
+        sprite.scale.x *= flip;
         group.addChild(sprite);
         stats.discipleSprites++;
       } else if (!compact) {
@@ -1032,7 +1046,6 @@ export async function createMap(
           m.toX = x;
           m.toY = y;
           m.start = now;
-          if (x !== m.x) m.facing = x > m.x ? 1 : -1;
         }
       }
     }

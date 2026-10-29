@@ -756,3 +756,19 @@ it('garden entrance trips across three seeds stop outside the fence and fade out
   expect(samples).toBeGreaterThan(10000);
   expect(hiddenAtGate).toBeGreaterThan(0);
 }, 60000);
+
+it('baseline bug1: rightward movement must visually face right for left-facing walk source', async () => {
+  const map = await createMap(host),
+    w = world();
+  map.draw(w);
+  map.walkDormToHall(w.disciples[0].id);
+  mock.now += 100;
+  for (const [id, cb] of [...mock.frames]) {
+    mock.frames.delete(id);
+    cb(mock.now);
+  }
+  const sprite = disciple().children.find((n) => n instanceof Sprite) as Sprite;
+  // Both shipped walking poses face left in their unflipped pixels.
+  expect(Math.sign(sprite.scale.x) * -1).toBe(1);
+  map.destroy();
+});
