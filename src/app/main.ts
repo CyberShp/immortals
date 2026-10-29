@@ -1,4 +1,11 @@
 import {
+  artImage,
+  portraitFile,
+  icon,
+  eventIcon,
+  installArtFallback,
+} from './art';
+import {
   cardPosition,
   rosterRows,
   relatedEvents,
@@ -125,8 +132,9 @@ export async function start() {
     closeCard();
     dialog.close();
   }
-  const portrait = (d: Disciple) =>
-    `<span class="avatar" style="background:${C.elements[d.root.elements[0]].color}">${escape(d.name.slice(0, 1))}</span>`;
+  installArtFallback(document.body);
+  const portrait = (d: Disciple, size = 64) =>
+    `<span class="art-portrait" style="--art-size:${size}px;--root-color:${C.elements[d.root.elements[0]].color}"><span class="art-fallback">${escape(d.name.slice(0, 1))}</span>${artImage(portraitFile(d, size), size)}</span>`;
   const needs = (d: Disciple) =>
     (['energy', 'mood'] as const)
       .map(
@@ -203,6 +211,8 @@ export async function start() {
           .join('') || '<li>暂无纪事</li>'
       }</ol>`,
     );
+    const placeholder = el('modal-body').querySelector('.portrait');
+    if (placeholder) placeholder.outerHTML = portrait(d, 128);
     el('modal-body').dataset.view = 'detail';
     bindDiscipleActions(el('modal-body'));
   }
@@ -223,7 +233,7 @@ export async function start() {
       )
         .map(
           (d) =>
-            `<article class="roster-row">${portrait(d)}<button data-detail="${d.id}">${escape(d.name)}</button><span>${d.realm.major}${d.realm.layer}层</span><span>${d.state.behavior}</span><div>${needs(d)}</div><span>${relatedEvents(world, d.id).length ? '有事件 ' : ''}${d.state.injuredUntil > world.tick ? '受伤 ' : ''}${d.state.behavior.includes('突破') ? '突破中' : ''}</span><select data-policy="${d.id}" aria-label="${escape(d.name)}的方针">${['均衡', '专修', '勤工'].map((p) => `<option ${d.policy === p ? 'selected' : ''}>${p}</option>`).join('')}</select><button data-follow="${d.id}">定位</button>${relatedEvents(
+            `<article class="roster-row">${portrait(d, 32)}<button data-detail="${d.id}">${escape(d.name)}</button><span>${d.realm.major}${d.realm.layer}层</span><span>${d.state.behavior}</span><div>${needs(d)}</div><span>${d.state.behavior.includes('突破') ? icon('event-breakthrough') : relatedEvents(world, d.id)[0] ? icon(eventIcon(relatedEvents(world, d.id)[0].kind)) : ''}${relatedEvents(world, d.id).length ? '有事件 ' : ''}${d.state.injuredUntil > world.tick ? '受伤 ' : ''}${d.state.behavior.includes('突破') ? '突破中' : ''}</span><select data-policy="${d.id}" aria-label="${escape(d.name)}的方针">${['均衡', '专修', '勤工'].map((p) => `<option ${d.policy === p ? 'selected' : ''}>${p}</option>`).join('')}</select><button data-follow="${d.id}">定位</button>${relatedEvents(
               world,
               d.id,
             )
@@ -273,14 +283,14 @@ export async function start() {
     el('map').textContent =
       '地图暂不可用：浏览器未提供可用的图形环境。宗门簿册仍可使用。';
   }
-  const icon = (cover: boolean) =>
+  const faviconUrl = (cover: boolean) =>
     `data:image/svg+xml,${encodeURIComponent(`<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 40"><rect width="40" height="40" fill="${cover ? '#527b5b' : '#a74432'}"/><text x="7" y="29" font-size="27" fill="white">${cover ? '表' : '仙'}</text></svg>`)}`;
   function title() {
     document.title = hidden
       ? '季度工作台账'
       : `${world.events.length ? `(${world.events.length}) ` : ''}${settings.title}`;
     document.querySelector<HTMLLinkElement>('link[rel=icon]')!.href =
-      icon(hidden);
+      faviconUrl(hidden);
   }
   function disguise(value: boolean) {
     hidden = value;
@@ -307,7 +317,7 @@ export async function start() {
       favicon.rel = 'icon';
       doc.head.append(favicon);
     }
-    favicon.href = icon(hidden);
+    favicon.href = faviconUrl(hidden);
   }
   function traitBadge(id: string) {
     const name = traitDefinitions.find((t) => t.id === id)?.accessory ?? id;
@@ -322,7 +332,7 @@ export async function start() {
     )
       .map(
         (key, i) =>
-          `<div title="${['灵石', '灵草', '丹药', '声望'][i]}"><span class="icon-slot" data-icon="resource-${key}">●</span><span class="resource-name">${['灵石', '灵草', '丹药', '声望'][i]}</span><strong>${formatResource(world.resources[key], key)}</strong><small>${` / ${key === 'reputation' ? '∞' : formatResource(world.capacity[key] * (world.buildings.find((b) => b.id === 'B_HALL')?.level ?? 1), key)}`}</small></div>`,
+          `<div title="${['灵石', '灵草', '丹药', '声望'][i]}">${icon(`resource-${key === 'reputation' ? 'fame' : key}`, 32, false)}<span class="resource-name">${['灵石', '灵草', '丹药', '声望'][i]}</span><strong>${formatResource(world.resources[key], key)}</strong><small>${` / ${key === 'reputation' ? '∞' : formatResource(world.capacity[key] * (world.buildings.find((b) => b.id === 'B_HALL')?.level ?? 1), key)}`}</small></div>`,
       )
       .join('');
     el('disciples').innerHTML = world.disciples
@@ -432,7 +442,7 @@ export async function start() {
     const event = world.events.find((e) => e.id === id);
     if (!event) return;
     show(
-      `<p class="eyebrow">◇ ${escape(event.kind)} · 图标占位</p><h2>${escape(event.hint)}</h2><p>${escape(event.text)}</p><div class="actions">${event.options.map((o, i) => `<button data-choice="${i}" ${optionAvailable(world, event, i) ? '' : 'disabled'}>${escape(o)}${i === (defaultOption(world, event) < 0 ? event.defaultOption : defaultOption(world, event)) ? ' · ★默认' : ''}<small>${formatLog(costText(event.choices[i] ? optionCost(event.choices[i]) : {}))}${optionAvailable(world, event, i) ? '' : ' · 条件或资源不足'}</small></button>`).join('')}</div>`,
+      `<p class="eyebrow">${escape(event.kind)}</p><h2 class="event-title">${icon(eventIcon(event.kind), 64)}${escape(event.hint)}</h2><p>${escape(event.text)}</p><div class="actions">${event.options.map((o, i) => `<button data-choice="${i}" ${optionAvailable(world, event, i) ? '' : 'disabled'}>${escape(o)}${i === (defaultOption(world, event) < 0 ? event.defaultOption : defaultOption(world, event)) ? ' · ★默认' : ''}<small>${formatLog(costText(event.choices[i] ? optionCost(event.choices[i]) : {}))}${optionAvailable(world, event, i) ? '' : ' · 条件或资源不足'}</small></button>`).join('')}</div>`,
     );
     el('modal-body')
       .querySelectorAll<HTMLButtonElement>('[data-choice]')

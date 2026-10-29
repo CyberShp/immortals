@@ -245,4 +245,5 @@ console.log(
   `${files.length} files; public/assets total ${manifest.totalBytes} bytes`,
 );
 
+await tsImport('./import-batch2.ts', import.meta.url);
 await import('./world-buildings.mjs');

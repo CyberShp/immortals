@@ -14,9 +14,9 @@ describe('Iris assets', () => {
       expect([m.width, m.height], f.file).toEqual(f.size);
     }
   });
-  it('five disciple poses have a shared 80×96 canvas and foot anchor', () => {
+  it('eight disciple poses have a shared 80×96 canvas and foot anchor', () => {
     const poses = manifest.files.filter((f) => f.file.includes('-96@'));
-    expect(poses).toHaveLength(5);
+    expect(poses).toHaveLength(8);
     for (const f of poses) {
       expect(f.size).toEqual([80, 96]);
       expect(f.anchor).toEqual({ x: 40, y: 94 });
@@ -84,9 +84,9 @@ describe('Iris assets', () => {
     expect(total).toBe(manifest.totalBytes);
     expect(total).toBeLessThan(5_000_000);
   });
-  it('26 retained originals are byte-identical to the read-only source', async () => {
+  it('68 retained originals are byte-identical to the read-only source', async () => {
     const originals = manifest.files.filter((f) => f.file === f.source);
-    expect(originals).toHaveLength(26);
+    expect(originals).toHaveLength(68);
     const hash = (b: Buffer) => createHash('sha256').update(b).digest('hex');
     // Source is optional in CI; no source writes are ever performed.
     const source = process.env.IRIS_ASSET_SOURCE;
@@ -226,5 +226,19 @@ it('W1c redrawn originals retain pinned measurements, anchors and SHA-256', asyn
         .update(await readFile(new URL(f.file, root)))
         .digest('hex'),
     ).toBe(f.sha256);
+  }
+});
+
+it('batch2 copies match SHA-256 of the read-only design originals', async () => {
+  const source =
+    process.env.IRIS_ASSET_SOURCE ??
+    '/Volumes/Media/immortal-qa/design/art/assets';
+  const files = manifest.files.filter((f) => 'batch' in f && f.batch === 2);
+  expect(files).toHaveLength(42);
+  for (const f of files) {
+    const hash = (b: Buffer) => createHash('sha256').update(b).digest('hex');
+    const actual = hash(await readFile(new URL(f.file, root)));
+    expect(actual, f.file).toBe(hash(await readFile(`${source}/${f.file}`)));
+    expect(actual, f.file).toBe(f.sha256);
   }
 });

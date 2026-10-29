@@ -722,8 +722,386 @@
       "anchor": { "x": 0, "y": 0 },
       "scale": 1,
       "source": "map/base@2x.webp"
+    },
+    {
+      "file": "portrait/lu-qingya-256@2x.webp",
+      "size": [256, 256],
+      "anchor": { "x": 128, "y": 128 },
+      "scale": 1,
+      "source": "portrait/lu-qingya-256@2x.webp",
+      "batch": 2,
+      "sha256": "d65ec9f52d63062fd778dce624dff1e3c9ae899293651da0e005466bf1c12dac"
+    },
+    {
+      "file": "portrait/lu-qingya-128@2x.webp",
+      "size": [128, 128],
+      "anchor": { "x": 64, "y": 64 },
+      "scale": 1,
+      "source": "portrait/lu-qingya-128@2x.webp",
+      "batch": 2,
+      "sha256": "5abaa75dc182deb60b0061c9d57298f7288198bbe8d12b8313c798c5d79296de"
+    },
+    {
+      "file": "portrait/shen-mo-256@2x.webp",
+      "size": [256, 256],
+      "anchor": { "x": 128, "y": 128 },
+      "scale": 1,
+      "source": "portrait/shen-mo-256@2x.webp",
+      "batch": 2,
+      "sha256": "6abde9e8d24579ce72ee807eb6c746659243c4d7f4f90cd87252ba083071b714"
+    },
+    {
+      "file": "portrait/shen-mo-128@2x.webp",
+      "size": [128, 128],
+      "anchor": { "x": 64, "y": 64 },
+      "scale": 1,
+      "source": "portrait/shen-mo-128@2x.webp",
+      "batch": 2,
+      "sha256": "9be225e63a9aec8f5a49a7bc6390fe00c568bbdaeb3ad74ef60fc72504564ceb"
+    },
+    {
+      "file": "portrait/bai-zhi-256@2x.webp",
+      "size": [256, 256],
+      "anchor": { "x": 128, "y": 128 },
+      "scale": 1,
+      "source": "portrait/bai-zhi-256@2x.webp",
+      "batch": 2,
+      "sha256": "d073118e9aba87026f7b1e9289eeaaebdd8f6531764010bddeb7e74365d52d0b"
+    },
+    {
+      "file": "portrait/bai-zhi-128@2x.webp",
+      "size": [128, 128],
+      "anchor": { "x": 64, "y": 64 },
+      "scale": 1,
+      "source": "portrait/bai-zhi-128@2x.webp",
+      "batch": 2,
+      "sha256": "37b04218002fcee2c97d963cd0abf0360a1269a104659edf19de40cd88cce0cd"
+    },
+    {
+      "file": "portrait/su-xiaohe-256@2x.webp",
+      "size": [256, 256],
+      "anchor": { "x": 128, "y": 128 },
+      "scale": 1,
+      "source": "portrait/su-xiaohe-256@2x.webp",
+      "batch": 2,
+      "sha256": "c62a98c6995416217688698447b1d80cf5123922629d59e8785ea94573e6b6bd"
+    },
+    {
+      "file": "portrait/su-xiaohe-128@2x.webp",
+      "size": [128, 128],
+      "anchor": { "x": 64, "y": 64 },
+      "scale": 1,
+      "source": "portrait/su-xiaohe-128@2x.webp",
+      "batch": 2,
+      "sha256": "f99dc4710012710a36df09cfa31c6df013567dd35f795e22f2aa5f40ee70f71b"
+    },
+    {
+      "file": "portrait/qian-duoduo-256@2x.webp",
+      "size": [256, 256],
+      "anchor": { "x": 128, "y": 128 },
+      "scale": 1,
+      "source": "portrait/qian-duoduo-256@2x.webp",
+      "batch": 2,
+      "sha256": "2c8fb1c7cfe9ce070a91def8136477dafb4332aee8616080a46d9c1d5228042b"
+    },
+    {
+      "file": "portrait/qian-duoduo-128@2x.webp",
+      "size": [128, 128],
+      "anchor": { "x": 64, "y": 64 },
+      "scale": 1,
+      "source": "portrait/qian-duoduo-128@2x.webp",
+      "batch": 2,
+      "sha256": "2b12a9c523b33de738bc3a0af8b8296266a3bf548d814b6346c7117b03399e6f"
+    },
+    {
+      "file": "portrait/lin-shouzhuo-256@2x.webp",
+      "size": [256, 256],
+      "anchor": { "x": 128, "y": 128 },
+      "scale": 1,
+      "source": "portrait/lin-shouzhuo-256@2x.webp",
+      "batch": 2,
+      "sha256": "4a73f5d6f3e5b81d714926c942b9bf02dbda7fa1cdb018c3ad62df28ce4abadd"
+    },
+    {
+      "file": "portrait/lin-shouzhuo-128@2x.webp",
+      "size": [128, 128],
+      "anchor": { "x": 64, "y": 64 },
+      "scale": 1,
+      "source": "portrait/lin-shouzhuo-128@2x.webp",
+      "batch": 2,
+      "sha256": "2f32423a92a608ccb33cbb136d5c6fe21ea99f6ee3a97b2c1bcc42e93682d632"
+    },
+    {
+      "file": "icon/resource-stone-64@2x.webp",
+      "size": [128, 128],
+      "anchor": { "x": 64, "y": 64 },
+      "scale": 1,
+      "source": "icon/resource-stone-64@2x.webp",
+      "batch": 2,
+      "sha256": "82192bc69a6b8c026ccd14a7e7436a79022d862341d0dd06a183c6ff05527328"
+    },
+    {
+      "file": "icon/resource-stone-32@2x.webp",
+      "size": [64, 64],
+      "anchor": { "x": 32, "y": 32 },
+      "scale": 1,
+      "source": "icon/resource-stone-32@2x.webp",
+      "batch": 2,
+      "sha256": "6712aaa1b61d492dc2b35e98fa0f2de1e456011a683cdf6a9b0cb60bc6cd58aa"
+    },
+    {
+      "file": "icon/resource-herb-64@2x.webp",
+      "size": [128, 128],
+      "anchor": { "x": 64, "y": 64 },
+      "scale": 1,
+      "source": "icon/resource-herb-64@2x.webp",
+      "batch": 2,
+      "sha256": "719ba20a44fbf5407d11821bf520d86c47c40fb417eeec3288227aae54bc4fe4"
+    },
+    {
+      "file": "icon/resource-herb-32@2x.webp",
+      "size": [64, 64],
+      "anchor": { "x": 32, "y": 32 },
+      "scale": 1,
+      "source": "icon/resource-herb-32@2x.webp",
+      "batch": 2,
+      "sha256": "b4464027267b5e1c6d172d435968a3e227029f5cd33088040d2a601c7e9e28c7"
+    },
+    {
+      "file": "icon/resource-pill-64@2x.webp",
+      "size": [128, 128],
+      "anchor": { "x": 64, "y": 64 },
+      "scale": 1,
+      "source": "icon/resource-pill-64@2x.webp",
+      "batch": 2,
+      "sha256": "b60897b7cb9db955fc29954c4f00aa5d47678a57c711263df220f39d3b4fc5c4"
+    },
+    {
+      "file": "icon/resource-pill-32@2x.webp",
+      "size": [64, 64],
+      "anchor": { "x": 32, "y": 32 },
+      "scale": 1,
+      "source": "icon/resource-pill-32@2x.webp",
+      "batch": 2,
+      "sha256": "727bc3d804dfd166ad489a13c39cbdbccd4e6647d513cde8b775429e68f10d1e"
+    },
+    {
+      "file": "icon/resource-fame-64@2x.webp",
+      "size": [128, 128],
+      "anchor": { "x": 64, "y": 64 },
+      "scale": 1,
+      "source": "icon/resource-fame-64@2x.webp",
+      "batch": 2,
+      "sha256": "d875d48396234ff74948ac6a7a84bc96e64d9ec65d91ae7b10a0ad556f65491f"
+    },
+    {
+      "file": "icon/resource-fame-32@2x.webp",
+      "size": [64, 64],
+      "anchor": { "x": 32, "y": 32 },
+      "scale": 1,
+      "source": "icon/resource-fame-32@2x.webp",
+      "batch": 2,
+      "sha256": "67b2de6ff5ea4dda0f6c6f900fb72c264580fba00aa1f2fec5ad9863f4184f95"
+    },
+    {
+      "file": "icon/event-cultivate-64@2x.webp",
+      "size": [128, 128],
+      "anchor": { "x": 64, "y": 64 },
+      "scale": 1,
+      "source": "icon/event-cultivate-64@2x.webp",
+      "batch": 2,
+      "sha256": "6325236a73819da3d5c0273c133b0b8e54bb03050d08e56a7f81ad416683cd1c"
+    },
+    {
+      "file": "icon/event-cultivate-32@2x.webp",
+      "size": [64, 64],
+      "anchor": { "x": 32, "y": 32 },
+      "scale": 1,
+      "source": "icon/event-cultivate-32@2x.webp",
+      "batch": 2,
+      "sha256": "0237bff7512af9acdc025f4fc36eda0b166611667f9570defca132ddcb951d29"
+    },
+    {
+      "file": "icon/event-work-64@2x.webp",
+      "size": [128, 128],
+      "anchor": { "x": 64, "y": 64 },
+      "scale": 1,
+      "source": "icon/event-work-64@2x.webp",
+      "batch": 2,
+      "sha256": "0f0ad92113056d85ed0c217ed1f15356eee35a7d16253d38c0431c04f71441fa"
+    },
+    {
+      "file": "icon/event-work-32@2x.webp",
+      "size": [64, 64],
+      "anchor": { "x": 32, "y": 32 },
+      "scale": 1,
+      "source": "icon/event-work-32@2x.webp",
+      "batch": 2,
+      "sha256": "c98b3f378543277ffc4581257f77d616ac831120079c1b5024863c5846160d79"
+    },
+    {
+      "file": "icon/event-social-64@2x.webp",
+      "size": [128, 128],
+      "anchor": { "x": 64, "y": 64 },
+      "scale": 1,
+      "source": "icon/event-social-64@2x.webp",
+      "batch": 2,
+      "sha256": "85e99a2a2e9291aeff787901265b1bce5f14d0c7bead5b59a5d9e6d8d428c424"
+    },
+    {
+      "file": "icon/event-social-32@2x.webp",
+      "size": [64, 64],
+      "anchor": { "x": 32, "y": 32 },
+      "scale": 1,
+      "source": "icon/event-social-32@2x.webp",
+      "batch": 2,
+      "sha256": "1f54b4954e03c7aff6f3041c315d38a005f1396cf26aa0bf2b154962c5c1d71f"
+    },
+    {
+      "file": "icon/event-romance-64@2x.webp",
+      "size": [128, 128],
+      "anchor": { "x": 64, "y": 64 },
+      "scale": 1,
+      "source": "icon/event-romance-64@2x.webp",
+      "batch": 2,
+      "sha256": "b89e82701fe421c8f5234cb0821e40b3130f5886e5366be971b382b750f5cf78"
+    },
+    {
+      "file": "icon/event-romance-32@2x.webp",
+      "size": [64, 64],
+      "anchor": { "x": 32, "y": 32 },
+      "scale": 1,
+      "source": "icon/event-romance-32@2x.webp",
+      "batch": 2,
+      "sha256": "7c0e77c90e66ae555ef3c747b39b9682907bcb5a85d8ec9ac510e6138a73e7ae"
+    },
+    {
+      "file": "icon/event-quarrel-64@2x.webp",
+      "size": [128, 128],
+      "anchor": { "x": 64, "y": 64 },
+      "scale": 1,
+      "source": "icon/event-quarrel-64@2x.webp",
+      "batch": 2,
+      "sha256": "73f34c8e09b308186c96f922dfcfa0ad5aa48e59c3c8e5abce117ba679befc7c"
+    },
+    {
+      "file": "icon/event-quarrel-32@2x.webp",
+      "size": [64, 64],
+      "anchor": { "x": 32, "y": 32 },
+      "scale": 1,
+      "source": "icon/event-quarrel-32@2x.webp",
+      "batch": 2,
+      "sha256": "e5f7fe40d26bddc0d9b6daebf75d8137b36fe9bb0eec475f0b481d975a4ad92a"
+    },
+    {
+      "file": "icon/event-adventure-64@2x.webp",
+      "size": [128, 128],
+      "anchor": { "x": 64, "y": 64 },
+      "scale": 1,
+      "source": "icon/event-adventure-64@2x.webp",
+      "batch": 2,
+      "sha256": "27ba08bbe1dc1ab12acbe5a32bb4712ffe2189b22789f2add141d04512b2fff7"
+    },
+    {
+      "file": "icon/event-adventure-32@2x.webp",
+      "size": [64, 64],
+      "anchor": { "x": 32, "y": 32 },
+      "scale": 1,
+      "source": "icon/event-adventure-32@2x.webp",
+      "batch": 2,
+      "sha256": "b14a4a08f58f7614dcbe9882a8b580801fd890a6a086c44ef36abb4a0f276a41"
+    },
+    {
+      "file": "icon/event-breakthrough-64@2x.webp",
+      "size": [128, 128],
+      "anchor": { "x": 64, "y": 64 },
+      "scale": 1,
+      "source": "icon/event-breakthrough-64@2x.webp",
+      "batch": 2,
+      "sha256": "102811a0e75e3c07325319e4a5d091e577ea71bf66a45f93fbdd07805125de33"
+    },
+    {
+      "file": "icon/event-breakthrough-32@2x.webp",
+      "size": [64, 64],
+      "anchor": { "x": 32, "y": 32 },
+      "scale": 1,
+      "source": "icon/event-breakthrough-32@2x.webp",
+      "batch": 2,
+      "sha256": "8f576972b0a5696340c58388ab05d70573da949ecba3fecb3f56b0c6fb1ccad5"
+    },
+    {
+      "file": "icon/event-sect-64@2x.webp",
+      "size": [128, 128],
+      "anchor": { "x": 64, "y": 64 },
+      "scale": 1,
+      "source": "icon/event-sect-64@2x.webp",
+      "batch": 2,
+      "sha256": "ee00291f51a4bc370142d1a9fd61a312aca4d03f8950ca7c8ee54bc9bbea2139"
+    },
+    {
+      "file": "icon/event-sect-32@2x.webp",
+      "size": [64, 64],
+      "anchor": { "x": 32, "y": 32 },
+      "scale": 1,
+      "source": "icon/event-sect-32@2x.webp",
+      "batch": 2,
+      "sha256": "96b863aa89f26ef46b996795b5a8c961c0223b7ebd5a82d67863e49ce9f372c8"
+    },
+    {
+      "file": "disciple/f-walk-step@2x.webp",
+      "size": [386, 462],
+      "anchor": { "x": 193, "y": 454 },
+      "scale": 1,
+      "source": "disciple/f-walk-step@2x.webp",
+      "batch": 2,
+      "sha256": "60759920f1b0783440ef37dd5817228f1452576c779db3335d0eb9de7cff658d"
+    },
+    {
+      "file": "disciple/f-walk-step-96@2x.webp",
+      "size": [80, 96],
+      "anchor": { "x": 40, "y": 94 },
+      "scale": 1,
+      "source": "disciple/f-walk-step-96@2x.webp",
+      "batch": 2,
+      "sha256": "cf81123cd2c76646169c69db0893d555786101e51bb2a5cde298fbd41f239eae"
+    },
+    {
+      "file": "disciple/f-walk-pass@2x.webp",
+      "size": [386, 462],
+      "anchor": { "x": 193, "y": 454 },
+      "scale": 1,
+      "source": "disciple/f-walk-pass@2x.webp",
+      "batch": 2,
+      "sha256": "6431d29595c3179265fdb9f8e463e69c644c2b6572fc67f79bbcbb4bc396c142"
+    },
+    {
+      "file": "disciple/f-walk-pass-96@2x.webp",
+      "size": [80, 96],
+      "anchor": { "x": 40, "y": 94 },
+      "scale": 1,
+      "source": "disciple/f-walk-pass-96@2x.webp",
+      "batch": 2,
+      "sha256": "55e1d9b3c33f6d7027dadcddaf7e9a008006fa86ff9929dce2d1ad32dc03401a"
+    },
+    {
+      "file": "disciple/f-meditate@2x.webp",
+      "size": [386, 462],
+      "anchor": { "x": 193, "y": 454 },
+      "scale": 1,
+      "source": "disciple/f-meditate@2x.webp",
+      "batch": 2,
+      "sha256": "a8372869909367471f1feea818d07ec7c7fbd03ea9b4ded6488ed5fb07e96027"
+    },
+    {
+      "file": "disciple/f-meditate-96@2x.webp",
+      "size": [80, 96],
+      "anchor": { "x": 40, "y": 94 },
+      "scale": 1,
+      "source": "disciple/f-meditate-96@2x.webp",
+      "batch": 2,
+      "sha256": "d5d40d2a7bc6a92de159847da6fd933d380e8fe15ebd1118279c54eb6a429dc1"
     }
   ],
-  "assetBytes": 1345628,
-  "totalBytes": 1368600
+  "assetBytes": 1682848,
+  "totalBytes": 1718114
 }

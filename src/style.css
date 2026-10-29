@@ -544,3 +544,48 @@ th {
     display: inline;
   }
 }
+
+.art-portrait,
+.art-icon {
+  display: inline-grid;
+  position: relative;
+  place-items: center;
+  width: var(--art-size);
+  height: var(--art-size);
+  flex: 0 0 var(--art-size);
+  vertical-align: middle;
+}
+.art-fallback {
+  grid-area: 1 / 1;
+}
+.art-portrait .art-fallback {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: var(--root-color);
+  color: white;
+}
+.art-portrait img,
+.art-icon img {
+  grid-area: 1 / 1;
+  width: var(--art-size);
+  height: var(--art-size);
+  object-fit: contain;
+  position: relative;
+}
+.art-portrait:has(img) .art-fallback,
+.art-icon:has(img) .art-fallback {
+  visibility: hidden;
+}
+.event-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+@media (max-width: 600px) {
+  .roster-row {
+    grid-template-columns: 32px 60px 55px 44px 115px;
+  }
+}

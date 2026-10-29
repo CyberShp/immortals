@@ -124,6 +124,25 @@ try {
     (a, b) => a + b,
     0,
   );
+  assert.equal(
+    firstLoadResources.filter((r) => r.url.includes('/portrait/')).length,
+    0,
+    'First screen must not load portraits',
+  );
+  const firstIcons = firstLoadResources.filter((r) => r.url.includes('/icon/'));
+  assert.equal(firstIcons.length, 4);
+  assert.ok(
+    firstIcons.every((r) =>
+      /resource-(stone|herb|pill|fame)-32@2x.webp$/.test(r.url),
+    ),
+  );
+  await page.waitForFunction(
+    () =>
+      [...document.querySelectorAll('#resources img')].length === 4 &&
+      [...document.querySelectorAll('#resources img')].every(
+        (i) => i.complete && i.naturalWidth === 64,
+      ),
+  );
   const baseResource = firstLoadResources.find((r) =>
     r.url.endsWith('/assets/map/world.webp'),
   );
@@ -193,7 +212,7 @@ try {
     assert.equal((await page.evaluate(() => window.__camera.get())).zoom, 1);
     assert.equal(stats.mode, 'full');
     assert.ok(stats.minHeadVisibility >= 0.6);
-    assert.equal(await page.locator('.icon-slot').count(), 4);
+    assert.equal(await page.locator('#resources .art-icon').count(), 4);
     assert.ok(stats.visibleDisciples >= 3);
     assert.equal(await page.locator('.roster:visible').count(), 0);
     assert.ok(
@@ -212,9 +231,31 @@ try {
       450 + (first.y - cam.y - 30) * cam.zoom,
     );
     assert.equal(await page.locator('#disciple-card').isVisible(), true);
+    await page.waitForFunction(() => {
+      const i = document.querySelector('#disciple-card img');
+      return i?.complete && i.naturalWidth === 128 && i.width === 64;
+    });
     await shot('23-world-card');
     await page.evaluate(() => window.__ui.openRoster());
     assert.equal(await page.locator('.roster-row').count(), 6);
+    await page.waitForFunction(
+      () =>
+        [...document.querySelectorAll('.roster-row .art-portrait img')]
+          .length === 6 &&
+        [...document.querySelectorAll('.roster-row .art-portrait img')].every(
+          (i) => i.complete && i.naturalWidth === 128 && i.width === 32,
+        ),
+    );
+    // Create a real pending event via the existing simulation hook before the screenshot.
+    await page.evaluate(() => {
+      window.__xianfu.advance(12);
+      window.__ui.openRoster();
+    });
+    await page.waitForFunction(() =>
+      [...document.querySelectorAll('.roster-row .art-icon img')].some(
+        (i) => i.complete && i.naturalWidth === 64,
+      ),
+    );
     await shot('24-world-roster');
     await page.locator('#modal [data-follow]').first().click();
     await page.waitForFunction(() => {
@@ -435,6 +476,25 @@ try {
     assert.ok(fallbackStats.rings > 0);
     assert.equal(fallbackStats.rings, fallbackStats.nameLabels);
     assert.equal(fallbackStats.baseLoaded, false);
+    await fallbackPage.waitForFunction(
+      () => document.querySelectorAll('#resources img').length === 0,
+    );
+    assert.equal(
+      await fallbackPage.locator('#resources .art-fallback:visible').count(),
+      4,
+    );
+    await fallbackPage.evaluate(() => window.__ui.openRoster());
+    await fallbackPage.waitForFunction(
+      () =>
+        document.querySelectorAll('.roster-row .art-portrait img').length === 0,
+    );
+    assert.equal(
+      await fallbackPage
+        .locator('.roster-row .art-portrait .art-fallback:visible')
+        .count(),
+      6,
+    );
+    await fallbackPage.locator('#close').click();
     await fallbackPage.locator('#settings-open').click();
     await fallbackPage.locator('#save-open').click();
     await fallbackPage.locator('#save-text').waitFor();
@@ -445,6 +505,13 @@ try {
     });
     await fallbackPage.locator('#compact-event').click();
     await fallbackPage.locator('[data-choice]').first().waitFor();
+    await fallbackPage.waitForFunction(
+      () => document.querySelectorAll('.event-title img').length === 0,
+    );
+    assert.equal(
+      await fallbackPage.locator('.event-title .art-fallback:visible').count(),
+      1,
+    );
     assert.deepEqual(fallbackErrors, []);
     await fallbackContext.close();
     await page.locator('#roster-open').click();
@@ -452,6 +519,16 @@ try {
     const elder = page
       .locator('#modal .disciple')
       .filter({ has: page.getByRole('heading', { name: '林守拙' }) });
+    await elder.locator('.art-portrait img').waitFor();
+    await page.waitForFunction(() => {
+      const i = document.querySelector('#modal .disciple .art-portrait img');
+      return (
+        i?.complete &&
+        i.naturalWidth === 256 &&
+        i.width === 128 &&
+        i.height === 128
+      );
+    });
     assert.match(await elder.innerText(), /178 岁/);
     assert.match(await elder.innerText(), /余寿 6 季/);
     await shot('01-main');

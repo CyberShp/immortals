@@ -1,3 +1,4 @@
+import { discipleArtFile } from './world-scale';
 import {
   Application,
   Assets,
@@ -511,7 +512,7 @@ export async function createMap(
         .stroke({ width: 1, color: 0x263f34 });
       group.addChild(ring);
       stats.rings++;
-      const file = `disciple/${pose}-96@2x.webp`;
+      const file = discipleArtFile(d.gender, pose);
       const sprite = compact ? undefined : art(file, height / 96);
       const mask = masks.get(file);
       if (mask && !compact) {
