@@ -18,6 +18,7 @@ export const resourcesSchema = z.object({
 export const discipleSchema = z.object({
   id: z.string().min(1),
   name: z.string().min(2).max(3),
+  storyLines: z.array(z.enum(['A', 'B', 'C', 'D'])).default([]),
   gender: z.enum(['男', '女']),
   ageSeasons: nat,
   lifespanSeasons: nat,

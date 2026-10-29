@@ -42,7 +42,8 @@
       "hair": "束发",
       "trim": "火",
       "accessory": "T_PROUD"
-    }
+    },
+    "storyLines": ["A"]
   },
   {
     "id": "d1",
@@ -91,7 +92,8 @@
       "hair": "束发",
       "trim": "土",
       "accessory": "T_ALOOF"
-    }
+    },
+    "storyLines": ["A", "C"]
   },
   {
     "id": "d2",
@@ -136,7 +138,8 @@
       "hair": "束发",
       "trim": "水",
       "accessory": "T_AMOROUS"
-    }
+    },
+    "storyLines": ["C"]
   },
   {
     "id": "d3",
@@ -181,7 +184,8 @@
       "hair": "束发",
       "trim": "木",
       "accessory": "T_HERB"
-    }
+    },
+    "storyLines": ["B"]
   },
   {
     "id": "d4",
@@ -221,7 +225,8 @@
       "hair": "束发",
       "trim": "土",
       "accessory": "T_LAZY"
-    }
+    },
+    "storyLines": ["D"]
   },
   {
     "id": "d5",
@@ -266,6 +271,7 @@
       "hair": "束发",
       "trim": "木",
       "accessory": "T_KIND"
-    }
+    },
+    "storyLines": ["B"]
   }
 ]

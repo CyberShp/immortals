@@ -82,6 +82,27 @@ if (args.includes('--seeds')) {
     模式: args.includes('--idle')
       ? '零操作超时默认'
       : '出现即选默认（不可负担时选第一个付得起的选项）',
+    至少一次历练局数: results.filter(
+      (w) => w.flags['first:EV_ADV_01'] !== undefined,
+    ).length,
+    历练事件: Object.fromEntries(
+      ['EV_ADV_01', 'EV_ADV_02'].map((id) => {
+        const reached = results.filter(
+          (w) => typeof w.flags[`first:${id}`] === 'number',
+        );
+        return [
+          id,
+          {
+            出现局数: reached.length,
+            首次中位轮次: median(
+              reached.map((w) =>
+                Math.ceil(Number(w.flags[`first:${id}`]) / 30),
+              ),
+            ),
+          },
+        ];
+      }),
+    ),
     种子数: count,
     轮数: rounds,
     主殿Lv2完成率:

@@ -212,6 +212,8 @@ export const eventDefinitionSchema = z
         .object({
           conditions: z.array(conditionSchema),
           who: z.string().optional(),
+          excludeStoryCast: z.boolean().optional(),
+          excludeWithPendingEvent: z.boolean().optional(),
           allowAway: z.boolean().optional(),
           allowDead: z.boolean().optional(),
           select: z.enum(['highestRelation']).optional(),

@@ -14,6 +14,7 @@ function world(tick: number) {
   w.round = Math.floor(tick / 30);
   w.flags.autoMaster = false;
   for (const d of w.disciples) {
+    d.storyLines = []; // Isolate timing from story-cast eligibility.
     d.state.behavior = '休息';
     d.state.stepsLeft = 100;
     d.needs.energy = 90;
@@ -27,7 +28,7 @@ it.each([
 ] as const)('%s 在上一轮末被拦截、目标轮首步可入队', (id, round) => {
   const def = definition(id);
   expect(def.trigger.earliestRound).toBe(round);
-  expect(def.trigger.chance).toBe(id === 'EV_ADV_01' ? 0.03 : 1);
+  expect(def.trigger.chance).toBe(id === 'EV_ADV_01' ? 0.06 : 1);
   def.trigger.chance = 1;
   defs.splice(0, defs.length, def);
   const last = (round - 1) * 30;

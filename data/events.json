@@ -462,7 +462,9 @@
             ],
             "value": 2
           }
-        ]
+        ],
+        "excludeStoryCast": true,
+        "excludeWithPendingEvent": true
       }
     },
     "trigger": {
@@ -472,7 +474,7 @@
           "value": 4
         }
       ],
-      "chance": 0.03,
+      "chance": 0.06,
       "cadence": "step",
       "earliestRound": 3
     },
@@ -523,7 +525,9 @@
             "op": "returned"
           }
         ],
-        "allowAway": true
+        "allowAway": true,
+        "excludeStoryCast": true,
+        "excludeWithPendingEvent": true
       }
     },
     "trigger": {

@@ -351,7 +351,45 @@ export const upgrade = build;
 function pick<T>(w: World, items: T[]): T {
   return items[Math.floor(random(w.rng) * items.length)];
 }
-function selectRoles(w: World, def: EventDefinition): Roles | null {
+// Only immutable role requirements establish unavailability. Energy, location,
+// relationships, age and buildings can change and must not release story cast.
+function possibleRole(w: World, c: Condition, d: Disciple): boolean {
+  if (c.op === 'any') return c.conditions!.some((x) => possibleRole(w, x, d));
+  if (c.op === 'all') return c.conditions!.every((x) => possibleRole(w, x, d));
+  return c.op === 'trait' || c.op === 'root' ? matches(w, c, {}, d) : true;
+}
+export function isStoryCast(w: World, d: Disciple): boolean {
+  const lines = new Set<string>(d.storyLines);
+  for (const [key, id] of Object.entries(w.flags))
+    if (key.startsWith('cast:') && id === d.id) lines.add(key.split(':')[1]);
+  return [...lines].some((line) => {
+    const nodes = definitions
+      .filter((e) => e.chain === line)
+      .sort((a, b) => a.step - b.step);
+    if (!nodes.length) return false;
+    if (w.flags[`done:${nodes.at(-1)!.id}`] !== undefined) return false;
+    // Queued nodes remain live even when their cast no longer matches traits.
+    if (w.events.some((e) => nodes.some((n) => n.id === e.definitionId)))
+      return true;
+    const slots = Object.entries(nodes[0].roles);
+    function possible(index: number, used: string[]): boolean {
+      if (index === slots.length) return true;
+      const [slot, spec] = slots[index];
+      const bound = w.flags[`cast:${line}:${slot}`];
+      return w.disciples.some(
+        (candidate) =>
+          !used.includes(candidate.id) &&
+          (spec.allowDead || candidate.remainingSeasons > 0) &&
+          (bound
+            ? candidate.id === bound
+            : spec.conditions.every((c) => possibleRole(w, c, candidate))) &&
+          possible(index + 1, [...used, candidate.id]),
+      );
+    }
+    return possible(0, []);
+  });
+}
+export function selectRoles(w: World, def: EventDefinition): Roles | null {
   const busy = new Set(w.events.flatMap((e) => Object.values(e.roles)));
   const slots = Object.entries(def.roles);
   const candidates: { roles: Roles; weight: number }[] = [];
@@ -367,6 +405,11 @@ function selectRoles(w: World, def: EventDefinition): Roles | null {
       (d) =>
         (!bound || d.id === bound) &&
         !busy.has(d.id) &&
+        (!spec.excludeWithPendingEvent || !busy.has(d.id)) &&
+        // allowAway resumes an existing departure; never strand its owner.
+        (!spec.excludeStoryCast ||
+          (spec.allowAway && d.state.awayUntil > 0) ||
+          !isStoryCast(w, d)) &&
         !Object.values(roles).includes(d.id) &&
         (spec.allowDead || d.remainingSeasons > 0) &&
         (spec.allowAway || !d.state.awayUntil) &&
@@ -613,6 +656,7 @@ function recruit(w: World, mood = 0) {
   d.root = { grade, elements };
   d.realm = { major: '炼气', layer: 1, xp: 0 };
   d.traits = ts;
+  d.storyLines = [];
   d.needs = { energy: 90, mood: clamp(75 + mood), drive: 55 };
   d.relations = {};
   d.flags = {};

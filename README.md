@@ -68,7 +68,11 @@ SOAK_MIN=10 SOAK_SPEED=10 node scripts/soak-long.mjs http://localhost:4173/
 
 事件采用 `{id, kind, chain, step, roles, trigger, hint, text, options, priority, cooldown, pity, branches}`；`options` 含 label/effects/default/cost/conditions，可选 `costBalance` 引用数值配置。例如 `{"op":"resource","key":"reputation","value":25}` 表示声望至少 25；`{"op":"any","conditions":[...]}` 表示任一条件。效果按 type 进入注册表，普通数值写 JSON，特殊规则才加代码。
 
-`trigger` 包含 `conditions`、`chance`（0～1）、`cadence`（`step` / `round`），可选 `earliestRound`（正整数，省略等同 1）。最早轮次按统计口径 ⌈tick/30⌉ 判定：第 N 轮首步为 tick = (N−1)×30+1。未到门槛时在角色抽取和概率掷骰之前跳过，不消耗随机数、不登记每轮首次合法掷骰，保底也不能绕过门槛。EV_ADV_01 为 3（最早 tick 61），每步概率仍为 3%；EV_ADV_02 为 4（最早 tick 91），仍需离山满 30 步。4.3 表 ±1 轮仅约束推演表里程碑。
+`trigger` 包含 `conditions`、`chance`（0～1）、`cadence`（`step` / `round`），可选 `earliestRound`（正整数，省略等同 1）。最早轮次按统计口径 ⌈tick/30⌉ 判定：第 N 轮首步为 tick = (N−1)×30+1。未到门槛时在角色抽取和概率掷骰之前跳过，不消耗随机数、不登记每轮首次合法掷骰，保底也不能绕过门槛。EV_ADV_01 为 3（最早 tick 61），每步概率为 6%；EV_ADV_02 为 4（最早 tick 91），仍需离山满 30 步。4.3 表 ±1 轮仅约束推演表里程碑。
+
+角色槽可配置 `excludeStoryCast: true` 与 `excludeWithPendingEvent: true`（可选 boolean）；前者排除尚有效故事线的主要角色，后者显式声明队列占用排除，全局同人唯一始终生效。`allowAway` 的已离山者接续旅程时不重验故事线身份，仍须等其他未结事件释放角色才可回山。
+
+弟子新增 `storyLines: ["A", "C"]`，元素限定 A/B/C/D，省略默认 `[]`，招新为空；运行时还合并 chain role binding。全部涉及线终结或当前硬条件角色组合已不存在时释放，临时地点/精力不足不算失效。完整解释及旧存档边界见 `docs/ARCHITECTURE.md` 的“待 Lore 确认口径”。
 
 弟子以季存年龄、总寿元和 remainingSeasons；年龄显示向下取整为岁，另显示余寿季数。新局长老为 714/720/6 季；延寿只加总寿元与余寿。招新十二姓名抽签不放回，用尽重置；签池使用记录在世界 flags 中持久化。模拟函数原地修改世界，同 seed 同操作可逐项复现；所有随机调用计数进入存档。自动掌门默认开启，可在设置关闭；方针只指方向，弟子自行选择动作。建筑和事件选项先验条件/成本，不允许负资源。
 
@@ -96,7 +100,7 @@ npm run sim -- --seeds 100 --rounds 6 --report docs/sim-100.json
 npm run sim -- --seeds 100 --rounds 6 --idle --report docs/sim-idle-100.json
 ```
 
-默认 sim 在事件出现时立即选默认；`--idle` 才是前台 30 步超时处理，两者分别统计。默认成本不足时采用列表中第一个付得起且条件可用的选项（不限定免费），与零操作处理共用逻辑。统计命令成功退出表示模拟正常运行，**不表示节奏/故事目标通过**。统计含全部事件首次出现中位轮次（⌈步/30⌉）、命中数、A/B/C/D 完成率、完成线数分布、≥3 条比例和 SEC_02 命中率。具体缺口与 26 条决定对照见 `docs/ARCHITECTURE.md`。
+默认 sim 在事件出现时立即选默认；`--idle` 才是前台 30 步超时处理，两者分别统计。默认成本不足时采用列表中第一个付得起且条件可用的选项（不限定免费），与零操作处理共用逻辑。统计命令成功退出表示模拟正常运行，**不表示节奏/故事目标通过**。统计显式包含至少一次 EV_ADV_01 的局数、ADV_01/02 各自出现局数与首次中位轮次（无命中为 null），并含全部事件首次出现中位轮次（⌈步/30⌉）、命中数、A/B/C/D 完成率、完成线数分布、≥3 条比例和 SEC_02 命中率。具体缺口与 26 条决定对照见 `docs/ARCHITECTURE.md`。
 
 离线分段累计有效时间，再向下取整：十分钟 2 轮、八小时 45 轮、一天 74 轮、七天 160 轮；负时间不补算，七天封顶。每人最多两次成功小突破，不筑基、不坐化，年龄最多八季；离线结束每人修为按当前层截断为 100/150/200，溢出丢弃；离线不新开工程，已开工继续完成。通用事件默认结算，最多保留三个连锁决策节点，汇总含关系档位变化和十条以内提示。
 
