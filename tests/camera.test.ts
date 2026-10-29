@@ -39,67 +39,43 @@ function setup(debug = true) {
     events.get(name)!({ preventDefault: vi.fn(), ...e } as never);
   return { camera, media, buttons, fire, repaint };
 }
-it('pointer pan and wheel zoom preserve focal world point and block page scroll', () => {
+it('CSS pixel pan and focal zoom, including compact gestures', () => {
   const { camera, fire } = setup();
+  const initial = camera.get();
   fire('pointerdown', { pointerId: 1, clientX: 330, clientY: 200 });
   fire('pointermove', { pointerId: 1, clientX: 280, clientY: 170 });
   fire('pointerup', {});
-  expect(camera.get().x).toBeCloseTo(1611.111111);
-  expect(camera.get().y).toBeCloseTo(966.666666);
-  const before = camera.get(),
-    preventDefault = vi.fn();
-  fire('wheel', { clientX: 280, clientY: 170, deltaY: -500, preventDefault });
-  const after = camera.get();
-  expect(after.zoom).toBeCloseTo(0.6);
-  expect(after.x - 50 / 0.6).toBeCloseTo(before.x - 50 / 0.45);
-  expect(after.y - 30 / 0.6).toBeCloseTo(before.y - 30 / 0.45);
-  expect(preventDefault).toHaveBeenCalled();
-});
-it('compact is panorama and restores full camera without accepting gestures', () => {
-  const { camera, media, fire } = setup();
+  expect(camera.get().x).toBeCloseTo(initial.x + 50 / initial.zoom);
   const before = camera.get();
-  media.matches = true;
-  expect(camera.get()).toEqual({ zoom: 0.2, x: 1600, y: 700 });
-  fire('wheel', { deltaY: -500 });
-  fire('pointerdown', { pointerId: 1 });
-  media.matches = false;
-  expect(camera.get()).toEqual(before);
-  camera.destroy();
-  expect(window.__camera).toBeUndefined();
+  fire('wheel', { clientX: 280, clientY: 170, deltaY: -500 });
+  const after = camera.get();
+  expect(after.x - 50 / after.zoom).toBeCloseTo(before.x - 50 / before.zoom);
+  expect(camera.wasDragged()).toBe(true);
 });
-it('buttons adjust zoom and panorama; hooks exist only in debug', () => {
+it('buttons, panorama, and debug-only hook', () => {
   const { camera, buttons } = setup(false);
   expect(window.__camera).toBeUndefined();
+  const zoom = camera.get().zoom;
   buttons[0].onclick();
-  expect(camera.get().zoom).toBeCloseTo(0.55);
+  expect(camera.get().zoom).toBeCloseTo(zoom + 0.1);
   buttons[1].onclick();
-  expect(camera.get().zoom).toBeCloseTo(0.45);
+  expect(camera.get().zoom).toBeCloseTo(zoom);
   buttons[2].onclick();
   expect(camera.get()).toEqual({ zoom: 0.2, x: 1600, y: 700 });
   camera.destroy();
 });
-
-it('camera recreation ignores storage and returns to the default', () => {
-  const storage = { getItem: vi.fn(() => '{"zoom":2}'), setItem: vi.fn() };
+it('smooth follow is cancelled by drag, without persisting camera', () => {
+  const storage = { getItem: vi.fn(), setItem: vi.fn() };
   vi.stubGlobal('localStorage', storage);
-  const first = setup();
-  first.camera.set({ zoom: 2 });
-  first.camera.destroy();
-  const second = setup();
-  expect(second.camera.get()).toEqual({ zoom: 0.45, x: 1500, y: 900 });
-  expect(storage.getItem).not.toHaveBeenCalled();
+  const { camera, fire } = setup();
+  camera.follow('d1');
+  const before = camera.get();
+  camera.track(1800, 900, 50);
+  expect(camera.get().x).toBeGreaterThan(before.x);
+  expect(camera.get().x).toBeLessThan(1800);
+  fire('pointerdown', { pointerId: 1, clientX: 300, clientY: 200 });
+  fire('pointermove', { pointerId: 1, clientX: 350, clientY: 200 });
+  expect(camera.following()).toBeUndefined();
   expect(storage.setItem).not.toHaveBeenCalled();
-  second.camera.destroy();
-});
-
-it('compact minimap navigation has its own clamped close-up camera', () => {
-  const { camera, media } = setup();
-  const desktop = camera.get();
-  media.matches = true;
-  camera.set({ zoom: 0.45, x: 2600, y: 1000 });
-  expect(camera.get().x).toBeCloseTo(2488.8888889);
-  expect(camera.get().zoom).toBe(0.45);
-  media.matches = false;
-  expect(camera.get()).toEqual(desktop);
   camera.destroy();
 });

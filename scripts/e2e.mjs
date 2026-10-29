@@ -21,10 +21,12 @@ async function directoryBytes(path) {
 const distTotalBytes = await directoryBytes('dist');
 const errors = [];
 const screenshotStats = {};
+let walkDormToHallMs;
 async function prepareArt(page) {
   await page.evaluate(() => {
     window.__xianfu.reset();
     window.__xianfu.advance(59);
+    window.__xianfu.settleArt();
   });
   await page.waitForFunction(() => {
     const p = window.__mapStats.poses;
@@ -85,6 +87,7 @@ try {
   url.searchParams.set('speed', soak ? '100' : '1');
   await page.goto(url.href);
   await page.waitForFunction(() => !!window.__xianfu && window.__mapReady);
+  if (!soak) await page.evaluate(() => window.__xianfu.freeze(true));
   await page.waitForLoadState('networkidle');
   page.off('response', countResponse);
   await Promise.all(byteReads);
@@ -180,22 +183,79 @@ try {
     const canvas = page.locator('#map canvas');
     const canvasBox = await canvas.boundingBox();
     assert.ok(canvasBox);
-    assert.equal(canvasBox.width, 640);
+    assert.equal(canvasBox.width, 1440);
+    assert.equal(canvasBox.height, 900);
     const stats = await page.evaluate(() => window.__mapStats);
     assert.equal(stats.baseLoaded, true);
     assert.ok(stats.buildingSprites >= 1);
     assert.ok(stats.discipleSprites >= 1);
     assert.equal(stats.fallbacks, 0);
-    assert.equal((await page.evaluate(() => window.__camera.get())).zoom, 0.45);
+    assert.equal((await page.evaluate(() => window.__camera.get())).zoom, 1);
     assert.equal(stats.mode, 'full');
     assert.ok(stats.minHeadVisibility >= 0.6);
-    assert.equal(await page.locator('.root-legend i').count(), 5);
+    assert.equal(await page.locator('.icon-slot').count(), 4);
+    assert.ok(stats.visibleDisciples >= 3);
+    assert.equal(await page.locator('.roster:visible').count(), 0);
+    assert.ok(
+      await page.evaluate(
+        () => document.scrollingElement.scrollHeight <= innerHeight + 1,
+      ),
+    );
     assert.equal(await page.getByText('Iris 第一批素材').count(), 0);
     await recordArt(page, '08-art-main');
     await shot('08-art-main');
     await shot('20-world-main');
+    const first = stats.disciples[0];
+    const cam = await page.evaluate(() => window.__camera.get());
+    await page.mouse.click(
+      720 + (first.x - cam.x) * cam.zoom,
+      450 + (first.y - cam.y - 30) * cam.zoom,
+    );
+    assert.equal(await page.locator('#disciple-card').isVisible(), true);
+    await shot('23-world-card');
+    await page.evaluate(() => window.__ui.openRoster());
+    assert.equal(await page.locator('.roster-row').count(), 6);
+    await shot('24-world-roster');
+    await page.locator('#modal [data-follow]').first().click();
+    await page.waitForFunction(() => {
+      const c = window.__camera.get(),
+        id = window.__camera.following(),
+        d = window.__mapStats.disciples.find((d) => d.id === id);
+      return d && Math.hypot(c.x - d.x, c.y - d.y) < 80;
+    });
+    await page.mouse.move(500, 500);
+    await page.mouse.down();
+    await page.mouse.move(550, 500);
+    await page.mouse.up();
+    assert.equal(
+      await page.evaluate(() => window.__camera.following()),
+      undefined,
+    );
+    const walk = await page.evaluate(() => {
+      window.__xianfu.reset();
+      const id = window.__xianfu.world().disciples[0].id;
+      const route = window.__xianfu.walkDormToHall(id);
+      return { id, ...route, start: performance.now() };
+    });
+    await page.waitForFunction(
+      ({ id, to }) => {
+        const d = window.__mapStats.disciples.find((d) => d.id === id);
+        return d && Math.hypot(d.x - to[0], d.y - to[1]) < 0.01;
+      },
+      walk,
+      { timeout: 16000, polling: 'raf' },
+    );
+    walkDormToHallMs = await page.evaluate(
+      (start) => performance.now() - start,
+      walk.start,
+    );
+    assert.ok(walkDormToHallMs >= 8000 && walkDormToHallMs <= 15000);
+
     await page.getByRole('button', { name: '地图全景', exact: true }).click();
-    assert.equal((await page.evaluate(() => window.__camera.get())).zoom, 0.2);
+    assert.equal(
+      (await page.evaluate(() => window.__camera.get())).zoom,
+      1440 / 3200,
+    );
     await recordArt(page, '13-art-panorama');
     await shot('13-art-panorama');
     await shot('21-world-panorama');
@@ -220,6 +280,10 @@ try {
     );
     assert.equal(compact.markers, present);
     await shot('09-art-compact', false);
+    await shot('22-world-compact', false);
+    await page.locator('#roster-open').click();
+    assert.equal(await page.locator('.roster-row').count(), 6);
+    await page.locator('#close').click();
     await page.setViewportSize({ width: 1440, height: 900 });
     await prepareArt(page);
     assert.ok(
@@ -237,8 +301,8 @@ try {
     // Scan all possible crop edges to maximize the number of visible disciples.
     let region = { x: 0, y: 0, count: -1 };
     const points = zoomStats.disciples.map((p) => ({
-      x: 320 + (p.x - zoomStats.camera.x) * zoomStats.camera.zoom,
-      y: 180 + (p.y - zoomStats.camera.y) * zoomStats.camera.zoom,
+      x: 720 + (p.x - zoomStats.camera.x) * zoomStats.camera.zoom,
+      y: 450 + (p.y - zoomStats.camera.y) * zoomStats.camera.zoom,
     }));
     for (const point of points) {
       for (const dx of [20, 200])
@@ -262,6 +326,9 @@ try {
         height: 140,
       },
     });
+    await page.evaluate(() =>
+      window.__camera.set({ zoom: 0.8, x: 1500, y: 800 }),
+    );
     const beforeDrag = await page.evaluate(() => ({
       camera: window.__camera.get(),
       scroll: window.scrollY,
@@ -272,13 +339,13 @@ try {
     await page.mouse.up();
     await page.mouse.wheel(0, -500);
     await page.waitForFunction(
-      () => Math.abs(window.__camera.get().zoom - 0.6) < 1e-9,
+      () => Math.abs(window.__camera.get().zoom - 0.95) < 1e-9,
     );
     const afterDrag = await page.evaluate(() => ({
       camera: window.__camera.get(),
       scroll: window.scrollY,
     }));
-    assert.equal(afterDrag.camera.zoom, 0.6);
+    assert.ok(Math.abs(afterDrag.camera.zoom - 0.95) < 1e-9);
     assert.notEqual(afterDrag.camera.x, beforeDrag.camera.x);
     assert.equal(afterDrag.scroll, beforeDrag.scroll);
     await recordArt(page, '14-art-camera-drag');
@@ -331,7 +398,8 @@ try {
     }
     await page.evaluate(() => window.__xianfu.reset());
     await page.setViewportSize({ width: 1280, height: 900 });
-    assert.equal((await canvas.boundingBox()).width, 640);
+    await page.waitForFunction(() => window.__mapStats.viewport.width === 1280);
+    assert.equal((await canvas.boundingBox()).width, 1280);
     const artContext = await browser.newContext({
       viewport: { width: 1440, height: 900 },
     });
@@ -367,6 +435,7 @@ try {
     assert.ok(fallbackStats.rings > 0);
     assert.equal(fallbackStats.rings, fallbackStats.nameLabels);
     assert.equal(fallbackStats.baseLoaded, false);
+    await fallbackPage.locator('#settings-open').click();
     await fallbackPage.locator('#save-open').click();
     await fallbackPage.locator('#save-text').waitFor();
     await fallbackPage.locator('#close').click();
@@ -374,16 +443,19 @@ try {
       window.__xianfu.reset();
       window.__xianfu.advance(12);
     });
-    await fallbackPage.locator('#events [data-event]').first().click();
+    await fallbackPage.locator('#compact-event').click();
     await fallbackPage.locator('[data-choice]').first().waitFor();
     assert.deepEqual(fallbackErrors, []);
     await fallbackContext.close();
+    await page.locator('#roster-open').click();
+    await page.locator('[data-detail]').filter({ hasText: '林守拙' }).click();
     const elder = page
-      .locator('.disciple')
+      .locator('#modal .disciple')
       .filter({ has: page.getByRole('heading', { name: '林守拙' }) });
     assert.match(await elder.innerText(), /178 岁/);
     assert.match(await elder.innerText(), /余寿 6 季/);
     await shot('01-main');
+    await page.locator('#close').click();
     const title = await page.title();
     await page.keyboard.press('Backquote');
     assert.notEqual(await page.title(), title);
@@ -395,8 +467,10 @@ try {
     });
     await page.reload();
     await page.getByRole('heading', { name: '离线期间发生的事' }).waitFor();
+    await page.evaluate(() => window.__xianfu.freeze(true));
     await shot('03-offline', false);
     await page.locator('#offline-ok').click();
+    await page.locator('#settings-open').click();
     await page.locator('#save-open').click();
     const downloaded = page.waitForEvent('download');
     await page.locator('#download').click();
@@ -408,6 +482,7 @@ try {
     await page.waitForFunction(() =>
       document.querySelector('#notice').textContent.includes('存档已导入'),
     );
+    await page.locator('#settings-open').click();
     await page.locator('#save-open').click();
     const before = await page.evaluate(() => window.__xianfu.world());
     await page.locator('#save-text').fill('{坏数据}');
@@ -425,13 +500,13 @@ try {
       window.__xianfu.reset();
       window.__xianfu.advance(12);
     });
-    await page.locator('#events [data-event]').first().click();
+    await page.locator('#compact-event').click();
     await page.locator('[data-choice]').first().waitFor();
     await shot('05-event', false);
     await page.locator('#close').click();
     await page.setViewportSize({ width: 480, height: 320 });
     assert.equal(await page.locator('#modal').isVisible(), false);
-    assert.equal(await page.locator('.disciples').isVisible(), false);
+    assert.equal(await page.locator('.roster:visible').count(), 0);
     assert.ok(
       await page.evaluate(() => document.documentElement.scrollWidth <= 480),
     );
@@ -462,12 +537,52 @@ try {
       ),
       false,
     );
+    for (const usePip of [false, true, 'reject']) {
+      await page.evaluate((usePip) => {
+        Object.defineProperty(window, 'documentPictureInPicture', {
+          configurable: true,
+          value: usePip
+            ? {
+                requestWindow: async () => {
+                  if (usePip === 'reject') throw Error('PiP unavailable');
+                  return window.open(
+                    '',
+                    'pip-test',
+                    'popup,width=480,height=320',
+                  );
+                },
+              }
+            : undefined,
+        });
+      }, usePip);
+      const opened = page.waitForEvent('popup');
+      await page.locator('#small').click();
+      const child = await opened;
+      await child.waitForFunction(
+        () => !!document.querySelector('#map canvas'),
+      );
+      await child.locator('#roster-open').click();
+      assert.equal(await child.locator('.roster-row').count(), 6);
+      await child.keyboard.press('Escape');
+      await child.keyboard.press('Backquote');
+      assert.equal(await child.title(), '季度工作台账');
+      await child.keyboard.press('Backquote');
+      await child.close();
+      await page.locator('#map canvas').waitFor();
+    }
     assert.deepEqual(errors, []);
     await writeFile(
       'docs/screenshots/e2e-report.json',
       JSON.stringify(
         {
           passed: true,
+          walkDormToHallMs,
+          smallWindowCoverage: [
+            'window.open fallback',
+            'PiP requestWindow shim',
+            'PiP rejection fallback',
+          ],
+          nativePipVerified: false,
           firstLoadBytes,
           firstLoadBytesByType,
           firstLoadResources,

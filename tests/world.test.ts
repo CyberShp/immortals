@@ -11,6 +11,8 @@ import {
   WALK_SPEED,
   walkTimeSeconds,
   destination,
+  discipleDestinations,
+  FOOT_SPACING,
 } from '../src/render/world';
 import { createWorld, step } from '../src/sim/world';
 import { loadData } from '../src/sim/data';
@@ -158,5 +160,52 @@ it('W1c measured doors, tier widths and body alignment agree with source geometr
       Math.max(...pair.map((b) => b.bodyWidth)) /
         Math.min(...pair.map((b) => b.bodyWidth)),
     ).toBeLessThanOrEqual(1.1 + 1e-9);
+  }
+});
+
+for (const tick of [0, 60]) {
+  it(`rendered landing feet stay separated at tick ${tick}`, () => {
+    for (const seed of [1, 42, 2026]) {
+      const w = createWorld(seed, loadData());
+      for (let i = 0; i < tick; i++) step(w);
+      const before = JSON.stringify(w);
+      const points = discipleDestinations(w.disciples, w.tick);
+      points.forEach((p, i) => {
+        expect(walkable(p)).toBe(true);
+        for (const q of points.slice(0, i)) {
+          const distance = Math.hypot(p[0] - q[0], p[1] - q[1]);
+          expect(distance).toBeGreaterThanOrEqual(24);
+          expect(distance).toBeGreaterThanOrEqual(FOOT_SPACING - 1e-9);
+        }
+      });
+      expect(discipleDestinations(w.disciples, w.tick)).toEqual(points);
+      expect(JSON.stringify(w)).toBe(before);
+      if (tick === 0) {
+        expect(points.slice(0, 4)).toEqual([
+          [1450, 970],
+          [1520, 1000],
+          [1590, 970],
+          [1549.5, 930],
+        ]);
+      }
+    }
+  });
+}
+it('six occupants at any shared building front remain walkable and 28 units apart', () => {
+  for (const slot of worldMap.slots) {
+    const w = createWorld(42, loadData());
+    w.disciples.forEach((d) => {
+      d.state.location = `工地:${slot.id}`;
+      d.state.behavior = '做工';
+    });
+    const points = discipleDestinations(w.disciples, 60);
+    points.forEach((p, i) => {
+      expect(walkable(p)).toBe(true);
+      expect(lineClear(slot.front, p)).toBe(true);
+      for (const q of points.slice(0, i))
+        expect(Math.hypot(p[0] - q[0], p[1] - q[1])).toBeGreaterThanOrEqual(
+          28 - 1e-9,
+        );
+    });
   }
 });

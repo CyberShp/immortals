@@ -15,6 +15,7 @@ const mock = vi.hoisted(() => ({
   frames: new Map<number, FrameRequestCallback>(),
   next: 0,
   now: 0,
+  width: 1440,
   apps: [] as unknown[],
 }));
 vi.mock('pixi.js', () => {
@@ -85,7 +86,7 @@ vi.mock('pixi.js', () => {
   class Application {
     stage = new Container();
     canvas = {
-      getBoundingClientRect: () => ({ width: 480, height: 270 }),
+      getBoundingClientRect: () => ({ width: mock.width, height: 900 }),
       setAttribute: vi.fn(),
       addEventListener: vi.fn(),
       removeEventListener: vi.fn(),
@@ -147,6 +148,7 @@ beforeEach(() => {
   mock.frames.clear();
   mock.apps.length = 0;
   mock.now = 0;
+  mock.width = 1440;
   vi.stubGlobal('window', {
     matchMedia: () => ({
       matches: false,
@@ -157,7 +159,7 @@ beforeEach(() => {
   vi.stubGlobal('document', {
     hidden: false,
     createElement: () => ({
-      getBoundingClientRect: () => ({ width: 480, height: 270 }),
+      getBoundingClientRect: () => ({ width: mock.width, height: 900 }),
       setAttribute: vi.fn(),
       append: vi.fn(),
       remove: vi.fn(),
@@ -196,9 +198,8 @@ describe('map orchestration without browser/GPU', () => {
     expect(
       (mock.apps[0] as Application & { options: object }).options,
     ).toMatchObject({
-      width: 640,
-      height: 360,
-      resolution: 2,
+      resizeTo: host,
+      resolution: 1,
       autoStart: false,
     });
     for (const [request] of vi.mocked(Assets.load).mock.calls)
@@ -208,7 +209,7 @@ describe('map orchestration without browser/GPU', () => {
       sprite.scale.y *
         manifest.files.find((f) => f.file === 'disciple/meditate-96@2x.webp')!
           .size[1],
-    ).toBe(96);
+    ).toBeCloseTo(96 * 0.7);
     expect(sprite.anchor.x).toBe(40 / 80);
     expect(sprite.anchor.y).toBe(94 / 96);
     map.destroy();
@@ -218,6 +219,7 @@ describe('map orchestration without browser/GPU', () => {
       w = world();
     map.draw(w);
     const from = destination(w.disciples[0], w.tick);
+    w.tick = 1;
     w.disciples[0].state.behavior = '做工';
     w.disciples[0].state.location = '主殿';
     const to = destination(w.disciples[0], w.tick),
@@ -275,6 +277,7 @@ describe('map orchestration without browser/GPU', () => {
     }
     vi.stubGlobal('document', { hidden: true });
     const before = disciple().position.x;
+    w.tick = 1;
     w.disciples[0].state.behavior = '做工';
     w.disciples[0].state.location = '主殿';
     map.draw(w);
@@ -340,6 +343,7 @@ it.each([false, true])(
 );
 
 it('compact hides building labels and shows only disciple dots and initials', async () => {
+  mock.width = 480;
   window.matchMedia = (() => ({
     matches: true,
     addEventListener: vi.fn(),
@@ -395,3 +399,34 @@ it.each([false, true])(
     map.destroy();
   },
 );
+
+it('new target during a walk replans from the interpolated current point without teleporting', async () => {
+  const map = await createMap(host),
+    w = world();
+  map.draw(w);
+  w.tick = 1;
+  w.disciples[0].state.behavior = '做工';
+  w.disciples[0].state.location = '主殿';
+  map.draw(w);
+  mock.now = 500;
+  const [id, callback] = [...mock.frames][0];
+  mock.frames.delete(id);
+  callback(500);
+  const before = { ...window.__mapStats.disciples[0] };
+  w.disciples[0].state.location = '居舍';
+  map.draw(w);
+  const after = window.__mapStats.disciples[0];
+  expect(after.x).toBeCloseTo(before.x);
+  expect(after.y).toBeCloseTo(before.y);
+  mock.now = 1000;
+  const [next, frame] = [...mock.frames][0];
+  mock.frames.delete(next);
+  frame(1000);
+  expect(
+    Math.hypot(
+      window.__mapStats.disciples[0].x - after.x,
+      window.__mapStats.disciples[0].y - after.y,
+    ),
+  ).toBeLessThanOrEqual(WALK_SPEED * 0.5 + 1e-8);
+  map.destroy();
+});

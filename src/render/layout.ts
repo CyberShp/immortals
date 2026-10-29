@@ -1,3 +1,4 @@
+import { WALK_FRAME_MS } from './world-scale';
 /** Coordinates in the original 1280×720 artwork; rendering uses half size. */
 export const plots: Record<string, readonly [number, number, number, number]> =
   {
@@ -28,7 +29,8 @@ export const accessories: Record<string, string> = {
   铜钱串: 'coins',
 };
 export function behaviorPose(behavior: string, moving = false, elapsed = 0) {
-  if (moving) return Math.floor(elapsed / 180) % 2 ? 'walk-pass' : 'walk-step';
+  if (moving)
+    return Math.floor(elapsed / WALK_FRAME_MS) % 2 ? 'walk-pass' : 'walk-step';
   return (
     (
       { 修炼: 'meditate', 做工: 'work', 社交: 'talk' } as Record<string, string>

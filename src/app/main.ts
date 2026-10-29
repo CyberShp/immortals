@@ -1,3 +1,9 @@
+import {
+  cardPosition,
+  rosterRows,
+  relatedEvents,
+  type RosterFilter,
+} from './ui-model';
 import { accessories } from '../render/layout';
 import { formatAge } from '../display/format';
 import { formatResource, formatLog } from '../display/format';
@@ -57,33 +63,212 @@ export async function start() {
   let offline: OfflineSummary | null = null;
   let background = false;
   let debugLastSeen = false;
+  let debugFrozen = false;
   const loop = new FixedLoop();
   let previous = performance.now();
   const root = document.querySelector<HTMLDivElement>('#app')!;
-  root.innerHTML = `<div id="game"><header><div class="seal">仙</div><div><p class="eyebrow">宗门起居录 · 数据与事件</p><h1>模拟仙府</h1></div><span id="season"></span><nav><button id="small">小窗</button><button id="settings-open">设置</button><button id="save-open">存档</button></nav></header><section id="resources" class="resources" aria-label="宗门资源"></section><main><section class="disciples"><div class="section-head"><h2>山中门人</h2><span>各循其道，自有生息</span></div><div id="disciples"></div></section><aside><section class="map-panel"><div class="section-head"><h2>宗门山</h2><span class="root-legend" aria-label="灵根颜色">${Object.entries(
-    C.elements,
-  )
-    .map(
-      ([name, value]) =>
-        `<span><i style="background:${value.color}"></i>${name}</span>`,
-    )
-    .join(
-      '',
-    )}</span></div><div id="map"></div><p class="caption">一脉青山，半卷人间。</p></section><section class="buildings"><div class="section-head"><h2>山场营造</h2><span id="reputation"></span></div><div id="buildings"></div></section><section class="legacy"><h2>传承录</h2><div id="legacy"></div></section><section class="story"><button id="story-open">本局故事回顾</button></section><section class="journal"><div class="section-head"><h2>山门纪事</h2><span>近事百条</span></div><div id="events"></div><button id="compact-event" class="event-hint" hidden aria-haspopup="dialog"></button><ol id="logs"></ol></section></aside></main><footer>十秒一步 · 三十步一季 <span>按反引号隐藏 · 定期导出存档，留一份山门底册</span></footer></div><div id="cover" hidden><header><h1>季度工作台账</h1><span>内部资料 · 工作底稿</span></header><table><thead><tr><th>事项</th><th>负责人</th><th>进度</th><th>备注</th></tr></thead><tbody><tr><td>资料整理</td><td>项目组</td><td>已完成</td><td>归档备查</td></tr><tr><td>季度复核</td><td>综合组</td><td>进行中</td><td>等待反馈</td></tr></tbody></table></div><p id="notice" role="status"></p><dialog id="modal"><button id="close" class="close" aria-label="关闭">×</button><div id="modal-body"></div></dialog>`;
+  root.innerHTML = `<div id="game"><div id="map"></div><header class="topbar"><section id="resources" aria-label="宗门资源"></section><span id="season"></span></header><button id="compact-event" class="event-hint" hidden aria-haspopup="dialog"></button><nav class="corner bottom-left"><button id="roster-open" aria-label="门人"><span class="desktop-label">门人</span><span class="compact-label">人</span></button><button id="build-open" aria-label="建造"><span class="desktop-label">建造</span><span class="compact-label">建</span></button></nav><nav class="corner bottom-right"><button id="journal-open" aria-label="纪事"><span class="desktop-label">纪事</span><span class="compact-label">记</span></button><button id="legacy-open" aria-label="传承录"><span class="desktop-label">传承录</span><span class="compact-label">传</span></button></nav><nav class="corner top-right"><button id="small" aria-label="小窗"><span class="desktop-label">小窗</span><span class="compact-label">窗</span></button><button id="settings-open" aria-label="设置/存档"><span class="desktop-label">设置/存档</span><span class="compact-label">设</span></button></nav><div id="disciple-card" hidden></div><div id="panel-store" hidden><div id="disciples"></div><section id="build-panel"><h2>山场营造</h2><span id="reputation"></span><div id="buildings"></div></section><section id="legacy-panel"><h2>传承录</h2><div id="legacy"></div></section><section id="journal-panel"><h2>山门纪事</h2><div id="events"></div><ol id="logs"></ol></section><div id="settings-links"><button id="save-open">导出/导入存档</button><button id="story-open">本局故事回顾</button><button id="offline-open">离线纪事</button></div></div></div><div id="cover" hidden><header><h1>季度工作台账</h1><span>内部资料 · 工作底稿</span></header><table><thead><tr><th>事项</th><th>负责人</th><th>进度</th><th>备注</th></tr></thead><tbody><tr><td>资料整理</td><td>项目组</td><td>已完成</td><td>归档备查</td></tr><tr><td>季度复核</td><td>综合组</td><td>进行中</td><td>等待反馈</td></tr></tbody></table></div><p id="notice" role="status"></p><dialog id="modal"><button id="close" class="close" aria-label="关闭">×</button><div id="modal-body"></div></dialog>`;
   const el = <T extends HTMLElement = HTMLElement>(id: string) =>
-    document.getElementById(id) as T;
+    root.querySelector(`#${id}`) as T;
   const dialog = el<HTMLDialogElement>('modal');
   const notice = (text: string) => {
     el('notice').textContent = text;
   };
+  const parkPanel = () => {
+    for (const node of el('modal-body').querySelectorAll(
+      ':scope > [data-park]',
+    ))
+      el('panel-store').append(node);
+  };
   const show = (html: string) => {
+    closeCard();
+    parkPanel();
+    el('modal-body').dataset.view = '';
     el('modal-body').innerHTML = html;
     if (!hidden && !dialog.open) dialog.showModal();
   };
   el('close').onclick = () => dialog.close();
+  dialog.addEventListener('click', (e) => {
+    if (e.target === dialog) {
+      const r = dialog.getBoundingClientRect();
+      if (
+        e.clientX < r.left ||
+        e.clientX > r.right ||
+        e.clientY < r.top ||
+        e.clientY > r.bottom
+      )
+        dialog.close();
+    }
+  });
+  dialog.addEventListener('close', () => {
+    if (!dialog.open) parkPanel();
+  });
+  const openPanel = (id: string) => {
+    show('');
+    const node = el(id);
+    node.dataset.park = 'true';
+    el('modal-body').append(node);
+  };
+  let cardId: string | undefined;
+  let detailId: string | undefined;
+  const filters: RosterFilter = {
+    realm: '',
+    eventsOnly: false,
+    sort: 'energy',
+    descending: false,
+  };
+  function closeCard() {
+    cardId = undefined;
+    el('disciple-card').hidden = true;
+  }
+  function closeAll() {
+    closeCard();
+    dialog.close();
+  }
+  const portrait = (d: Disciple) =>
+    `<span class="avatar" style="background:${C.elements[d.root.elements[0]].color}">${escape(d.name.slice(0, 1))}</span>`;
+  const needs = (d: Disciple) =>
+    (['energy', 'mood'] as const)
+      .map(
+        (k, i) =>
+          `<label>${['精力', '心境'][i]} <meter min="0" max="100" value="${d.needs[k]}"></meter> ${fmt(d.needs[k])}</label>`,
+      )
+      .join('');
+  function positionCard() {
+    if (!cardId) return;
+    const p = map?.position(cardId);
+    const card = el('disciple-card');
+    if (!p) {
+      closeCard();
+      return;
+    }
+    const pos = cardPosition(
+      p.x,
+      p.y,
+      card.offsetWidth,
+      card.offsetHeight,
+      p.viewport,
+    );
+    card.style.left = `${pos.x}px`;
+    card.style.top = `${pos.y}px`;
+  }
+  function bindDiscipleActions(container: HTMLElement) {
+    container.querySelectorAll<HTMLElement>('[data-follow]').forEach(
+      (b) =>
+        (b.onclick = () => {
+          closeAll();
+          map?.follow(b.dataset.follow!);
+        }),
+    );
+    container
+      .querySelectorAll<HTMLElement>('[data-detail]')
+      .forEach((b) => (b.onclick = () => openDetail(b.dataset.detail!)));
+    container
+      .querySelectorAll<HTMLElement>('[data-event]')
+      .forEach((b) => (b.onclick = () => eventModal(b.dataset.event!)));
+    container.querySelectorAll<HTMLSelectElement>('[data-policy]').forEach(
+      (b) =>
+        (b.onchange = () => {
+          setPolicy(world, b.dataset.policy!, b.value as Disciple['policy']);
+          render();
+          void persist();
+        }),
+    );
+  }
+  function openCard(id: string) {
+    const d = world.disciples.find((d) => d.id === id);
+    if (!d) return;
+    dialog.close();
+    cardId = id;
+    const card = el('disciple-card');
+    card.hidden = false;
+    card.innerHTML = `${portrait(d)}<strong>${escape(d.name)}</strong><p>${d.realm.major}${d.realm.layer}层 · ${d.state.behavior}</p><div class="card-needs">${needs(d)}</div><button data-detail="${id}">详情</button><button data-follow="${id}">定位</button>`;
+    bindDiscipleActions(card);
+    positionCard();
+  }
+  function openDetail(id: string) {
+    detailId = id;
+    const d = world.disciples.find((d) => d.id === id);
+    if (!d) return;
+    const article = Array.from(el('disciples').children).find(
+      (n) => (n as HTMLElement).dataset.id === id,
+    );
+    show(
+      `<h2>门人详情</h2>${article?.outerHTML ?? ''}<button data-follow="${id}">定位</button><h3>相关纪事</h3><ol>${
+        world.logs
+          .filter((l) => l.includes(d.name) || l.includes(d.id))
+          .slice(-20)
+          .reverse()
+          .map((l) => `<li>${escape(formatLog(l))}</li>`)
+          .join('') || '<li>暂无纪事</li>'
+      }</ol>`,
+    );
+    el('modal-body').dataset.view = 'detail';
+    bindDiscipleActions(el('modal-body'));
+  }
+  function openRoster() {
+    show(
+      `<h2>山中门人</h2><div class="roster-filters"><label>境界 <select id="realm-filter"><option value="">全部</option>${Array.from(
+        new Set(world.disciples.map((d) => d.realm.major)),
+      )
+        .map(
+          (r) =>
+            `<option ${filters.realm === r ? 'selected' : ''}>${r}</option>`,
+        )
+        .join(
+          '',
+        )}</select></label><label><input id="event-filter" type="checkbox" ${filters.eventsOnly ? 'checked' : ''}>有事件</label><label>排序 <select id="sort-filter"><option value="energy" ${filters.sort === 'energy' ? 'selected' : ''}>精力</option><option value="realm" ${filters.sort === 'realm' ? 'selected' : ''}>境界</option></select><select id="direction-filter"><option value="asc">升序</option><option value="desc" ${filters.descending ? 'selected' : ''}>降序</option></select></label></div><div class="roster">${rosterRows(
+        world,
+        filters,
+      )
+        .map(
+          (d) =>
+            `<article class="roster-row">${portrait(d)}<button data-detail="${d.id}">${escape(d.name)}</button><span>${d.realm.major}${d.realm.layer}层</span><span>${d.state.behavior}</span><div>${needs(d)}</div><span>${relatedEvents(world, d.id).length ? '有事件 ' : ''}${d.state.injuredUntil > world.tick ? '受伤 ' : ''}${d.state.behavior.includes('突破') ? '突破中' : ''}</span><select data-policy="${d.id}" aria-label="${escape(d.name)}的方针">${['均衡', '专修', '勤工'].map((p) => `<option ${d.policy === p ? 'selected' : ''}>${p}</option>`).join('')}</select><button data-follow="${d.id}">定位</button>${relatedEvents(
+              world,
+              d.id,
+            )
+              .map((e) => `<button data-event="${e.id}">待办事件</button>`)
+              .join('')}</article>`,
+        )
+        .join('')}</div>`,
+    );
+    el('modal-body').dataset.view = 'roster';
+    el<HTMLSelectElement>('realm-filter').onchange = (e) => {
+      filters.realm = (e.target as HTMLSelectElement).value;
+      openRoster();
+    };
+    el<HTMLInputElement>('event-filter').onchange = (e) => {
+      filters.eventsOnly = (e.target as HTMLInputElement).checked;
+      openRoster();
+    };
+    el<HTMLSelectElement>('sort-filter').onchange = (e) => {
+      filters.sort = (e.target as HTMLSelectElement).value as
+        'energy' | 'realm';
+      openRoster();
+    };
+    el<HTMLSelectElement>('direction-filter').onchange = (e) => {
+      filters.descending = (e.target as HTMLSelectElement).value === 'desc';
+      openRoster();
+    };
+    bindDiscipleActions(el('modal-body'));
+  }
+  el('roster-open').onclick = openRoster;
+  el('build-open').onclick = () => openPanel('build-panel');
+  el('journal-open').onclick = () => openPanel('journal-panel');
+  el('legacy-open').onclick = () => openPanel('legacy-panel');
+  window.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') closeAll();
+  });
+  if (new URLSearchParams(location.search).get('debug') === '1')
+    Object.assign(window, { __ui: { openCard, openRoster, closeAll } });
   let map: Awaited<ReturnType<typeof createMap>> | undefined;
   try {
-    map = await createMap(el('map'));
+    map = await createMap(el('map'), {
+      card: openCard,
+      event: eventModal,
+      blank: closeCard,
+      frame: positionCard,
+    });
   } catch {
     el('map').textContent =
       '地图暂不可用：浏览器未提供可用的图形环境。宗门簿册仍可使用。';
@@ -103,7 +288,7 @@ export async function start() {
     el('cover').hidden = !value;
     el('notice').hidden = value;
     if (value) {
-      dialog.close();
+      closeAll();
       map?.pause();
     }
     title();
@@ -123,20 +308,6 @@ export async function start() {
       doc.head.append(favicon);
     }
     favicon.href = icon(hidden);
-    doc.body.innerHTML = hidden
-      ? '<h2>季度工作台账</h2><p>资料整理　已完成</p>'
-      : `<h2>模拟仙府 · 第${world.round + 1}季</h2><p>灵石 ${formatResource(world.resources.stone, 'stone')}　灵草 ${formatResource(world.resources.herb, 'herb')}　丹药 ${formatResource(world.resources.pill, 'pill')}</p>${world.disciples.map((d) => `<p>${escape(d.name)}　${d.realm.major}${d.realm.layer}层 · ${d.state.behavior}</p>`).join('')}${world.events.map((e) => `<button data-event="${escape(e.id)}">🔴 ${escape(e.hint)}</button>`).join('')}${offline ? '<button id="offline-child">🔴 离线纪事待阅</button>' : ''}<p>详情在主窗口展开</p>`;
-    doc.querySelectorAll<HTMLButtonElement>('[data-event]').forEach(
-      (b) =>
-        (b.onclick = () => {
-          window.focus();
-          eventModal(b.dataset.event!);
-        }),
-    );
-    doc.getElementById('offline-child')?.addEventListener('click', () => {
-      window.focus();
-      showOffline();
-    });
   }
   function traitBadge(id: string) {
     const name = traitDefinitions.find((t) => t.id === id)?.accessory ?? id;
@@ -146,21 +317,24 @@ export async function start() {
   function render() {
     el('season').textContent =
       `第 ${world.round + 1} 季 · ${world.season} / ${(world.tick % C.stepsPerRound) + 1} 步${settings.speed > 1 ? ` · 调试 ×${settings.speed}` : ''}`;
-    el('resources').innerHTML = (['stone', 'herb', 'pill'] as const)
+    el('resources').innerHTML = (
+      ['stone', 'herb', 'pill', 'reputation'] as const
+    )
       .map(
         (key, i) =>
-          `<div><span>${['灵石', '灵草', '丹药', '声望'][i]}</span><strong>${formatResource(world.resources[key], key)}</strong><small>${` / ${formatResource(world.capacity[key] * (world.buildings.find((b) => b.id === 'B_HALL')?.level ?? 1), key)}`}</small></div>`,
+          `<div title="${['灵石', '灵草', '丹药', '声望'][i]}"><span class="icon-slot" data-icon="resource-${key}">●</span><span class="resource-name">${['灵石', '灵草', '丹药', '声望'][i]}</span><strong>${formatResource(world.resources[key], key)}</strong><small>${` / ${key === 'reputation' ? '∞' : formatResource(world.capacity[key] * (world.buildings.find((b) => b.id === 'B_HALL')?.level ?? 1), key)}`}</small></div>`,
       )
       .join('');
     el('disciples').innerHTML = world.disciples
       .map(
         (d) =>
-          `<article class="disciple"><div class="portrait" style="border:2px solid ${C.elements[d.root.elements[0]].color}">${escape(d.name.slice(-1))}<small>占位</small></div><div class="disciple-body"><div class="name-line"><h3>${escape(d.name)}</h3><span>${formatAge(d.ageSeasons)} · ${d.stage} · ${d.realm.major}${d.realm.layer}层</span></div><p class="detail">${d.root.grade} · ${d.root.elements.join('')} <span>${d.stage === '坐化' ? '已坐化' : d.state.behavior + ' · ' + d.state.location}</span></p><div class="needs">${(['energy', 'mood', 'drive'] as const).map((k, i) => `<label>${['精力', '心境', '道心'][i]} <meter min="0" max="100" value="${d.needs[k]}">${fmt(d.needs[k])}</meter></label>`).join('')}</div><div class="traits">${d.traits.map((t) => traitBadge(t)).join('')}<small>修为 ${fmt(d.realm.xp)} · 余寿 ${d.remainingSeasons} 季</small></div><label class="policy">方针 <select data-policy="${d.id}" aria-label="${escape(d.name)}的方针">${['均衡', '专修', '勤工'].map((p) => `<option ${p === d.policy ? 'selected' : ''}>${p}</option>`).join('')}</select></label><p class="relations">${Object.entries(
+          `<article class="disciple" data-id="${d.id}"><div class="portrait" style="border:2px solid ${C.elements[d.root.elements[0]].color}">${escape(d.name.slice(0, 1))}</div><div class="disciple-body"><div class="name-line"><h3>${escape(d.name)}</h3><span>${formatAge(d.ageSeasons)} · ${d.stage} · ${d.realm.major}${d.realm.layer}层</span></div><p class="detail">${d.root.grade} · ${d.root.elements.join('')} <span>${d.stage === '坐化' ? '已坐化' : d.state.behavior + ' · ' + d.state.location}</span></p><div class="needs">${(['energy', 'mood', 'drive'] as const).map((k, i) => `<label>${['精力', '心境', '道心'][i]} <meter min="0" max="100" value="${d.needs[k]}">${fmt(d.needs[k])}</meter> ${fmt(d.needs[k])}</label>`).join('')}</div><div class="traits">${d.traits.map((t) => traitBadge(t)).join('')}<small>修为 ${fmt(d.realm.xp)} · 余寿 ${d.remainingSeasons} 季</small></div><label class="policy">方针 <select data-policy="${d.id}" aria-label="${escape(d.name)}的方针">${['均衡', '专修', '勤工'].map((p) => `<option ${p === d.policy ? 'selected' : ''}>${p}</option>`).join('')}</select></label><p class="relations">${Object.entries(
             d.relations,
           )
+            .slice(0, 6)
             .map(
               ([id, r]) =>
-                `${escape(world.disciples.find((x) => x.id === id)?.name ?? id)} ${relationTier(r.value)} ${r.tags.map(escape).join('·')}`,
+                `${escape(world.disciples.find((x) => x.id === id)?.name ?? id)} ${r.value} ${relationTier(r.value)} ${r.tags.map(escape).join('·')}`,
             )
             .join(' / ')}</p></div></article>`,
       )
@@ -190,7 +364,8 @@ export async function start() {
         )
         .join('') || '<p>青山仍在，故人未远。</p>';
     el('story-open').hidden = !world.flags.storyReport;
-    document.querySelectorAll<HTMLSelectElement>('[data-policy]').forEach(
+    el('offline-open').hidden = !offline;
+    root.querySelectorAll<HTMLSelectElement>('[data-policy]').forEach(
       (select) =>
         (select.onchange = () => {
           setPolicy(
@@ -202,7 +377,7 @@ export async function start() {
           void persist();
         }),
     );
-    document.querySelectorAll<HTMLButtonElement>('[data-build]').forEach(
+    root.querySelectorAll<HTMLButtonElement>('[data-build]').forEach(
       (button) =>
         (button.onclick = () => {
           build(world, button.dataset.build!);
@@ -236,10 +411,12 @@ export async function start() {
     el('events')
       .querySelectorAll<HTMLButtonElement>('[data-event]')
       .forEach((b) => (b.onclick = () => eventModal(b.dataset.event!)));
-    document
-      .getElementById('offline-hint')
-      ?.addEventListener('click', showOffline);
+    root.querySelector('#offline-hint')?.addEventListener('click', showOffline);
     if (!hidden) map?.draw(world);
+    if (cardId) openCard(cardId);
+    if (dialog.open && el('modal-body').dataset.view === 'roster') openRoster();
+    if (dialog.open && el('modal-body').dataset.view === 'detail' && detailId)
+      openDetail(detailId);
     title();
     renderChild();
     if (
@@ -292,6 +469,7 @@ export async function start() {
     );
   }
   el('story-open').onclick = showStory;
+  el('offline-open').onclick = showOffline;
   function showOffline() {
     if (!offline) return;
     const s = offline;
@@ -337,7 +515,7 @@ export async function start() {
   const active = () =>
     !document.hidden || !!(child && !child.closed && !child.document.hidden);
   function visibility() {
-    if (document.hidden) map?.pause();
+    if (root.ownerDocument.hidden) map?.pause();
     else if (!hidden) map?.draw(world);
     const next = !active();
     if (next === background) return;
@@ -366,6 +544,9 @@ export async function start() {
     show(
       `<h2>山门设置</h2><form id="settings-form"><label>老板键<input name="bossKey" maxlength="20" value="${escape(settings.bossKey)}" required></label><label>自定义标题<input name="title" maxlength="40" value="${escape(settings.title)}" required></label><label><input type="checkbox" name="hideOnBlur" ${settings.hideOnBlur ? 'checked' : ''}> 失焦自动隐藏</label><label><input type="checkbox" name="autoMaster" ${world.flags.autoMaster !== false ? 'checked' : ''}> 自动掌门（按节奏排建造）</label><label><input type="checkbox" name="sound" ${settings.sound ? 'checked' : ''}> 声音（预留开关，当前无音频）</label><label>加速调试（默认一倍，仅前台）<input type="number" name="speed" min="1" max="300" value="${settings.speed}" required></label><button>保存设置</button></form>`,
     );
+    const links = el('settings-links');
+    links.dataset.park = 'true';
+    el('modal-body').append(links);
     el<HTMLFormElement>('settings-form').onsubmit = (e) => {
       e.preventDefault();
       const form = new FormData(e.currentTarget as HTMLFormElement);
@@ -463,23 +644,35 @@ export async function start() {
             };
           }
         ).documentPictureInPicture;
-        child = pip
-          ? await pip.requestWindow({ width: 400, height: 480 })
-          : window.open('', '仙府小窗', 'popup,width=400,height=480');
+        if (pip) {
+          try {
+            child = await pip.requestWindow({ width: 480, height: 320 });
+          } catch {
+            child = window.open('', '仙府小窗', 'popup,width=480,height=320');
+          }
+        } else
+          child = window.open('', '仙府小窗', 'popup,width=480,height=320');
         if (!child) {
           notice('小窗被浏览器拦截，请允许此站点弹窗。');
           return;
         }
-        const style = child.document.createElement('style');
-        style.textContent =
-          'body{background:#f3efdf;color:#294639;font:14px serif;padding:14px}button{display:block;background:#eee4cf;border:1px solid #bba98b;padding:8px;margin:6px 0}';
-        child.document.head.append(style);
+        for (const style of document.querySelectorAll(
+          'style,link[rel="stylesheet"]',
+        ))
+          child.document.head.append(style.cloneNode(true));
+        child.document.body.append(root);
         child.addEventListener('keydown', keyHandler);
+        child.addEventListener('keydown', (e) => {
+          if (e.key === 'Escape') closeAll();
+        });
         child.document.addEventListener('visibilitychange', visibility);
         child.addEventListener('pagehide', () => {
+          document.body.append(root);
           child = null;
+          map?.draw(world);
           visibility();
         });
+        map?.draw(world);
         renderChild();
         visibility();
       } catch {
@@ -490,6 +683,15 @@ export async function start() {
   if (new URLSearchParams(location.search).get('debug') === '1') {
     const hook = {
       world: () => structuredClone(world),
+      freeze: (value: boolean) => {
+        debugFrozen = value;
+        loop.reset();
+        previous = performance.now();
+      },
+      settleArt: () => {
+        map?.reset();
+        render();
+      },
       artAllBuilt: (tier?: 1 | 2) => {
         world.buildings = buildingDefinitions.map((def) => ({
           id: def.id,
@@ -516,7 +718,13 @@ export async function start() {
         await manager.write(snapshot(world, lastSeen));
       },
       export: () => JSON.stringify(snapshot(world, lastSeen)),
+      walkDormToHall: (id: string) => {
+        loop.reset();
+        previous = performance.now();
+        return map?.walkDormToHall(id);
+      },
       reset: () => {
+        map?.reset();
         world = createWorld(42, loadData());
         lastSeen = Date.now();
         offline = null;
@@ -531,7 +739,7 @@ export async function start() {
   background = !active();
   setInterval(() => {
     const now = performance.now();
-    if (!background) {
+    if (!background && !debugFrozen) {
       const before = world.tick;
       loop.advance(now - previous, settings.speed, () => step(world));
       if (!debugLastSeen) lastSeen = Date.now();

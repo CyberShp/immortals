@@ -1,3 +1,4 @@
+import { WALK_FRAME_MS } from '../src/render/world-scale';
 import { describe, expect, it } from 'vitest';
 import { readFile, readdir, stat } from 'node:fs/promises';
 import { createHash } from 'node:crypto';
@@ -64,11 +65,11 @@ describe('Iris assets', () => {
   ])('maps %s to %s', (behavior, pose) =>
     expect(behaviorPose(behavior)).toBe(pose),
   );
-  it('movement overrides behavior and alternates at 180ms', () => {
+  it('movement overrides behavior and alternates at the stride interval', () => {
     expect(behaviorPose('修炼', true, 0)).toBe('walk-step');
-    expect(behaviorPose('修炼', true, 179)).toBe('walk-step');
-    expect(behaviorPose('修炼', true, 180)).toBe('walk-pass');
-    expect(behaviorPose('修炼', true, 360)).toBe('walk-step');
+    expect(behaviorPose('修炼', true, WALK_FRAME_MS - 1)).toBe('walk-step');
+    expect(behaviorPose('修炼', true, WALK_FRAME_MS)).toBe('walk-pass');
+    expect(behaviorPose('修炼', true, WALK_FRAME_MS * 2)).toBe('walk-step');
   });
   it('the whole public/assets directory is under 5MB and agrees with manifest', async () => {
     async function bytes(dir: URL): Promise<number> {

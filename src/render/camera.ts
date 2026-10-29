@@ -1,13 +1,15 @@
 export type Camera = { zoom: number; x: number; y: number };
-export function clampCamera(c: Camera): Camera {
-  const zoom = Math.max(0.2, Math.min(1.5, c.zoom));
+export function clampCamera(c: Camera, width = 640, height = 360): Camera {
+  const zoom = Math.max(
+    Math.min(width / 3200, height / 1400),
+    Math.min(1.5, c.zoom),
+  );
+  const axis = (n: number, span: number, size: number) =>
+    span >= size ? size / 2 : Math.max(span / 2, Math.min(size - span / 2, n));
   return {
     zoom,
-    x: Math.max(320 / zoom, Math.min(3200 - 320 / zoom, c.x)),
-    y:
-      zoom < 360 / 1400
-        ? 700
-        : Math.max(180 / zoom, Math.min(1400 - 180 / zoom, c.y)),
+    x: axis(c.x, width / zoom, 3200),
+    y: axis(c.y, height / zoom, 1400),
   };
 }
 export function attachCamera(
@@ -15,25 +17,58 @@ export function attachCamera(
   canvas: HTMLCanvasElement,
   repaint: () => void,
 ) {
-  let current = clampCamera({ zoom: 0.45, x: 1500, y: 900 });
-  let compactCurrent: Camera = { zoom: 0.2, x: 1600, y: 700 };
-  const media = window.matchMedia('(max-width: 480px)');
-  const get = () => (media.matches ? { ...compactCurrent } : { ...current });
+  const size = () => canvas.getBoundingClientRect();
+  let current = clampCamera(
+    { zoom: size().width / 1440, x: 1500, y: 900 },
+    size().width,
+    size().height,
+  );
+  let followed: string | undefined;
+  let manual = false;
+  let lastSize = `${size().width},${size().height}`;
+  const get = () => {
+    const r = size(),
+      key = `${r.width},${r.height}`;
+    if (key !== lastSize) {
+      current = clampCamera(
+        { ...current, zoom: manual ? current.zoom : r.width / 1440 },
+        r.width,
+        r.height,
+      );
+      lastSize = key;
+    }
+    return { ...current };
+  };
   const set = (patch: Partial<Camera>) => {
-    if (media.matches)
-      compactCurrent = clampCamera({ ...compactCurrent, ...patch });
-    else current = clampCamera({ ...current, ...patch });
+    manual = true;
+    current = clampCamera({ ...get(), ...patch }, size().width, size().height);
     repaint();
   };
-  const panorama = () => set({ zoom: 0.2, x: 1600, y: 700 });
-  const controller = { get, set, panorama };
+  const panorama = () => {
+    followed = undefined;
+    set({
+      zoom: Math.min(size().width / 3200, size().height / 1400),
+      x: 1600,
+      y: 700,
+    });
+  };
+  const controller = {
+    get,
+    set,
+    panorama,
+    follow: (id: string) => {
+      followed = id;
+      repaint();
+    },
+    following: () => followed,
+  };
   if (new URLSearchParams(location.search).get('debug') === '1')
     window.__camera = controller;
   const controls = document.createElement('div');
   controls.className = 'camera-controls';
   for (const [text, aria, action] of [
-    ['＋', '放大地图', () => set({ zoom: current.zoom + 0.1 })],
-    ['－', '缩小地图', () => set({ zoom: current.zoom - 0.1 })],
+    ['＋', '放大地图', () => set({ zoom: get().zoom + 0.1 })],
+    ['－', '缩小地图', () => set({ zoom: get().zoom - 0.1 })],
     ['全景', '地图全景', panorama],
   ] as const) {
     const b = document.createElement('button');
@@ -44,18 +79,31 @@ export function attachCamera(
   }
   host.append(controls);
   let drag: { id: number; x: number; y: number; camera: Camera } | undefined;
+  let dragged = false;
   const down = (e: PointerEvent) => {
-    if (media.matches) return;
-    e.preventDefault();
+    dragged = false;
+    const r = size();
+    if (
+      e.clientX - r.left >= r.width - 125 &&
+      e.clientY - r.top >= 76 &&
+      e.clientY - r.top <= 141
+    )
+      return;
     canvas.setPointerCapture(e.pointerId);
     drag = { id: e.pointerId, x: e.clientX, y: e.clientY, camera: get() };
   };
   const move = (e: PointerEvent) => {
-    if (!drag || drag.id !== e.pointerId) return;
-    const r = canvas.getBoundingClientRect();
+    if (
+      !drag ||
+      drag.id !== e.pointerId ||
+      Math.hypot(e.clientX - drag.x, e.clientY - drag.y) < 4
+    )
+      return;
+    dragged = true;
+    followed = undefined;
     set({
-      x: drag.camera.x - ((e.clientX - drag.x) * 640) / r.width / current.zoom,
-      y: drag.camera.y - ((e.clientY - drag.y) * 360) / r.height / current.zoom,
+      x: drag.camera.x - (e.clientX - drag.x) / drag.camera.zoom,
+      y: drag.camera.y - (e.clientY - drag.y) / drag.camera.zoom,
     });
   };
   const up = () => {
@@ -63,15 +111,20 @@ export function attachCamera(
   };
   const wheel = (e: WheelEvent) => {
     e.preventDefault();
-    if (media.matches) return;
-    const r = canvas.getBoundingClientRect(),
-      px = ((e.clientX - r.left) * 640) / r.width - 320,
-      py = ((e.clientY - r.top) * 360) / r.height - 180;
-    const zoom = Math.max(0.2, Math.min(1.5, current.zoom - e.deltaY * 0.0003));
+    followed = undefined;
+    const r = size(),
+      c = get(),
+      px = e.clientX - r.left - r.width / 2,
+      py = e.clientY - r.top - r.height / 2;
+    const zoom = clampCamera(
+      { ...c, zoom: c.zoom - e.deltaY * 0.0003 },
+      r.width,
+      r.height,
+    ).zoom;
     set({
       zoom,
-      x: current.x + px / current.zoom - px / zoom,
-      y: current.y + py / current.zoom - py / zoom,
+      x: c.x + px / c.zoom - px / zoom,
+      y: c.y + py / c.zoom - py / zoom,
     });
   };
   canvas.addEventListener('pointerdown', down);
@@ -79,10 +132,19 @@ export function attachCamera(
   canvas.addEventListener('pointerup', up);
   canvas.addEventListener('pointercancel', up);
   canvas.addEventListener('wheel', wheel, { passive: false });
-  media.addEventListener('change', repaint);
   return {
     ...controller,
-    compact: () => media.matches,
+    wasDragged: () => dragged,
+    track: (x: number, y: number, dt: number) => {
+      const c = get(),
+        factor = 1 - Math.exp(-dt / 180);
+      current = clampCamera(
+        { ...c, x: c.x + (x - c.x) * factor, y: c.y + (y - c.y) * factor },
+        size().width,
+        size().height,
+      );
+    },
+    compact: () => size().width <= 480,
     destroy: () => {
       controls.remove();
       canvas.removeEventListener('pointerdown', down);
@@ -90,7 +152,6 @@ export function attachCamera(
       canvas.removeEventListener('pointerup', up);
       canvas.removeEventListener('pointercancel', up);
       canvas.removeEventListener('wheel', wheel);
-      media.removeEventListener('change', repaint);
       delete window.__camera;
     },
   };
@@ -101,6 +162,8 @@ declare global {
       get(): Camera;
       set(patch: Partial<Camera>): void;
       panorama(): void;
+      follow(id: string): void;
+      following(): string | undefined;
     };
   }
 }

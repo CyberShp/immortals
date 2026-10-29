@@ -49,7 +49,8 @@ export type Point = [number, number];
 export { DISCIPLE_SCALE, DISCIPLE_HEIGHT } from './world-scale';
 // Legacy renderer interpolated every trip over 1.2s, not at a constant speed.
 // Reference: old dorm plot front (202.5,170.5) -> hall (299.75,153).
-export const WALK_SPEED = (Math.hypot(299.75 - 202.5, 153 - 170.5) / 1.2) * 2;
+import { WALK_SPEED } from './world-scale';
+export { WALK_SPEED } from './world-scale';
 export function inPolygon([x, y]: Point, poly: Point[]) {
   let c = false;
   for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
@@ -350,6 +351,24 @@ export function destination(d: Disciple, tick: number, index = 0): Point {
       : ['修炼', '休息'].includes(d.state.behavior)
         ? 'meditate'
         : 'social';
+  if (tick === 0 || d.state.location === '空地') {
+    const spots = worldMap.spots.filter(
+      (s) => s.island === 'main' && s.kind === 'social',
+    );
+    const main = worldMap.islands.find((s) => s.id === 'main')!;
+    const anchors: Point[] = [
+      ...spots.map((s): Point => [
+        s.point[0] + main.offset[0],
+        s.point[1] + main.offset[1],
+      ]),
+      worldMap.slots.find((s) => s.id === 'B_HALL')!.front,
+    ];
+    return spacedLanding(
+      anchors[index % anchors.length],
+      [],
+      Math.floor(index / anchors.length),
+    );
+  }
   if (building && d.state.behavior === '做工')
     p = worldMap.slots.find((s) => s.id === building)!.front;
   else {
@@ -358,10 +377,52 @@ export function destination(d: Disciple, tick: number, index = 0): Point {
       island = worldMap.islands.find((i) => i.id === s.island)!;
     p = [s.point[0] + island.offset[0], s.point[1] + island.offset[1]];
   }
-  const angle = index * 2.399963,
-    r = index ? 12 * Math.sqrt(index) : 0;
-  return nearestWalkable([
-    p[0] + Math.cos(angle) * r,
-    p[1] + Math.sin(angle) * r,
-  ]);
+  return spacedLanding(nearestWalkable(p), [], index);
+}
+
+export const FOOT_SPACING = 28;
+// Search actual walkable grid candidates; projecting blocked offsets back onto
+// an edge can collapse several occupants to the same point.
+export function spacedLanding(
+  anchor: Point,
+  occupied: Point[],
+  skip = 0,
+): Point {
+  for (let ring = 0; ring <= 100; ring++) {
+    for (let dy = -ring; dy <= ring; dy++) {
+      for (let dx = -ring; dx <= ring; dx++) {
+        if (Math.max(Math.abs(dx), Math.abs(dy)) !== ring) continue;
+        const p: Point = [
+          anchor[0] + dx * FOOT_SPACING,
+          anchor[1] + dy * FOOT_SPACING,
+        ];
+        if (!walkable(p) || !lineClear(anchor, p)) continue;
+        if (
+          occupied.some(
+            (q) => Math.hypot(p[0] - q[0], p[1] - q[1]) < FOOT_SPACING - 1e-9,
+          )
+        )
+          continue;
+        if (skip-- > 0) continue;
+        return p;
+      }
+    }
+  }
+  throw Error('No spaced walkable landing near ' + anchor.join(','));
+}
+
+export function discipleDestinations(
+  disciples: Disciple[],
+  tick: number,
+): Point[] {
+  const occupied: Point[] = [];
+  for (const [i, d] of disciples.entries()) {
+    const anchor = destination(
+      d,
+      tick,
+      tick === 0 || d.state.location === '空地' ? i : 0,
+    );
+    occupied.push(spacedLanding(anchor, occupied));
+  }
+  return occupied;
 }

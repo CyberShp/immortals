@@ -265,14 +265,14 @@
       "crop": [69, 119, 604, 567],
       "sha256": "18492ea430f1716102f10f62f75836fec9658237bb6273fb0514aa6e883499b8",
       "source": "building/dorm-t1@2x.webp",
-      "worldScale": 1.1129032258064517,
+      "worldScale": 0.9677419354838711,
       "worldAnchor": { "x": 1355, "y": 949 },
-      "worldSourceScale": 0.2782258064516129,
-      "worldBodyWidthRatio": 1.15,
-      "worldMeetsDoorRule": false,
+      "worldSourceScale": 0.24193548387096775,
+      "worldBodyWidthRatio": 1,
+      "worldMeetsDoorRule": true,
       "worldBodyBottom": 949,
       "worldDoorRule": ">=0.4H",
-      "worldDoorRatio": 0.38300212391695726
+      "worldDoorRatio": 0.475779035921686
     },
     {
       "file": "building/dorm-t2@2x.webp",
@@ -329,14 +329,14 @@
       "crop": [674, 126, 1218, 583],
       "sha256": "4c97c2bdeaa627fc96590b9ea9e8f22ea53025380beae56a045f7ac04890d663",
       "source": "building/dorm-t2@2x.webp",
-      "worldScale": 1.13347022587269,
+      "worldScale": 0.9856262833675565,
       "worldAnchor": { "x": 1355, "y": 949 },
-      "worldSourceScale": 0.28336755646817247,
-      "worldBodyWidthRatio": 1.15,
-      "worldMeetsDoorRule": false,
+      "worldSourceScale": 0.2464065708418891,
+      "worldBodyWidthRatio": 1,
+      "worldMeetsDoorRule": true,
       "worldBodyBottom": 949,
       "worldDoorRule": ">=0.4H",
-      "worldDoorRatio": 0.38705631445871386
+      "worldDoorRatio": 0.48081529746424084
     },
     {
       "file": "building/meditation-t1@2x.webp",
@@ -366,7 +366,7 @@
       "worldMeetsDoorRule": true,
       "worldBodyBottom": 936,
       "worldDoorRule": ">=0.4H",
-      "worldDoorRatio": 0.4292414389780896
+      "worldDoorRatio": 0.6132020556829851
     },
     {
       "file": "building/meditation-t2@2x.webp",
@@ -396,7 +396,7 @@
       "worldMeetsDoorRule": true,
       "worldBodyBottom": 936,
       "worldDoorRule": ">=0.4H",
-      "worldDoorRatio": 0.4292414389780896
+      "worldDoorRatio": 0.6132020556829851
     },
     {
       "file": "building/garden-t1@2x.webp",
@@ -581,10 +581,10 @@
       "worldAnchor": { "x": 1712, "y": 1055 },
       "worldSourceScale": 0.23032258064505728,
       "worldBodyWidthRatio": 0.6103548387094018,
-      "worldMeetsDoorRule": false,
+      "worldMeetsDoorRule": true,
       "worldBodyBottom": 1055,
       "worldDoorRule": ">=0.4H",
-      "worldDoorRatio": 0.31951697240270466
+      "worldDoorRatio": 0.4564528177181495
     },
     {
       "file": "building/alchemy-t2@2x.webp",
@@ -651,10 +651,10 @@
       "worldAnchor": { "x": 1712, "y": 1060.1047859237412 },
       "worldSourceScale": 0.22194721407570206,
       "worldBodyWidthRatio": 0.6713903225789987,
-      "worldMeetsDoorRule": false,
+      "worldMeetsDoorRule": true,
       "worldBodyBottom": 1055,
       "worldDoorRule": ">=0.4H",
-      "worldDoorRatio": 0.3078981734056266
+      "worldDoorRatio": 0.4398545334366094
     },
     {
       "file": "building/hall-t1@2x.webp",
@@ -677,14 +677,14 @@
       "downshift": 0,
       "overlapPixels": 0,
       "source": "building/hall-t1@2x.webp",
-      "worldScale": 0.999954268292683,
+      "worldScale": 0.9056081514762517,
       "worldAnchor": { "x": 1549.5, "y": 914 },
-      "worldSourceScale": 0.7809166666666666,
-      "worldBodyWidthRatio": 1.10417984496124,
+      "worldSourceScale": 0.7072368421052632,
+      "worldBodyWidthRatio": 1,
       "worldMeetsDoorRule": true,
       "worldBodyBottom": 914,
       "worldDoorRule": ">=0.6H",
-      "worldDoorRatio": 0.6
+      "worldDoorRatio": 0.7762710586090668
     },
     {
       "file": "building/hall-t2@2x.webp",
@@ -707,14 +707,14 @@
       "downshift": 0,
       "overlapPixels": 0,
       "source": "building/hall-t2@2x.webp",
-      "worldScale": 0.999954268292683,
+      "worldScale": 0.9056081514762517,
       "worldAnchor": { "x": 1549.5, "y": 914 },
-      "worldSourceScale": 0.7809166666666666,
-      "worldBodyWidthRatio": 1.10417984496124,
+      "worldSourceScale": 0.7072368421052632,
+      "worldBodyWidthRatio": 1,
       "worldMeetsDoorRule": true,
       "worldBodyBottom": 914,
       "worldDoorRule": ">=0.6H",
-      "worldDoorRatio": 0.6
+      "worldDoorRatio": 0.7762710586090668
     },
     {
       "file": "map/base@2x.webp",
@@ -725,5 +725,5 @@
     }
   ],
   "assetBytes": 1345628,
-  "totalBytes": 1368609
+  "totalBytes": 1368600
 }

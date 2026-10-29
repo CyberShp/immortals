@@ -7,6 +7,8 @@ import {
   Text,
   type Texture,
 } from 'pixi.js';
+import { DISCIPLE_HEIGHT } from './world-scale';
+import { relatedEvents } from '../app/ui-model';
 import type { World } from '../sim/world';
 import { buildingDefinitions } from '../sim/catalog';
 import {
@@ -36,7 +38,8 @@ import {
   findPath,
   pathLength,
   alongPath,
-  destination,
+  discipleDestinations,
+  walkTimeSeconds,
   type Point,
 } from './world';
 function plotFoot(id: string): Point {
@@ -92,19 +95,31 @@ declare global {
       discipleSprites: number;
       fallbacks: number;
       poses: Record<string, number>;
-      disciples: { x: number; y: number }[];
+      disciples: { id: string; x: number; y: number }[];
+      discipleScale: number;
+      walkSpeed: number;
+      dormToHallSeconds: number;
+      viewport: { width: number; height: number };
+      visibleDisciples: number;
     };
   }
 }
-export async function createMap(host: HTMLElement) {
+export async function createMap(
+  host: HTMLElement,
+  callbacks: {
+    card?: (id: string) => void;
+    event?: (id: string) => void;
+    blank?: () => void;
+    frame?: () => void;
+  } = {},
+) {
   window.__mapReady = false;
   const app = new Application();
   await app.init({
-    width: 640,
-    height: 360,
-    resolution: Math.max(2, devicePixelRatio || 1),
+    resizeTo: host,
+    resolution: devicePixelRatio || 1,
     autoDensity: true,
-    background: 0xe3e8d8,
+    background: 0xf1e8d4,
     antialias: true,
     autoStart: false,
   });
@@ -152,8 +167,23 @@ export async function createMap(host: HTMLElement) {
   const scene = new Container();
   scene.sortableChildren = true;
   app.stage.addChild(scene);
+  app.stage.eventMode = 'static';
+  app.stage.hitArea = {
+    contains: (x: number, y: number) => {
+      const r = app.canvas.getBoundingClientRect();
+      return x >= 0 && y >= 0 && x <= r.width && y <= r.height;
+    },
+  };
+  app.stage.on('pointertap', () => {
+    if (!camera.wasDragged()) callbacks.blank?.();
+  });
   const overlay = new Container();
   app.stage.addChild(overlay);
+  const hits = new Map<string, Container>();
+  const hitLayer = new Container();
+  app.stage.addChild(hitLayer);
+  const mini = new Container();
+  app.stage.addChild(mini);
   const masks = new Map<string, Mask>();
   for (const [file, texture] of textures) {
     if (!file.includes('-map@') && !file.includes('-96@')) continue;
@@ -189,6 +219,17 @@ export async function createMap(host: HTMLElement) {
   const visibilityCache = new Map<string, ReturnType<typeof visibilityOrder>>();
   const motions = new Map<string, Motion>();
   let frame = 0;
+  let frameWindow: Window | null = null;
+  const cancelFrame = () => {
+    if (frameWindow) frameWindow.cancelAnimationFrame(frame);
+    else cancelAnimationFrame(frame);
+  };
+  const requestFrame = (callback: FrameRequestCallback) => {
+    frameWindow = host.ownerDocument?.defaultView ?? null;
+    return frameWindow
+      ? frameWindow.requestAnimationFrame(callback)
+      : requestAnimationFrame(callback);
+  };
   let world: World | undefined;
   let paused = false;
   const label = (text: string, size = 9, white = false) =>
@@ -215,21 +256,61 @@ export async function createMap(host: HTMLElement) {
     return sprite;
   }
   const camera = attachCamera(host, app.canvas, () => {
-    cancelAnimationFrame(frame);
+    cancelFrame();
     paint(performance.now());
   });
+  mini.eventMode = 'static';
+  mini.cursor = 'pointer';
+  mini.hitArea = {
+    contains: (x: number, y: number) => x >= 0 && x <= 115 && y >= 0 && y <= 65,
+  };
+  const navigateMini = (e: import('pixi.js').FederatedPointerEvent) => {
+    const p = e.getLocalPosition(mini);
+    e.stopPropagation();
+    camera.set({ x: p.x / (115 / 3200), y: p.y / (115 / 3200) });
+  };
+  mini.on('pointerdown', (e) => {
+    miniDrag = true;
+    navigateMini(e);
+  });
+  mini.on('globalpointermove', (e) => {
+    if (miniDrag) navigateMini(e);
+  });
+  mini.on('pointerup', () => {
+    miniDrag = false;
+  });
+  mini.on('pointerupoutside', () => {
+    miniDrag = false;
+  });
+  let lastPaint = 0;
+  let lastTap = { id: '', at: 0 };
+  let miniDrag = false;
   function paint(now: number) {
     if (!world) return;
     for (const child of scene.removeChildren())
       child.destroy({ children: true });
     for (const child of overlay.removeChildren())
       child.destroy({ children: true });
+    for (const child of mini.removeChildren())
+      child.destroy({ children: true });
+    const followed = motions.get(camera.following() ?? '');
+    if (followed)
+      camera.track(followed.x, followed.y, Math.min(100, now - lastPaint));
+    lastPaint = now;
     const compact = camera.compact(),
       cam = camera.get();
-    scene.scale.set(cam.zoom);
-    scene.position.set(320 - cam.x * cam.zoom, 180 - cam.y * cam.zoom);
     const bounds = app.canvas.getBoundingClientRect();
-    const marker = compactMetrics(bounds.width, bounds.height);
+    scene.scale.set(cam.zoom);
+    scene.position.set(
+      bounds.width / 2 - cam.x * cam.zoom,
+      bounds.height / 2 - cam.y * cam.zoom,
+    );
+    const marker = {
+      ...compactMetrics(bounds.width, bounds.height),
+      diameter: 14,
+      fontSize: 11,
+      scale: 1,
+    };
     const occluders: Occluder[] = [];
     const labels: { id: string; box: ReturnType<typeof buildingLabelBox> }[] =
       [];
@@ -248,7 +329,15 @@ export async function createMap(host: HTMLElement) {
       discipleSprites: 0,
       fallbacks: 0,
       poses: {} as Record<string, number>,
-      disciples: [] as { x: number; y: number }[],
+      disciples: [] as { id: string; x: number; y: number }[],
+      discipleScale: DISCIPLE_SCALE,
+      walkSpeed: WALK_SPEED,
+      dormToHallSeconds: walkTimeSeconds(
+        worldMap.slots.find((s) => s.id === 'B_DORM')!.front,
+        worldMap.slots.find((s) => s.id === 'B_HALL')!.front,
+      ),
+      viewport: { width: bounds.width, height: bounds.height },
+      visibleDisciples: 0,
     };
     const ground =
       art('map/world.webp', 1) ??
@@ -261,6 +350,7 @@ export async function createMap(host: HTMLElement) {
         .stroke({ width: 14, color: 0xf5eddc });
     if (!stats.baseLoaded) stats.fallbacks++;
     ground.zIndex = -1000;
+
     scene.addChild(ground);
     let breathingGlow = false;
     for (const def of buildingDefinitions) {
@@ -362,7 +452,40 @@ export async function createMap(host: HTMLElement) {
       group.zIndex = m.y;
       const pose = behaviorPose(d.state.behavior, moving, now - m.start);
       stats.poses[pose] = (stats.poses[pose] ?? 0) + 1;
-      stats.disciples.push({ x: m.x, y: m.y });
+      stats.disciples.push({ id: d.id, x: m.x, y: m.y });
+      if (
+        Math.abs(m.x - cam.x) * cam.zoom <= bounds.width / 2 &&
+        Math.abs(m.y - cam.y) * cam.zoom <= bounds.height / 2
+      )
+        stats.visibleDisciples++;
+      let hit = hits.get(d.id);
+      if (!hit) {
+        hit = new Container();
+        hits.set(d.id, hit);
+        hitLayer.addChild(hit);
+        hit.eventMode = 'static';
+        hit.cursor = 'pointer';
+        hit.on('pointertap', (e) => {
+          e.stopPropagation();
+          if (camera.wasDragged()) return;
+          const time = performance.now();
+          if (lastTap.id === d.id && time - lastTap.at < 350)
+            camera.follow(d.id);
+          else callbacks.card?.(d.id);
+          lastTap = { id: d.id, at: time };
+        });
+      }
+      hit.position.set(
+        bounds.width / 2 + (m.x - cam.x) * cam.zoom,
+        bounds.height / 2 + (m.y - cam.y) * cam.zoom,
+      );
+      const hitHeight = compact ? 14 : height * cam.zoom;
+      hit.hitArea = {
+        contains: (x: number, y: number) =>
+          Math.abs(x) <= Math.max(22, (height * cam.zoom) / 2) &&
+          y >= -hitHeight - 6 &&
+          y <= 12,
+      };
       const colors = rootRingColors(d.root.elements);
       const ring = new Graphics();
       colors.forEach((color, i) => {
@@ -447,10 +570,43 @@ export async function createMap(host: HTMLElement) {
         namePoints.push({
           x: m.x,
           y: m.y,
-          row: compact ? 0 : m.row,
+          row: 0,
           height: compact ? 10 : height,
           name: compact ? d.name.slice(0, 1) : shortName(d.name),
         });
+      const event = relatedEvents(world, d.id)[0];
+      if (event) {
+        const dot = new Graphics()
+          .circle(
+            0,
+            compact ? -14 / cam.zoom : -height - 8 / cam.zoom,
+            5 / cam.zoom,
+          )
+          .fill(0xad4937);
+        let eventHit = hits.get(`event:${d.id}`);
+        if (!eventHit) {
+          eventHit = new Container();
+          hits.set(`event:${d.id}`, eventHit);
+          hitLayer.addChild(eventHit);
+          eventHit.eventMode = 'static';
+          eventHit.cursor = 'pointer';
+          eventHit.hitArea = {
+            contains: (x: number, y: number) => Math.hypot(x, y) <= 12,
+          };
+          eventHit.on('pointertap', (e) => {
+            e.stopPropagation();
+            if (!camera.wasDragged()) {
+              const pending = world && relatedEvents(world, d.id)[0];
+              if (pending) callbacks.event?.(pending.id);
+            }
+          });
+        }
+        eventHit.position.set(
+          hit.position.x,
+          hit.position.y - (compact ? 14 : height * cam.zoom + 8),
+        );
+        group.addChild(dot);
+      }
       scene.addChild(group);
     }
     placeNames(
@@ -474,8 +630,16 @@ export async function createMap(host: HTMLElement) {
       scene.addChild(t);
       stats.nameLabels++;
     });
-    const mini = new Container();
-    mini.position.set(520, 5);
+    for (const [id, hit] of hits) {
+      if (
+        !motions.has(id.replace('event:', '')) ||
+        (id.startsWith('event:') && !relatedEvents(world, id.slice(6)).length)
+      ) {
+        hit.destroy();
+        hits.delete(id);
+      }
+    }
+    mini.position.set(bounds.width - 125, 76);
     mini.zIndex = 1000;
     mini.addChild(
       new Graphics()
@@ -495,49 +659,36 @@ export async function createMap(host: HTMLElement) {
     mini.addChild(
       new Graphics()
         .rect(
-          Math.max(0, cam.x - 320 / cam.zoom) * miniScale,
-          Math.max(0, cam.y - 180 / cam.zoom) * miniScale,
-          Math.min(3200, 640 / cam.zoom) * miniScale,
-          Math.min(1400, 360 / cam.zoom) * miniScale,
+          Math.max(0, cam.x - bounds.width / 2 / cam.zoom) * miniScale,
+          Math.max(0, cam.y - bounds.height / 2 / cam.zoom) * miniScale,
+          Math.min(3200, bounds.width / cam.zoom) * miniScale,
+          Math.min(1400, bounds.height / cam.zoom) * miniScale,
         )
         .stroke({ width: 1, color: 0xffffff }),
     );
-    mini.eventMode = 'static';
-    mini.cursor = 'pointer';
-    mini.on('pointertap', (e) => {
-      const p = e.getLocalPosition(mini);
-      camera.set({
-        zoom: Math.max(cam.zoom, 0.45),
-        x: p.x / miniScale,
-        y: p.y / miniScale,
-      });
-    });
-    overlay.addChild(mini);
     window.__mapStats = stats;
+    callbacks.frame?.();
     app.render();
     window.__mapReady = true;
-    if ((active || breathingGlow) && !paused)
-      frame = requestAnimationFrame(paint);
+    if ((active || breathingGlow || !!followed) && !paused)
+      frame = requestFrame(paint);
     else frame = 0;
   }
   function draw(w: World) {
-    cancelAnimationFrame(frame);
+    cancelFrame();
     frame = 0;
-    paused = document.hidden;
+    paused = host.ownerDocument?.hidden ?? document.hidden;
     world = w;
     const now = performance.now(),
-      occupants = new Map<string, number>(),
       visible = new Set<string>();
     const visibleDisciples = w.disciples.filter(
       (d) =>
         d.stage !== '坐化' && !d.state.awayUntil && d.state.behavior !== '历练',
     );
-    for (const d of visibleDisciples) {
+    const destinations = discipleDestinations(visibleDisciples, w.tick);
+    for (const [i, d] of visibleDisciples.entries()) {
       visible.add(d.id);
-      const key = destination(d, w.tick).join(',');
-      const i = occupants.get(key) ?? 0;
-      occupants.set(key, i + 1);
-      const [x, y] = destination(d, w.tick, i);
+      const [x, y] = destinations[i];
       const row = i > 2 ? 1 : 0;
       const m = motions.get(d.id);
       if (!m)
@@ -557,7 +708,10 @@ export async function createMap(host: HTMLElement) {
       else {
         m.row = row;
         if (m.toX !== x || m.toY !== y) {
-          if (now - m.start < m.duration) continue;
+          [m.x, m.y] = alongPath(
+            m.path,
+            (Math.max(0, now - m.start) / 1000) * WALK_SPEED,
+          );
           const path = findPath([m.x, m.y], [x, y]);
           if (!path.length) continue;
           m.path = path;
@@ -579,21 +733,54 @@ export async function createMap(host: HTMLElement) {
     typeof ResizeObserver === 'undefined'
       ? undefined
       : new ResizeObserver(() => {
-          cancelAnimationFrame(frame);
+          app.renderer.resize(host.clientWidth, host.clientHeight);
+          cancelFrame();
           paint(performance.now());
         });
-  resize?.observe(app.canvas);
+  resize?.observe(host);
   return {
     draw,
+    follow: (id: string) => camera.follow(id),
+    reset: () => motions.clear(),
+    position: (id: string) => {
+      const m = motions.get(id);
+      if (!m) return;
+      const c = camera.get(),
+        r = app.canvas.getBoundingClientRect();
+      return {
+        x: r.width / 2 + (m.x - c.x) * c.zoom,
+        y: r.height / 2 + (m.y - c.y - DISCIPLE_HEIGHT) * c.zoom,
+        viewport: { width: r.width, height: r.height },
+      };
+    },
+    walkDormToHall: (id: string) => {
+      const m = motions.get(id);
+      if (!m) throw Error('弟子不在地图');
+      const from = worldMap.slots.find((s) => s.id === 'B_DORM')!.front,
+        to = worldMap.slots.find((s) => s.id === 'B_HALL')!.front;
+      const path = findPath(from, to);
+      Object.assign(m, {
+        x: from[0],
+        y: from[1],
+        toX: to[0],
+        toY: to[1],
+        path,
+        start: performance.now(),
+        duration: (pathLength(path) / WALK_SPEED) * 1000,
+      });
+      cancelFrame();
+      paint(performance.now());
+      return { to, duration: m.duration };
+    },
     pause: () => {
       paused = true;
-      cancelAnimationFrame(frame);
+      cancelFrame();
       frame = 0;
       paint(performance.now());
       app.stop();
     },
     destroy: () => {
-      cancelAnimationFrame(frame);
+      cancelFrame();
       resize?.disconnect();
       camera.destroy();
       app.destroy(true, { children: true });
