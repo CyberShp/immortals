@@ -4,7 +4,7 @@ import { createHash } from 'node:crypto';
 import sharp from 'sharp';
 import manifest from '../public/assets/manifest.json';
 import traits from '../data/traits.json';
-import { accessories, behaviorPose, plots } from '../src/render/layout';
+import { accessories, behaviorPose, buildingScale } from '../src/render/layout';
 const root = new URL('../public/assets/', import.meta.url);
 describe('Iris assets', () => {
   it('every manifest entry exists with its declared dimensions', async () => {
@@ -27,10 +27,18 @@ describe('Iris assets', () => {
         (f) => f.file.startsWith(`building/${id}-`) && f.file.includes('-map@'),
       );
       expect(versions).toHaveLength(2);
-      for (const f of versions)
-        expect(
-          Math.abs(f.size[0] - (plots[id][2] - plots[id][0])),
-        ).toBeLessThanOrEqual(1);
+      for (const f of versions) {
+        const source = manifest.files.find((e) => e.file === f.source)!;
+        const expected = buildingScale(
+          id,
+          source.size[0],
+          id === 'alchemy'
+            ? buildingScale(id, source.size[0]).widthScale * 0.95
+            : undefined,
+        );
+        expect(f.scale).toBe(expected.scale);
+        expect(f.size[0]).toBe(Math.round(source.size[0] * expected.scale));
+      }
       expect(versions[0].scale).toBe(versions[1].scale);
     }
   });

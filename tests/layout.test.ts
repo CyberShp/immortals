@@ -6,7 +6,7 @@ import {
   discipleSlot,
   nameBox,
   buildingArt,
-  buildingLabelPosition,
+  buildingLabelBox,
 } from '../src/render/layout';
 import buildings from '../data/buildings.json';
 const overlap = (
@@ -40,12 +40,12 @@ describe('map gathering layout', () => {
       },
     );
   }
-  it('uses four 28px columns and rows at 300/280 on the lower platform', () => {
+  it('uses three 34px columns and rows at 300/280 on the lower platform', () => {
     const slots = Array.from({ length: 6 }, (_, i) =>
       discipleSlot(regions.空地, i, 6),
     );
-    expect(slots[1].x - slots[0].x).toBe(28);
-    expect(slots.map((s) => s.y)).toEqual([300, 300, 300, 300, 280, 280]);
+    expect(slots[1].x - slots[0].x).toBe(34);
+    expect(slots.map((s) => s.y)).toEqual([300, 300, 300, 280, 280, 280]);
     for (const height of [24, 48, 96]) {
       const boxes = slots.map((p) => nameBox(p.x, p.y, p.row, height));
       boxes.forEach((a, i) =>
@@ -68,15 +68,11 @@ describe('map gathering layout', () => {
   it('keeps all five label bounds apart, including reservations, levels and construction marks', () => {
     // Longest supported text for each building, with a 2px stroke on each side.
     const boxes = buildings.map((b) => {
-      const [x, y] = buildingLabelPosition(b.id);
-      const width =
-        Math.max(
-          `${b.name}预留位`.length,
-          `${b.name} Lv${b.maxLevel} ⚒`.length,
-        ) *
-          11 +
-        4;
-      return { x: x - width / 2, y: y - 2, width, height: 15 };
+      const texts = [`${b.name}预留位`, `${b.name} Lv${b.maxLevel} ⚒`];
+      return buildingLabelBox(
+        b.id,
+        texts.sort((a, b) => b.length - a.length)[0],
+      );
     });
     boxes.forEach((a, i) =>
       boxes.slice(i + 1).forEach((b) => expect(overlap(a, b)).toBe(false)),

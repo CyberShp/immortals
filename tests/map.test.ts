@@ -67,13 +67,19 @@ vi.mock('pixi.js', () => {
     }
   }
   class Text extends Container {
+    style = { lineHeight: 13, stroke: { color: 0, width: 2 } };
     constructor(public options: { text: string }) {
       super();
     }
   }
   class Application {
     stage = new Container();
-    canvas = { setAttribute: vi.fn() };
+    canvas = {
+      getBoundingClientRect: () => ({ width: 480, height: 270 }),
+      setAttribute: vi.fn(),
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    };
     options = {};
     constructor() {
       mock.apps.push(this);
@@ -102,7 +108,10 @@ vi.mock('pixi.js', () => {
 });
 import { Assets, Application, Sprite, Container } from 'pixi.js';
 import { createMap } from '../src/render/map';
-const host = { appendChild: vi.fn() } as unknown as HTMLElement;
+const host = {
+  appendChild: vi.fn(),
+  append: vi.fn(),
+} as unknown as HTMLElement;
 const world = () => {
   const w = createWorld(42, loadData());
   w.disciples = w.disciples.slice(0, 1);
@@ -116,21 +125,34 @@ const world = () => {
 const scene = () =>
   (mock.apps.at(-1) as Application).stage.children[0] as Container;
 const disciple = () =>
-  (scene().children.find((n) => n.zIndex === 2500) as Container).children.find(
-    (g) =>
-      (g as Container).children?.some(
-        (s) =>
-          s instanceof Sprite &&
-          (s.texture as unknown as { src: string }).src.includes('disciple/'),
-      ),
+  scene().children.find((g) =>
+    (g as Container).children?.some(
+      (s) =>
+        s instanceof Sprite &&
+        (s.texture as unknown as { src: string }).src.includes('disciple/'),
+    ),
   ) as Container;
 beforeEach(() => {
   mock.fail = false;
   mock.frames.clear();
   mock.apps.length = 0;
   mock.now = 0;
-  vi.stubGlobal('window', {});
-  vi.stubGlobal('document', { hidden: false });
+  vi.stubGlobal('window', {
+    matchMedia: () => ({
+      matches: false,
+      addEventListener: vi.fn(),
+      removeEventListener: vi.fn(),
+    }),
+  });
+  vi.stubGlobal('document', {
+    hidden: false,
+    createElement: () => ({
+      getBoundingClientRect: () => ({ width: 480, height: 270 }),
+      setAttribute: vi.fn(),
+      append: vi.fn(),
+      remove: vi.fn(),
+    }),
+  });
   vi.stubGlobal('location', { search: '' });
   vi.stubGlobal('devicePixelRatio', 1);
   vi.stubGlobal('requestAnimationFrame', (fn: FrameRequestCallback) => {
@@ -171,7 +193,7 @@ describe('map orchestration without browser/GPU', () => {
     });
     for (const [request] of vi.mocked(Assets.load).mock.calls)
       expect(request).toMatchObject({ data: { resolution: 1 } });
-    const sprite = disciple().children[0] as Sprite;
+    const sprite = disciple().children[1] as Sprite;
     expect(
       sprite.scale.y *
         manifest.files.find((f) => f.file === 'disciple/meditate-96@2x.webp')!
@@ -217,11 +239,11 @@ describe('map orchestration without browser/GPU', () => {
     const map = await createMap(host),
       w = world();
     map.draw(w);
-    expect((disciple().children[0] as Sprite).scale.y).toBe(0.25);
+    expect((disciple().children[1] as Sprite).scale.y).toBe(0.25);
     const name = scene().children.find((n) => n.zIndex === 3000)!;
     expect(name).toMatchObject({
       alpha: 1,
-      options: { style: { fontSize: 10 } },
+      options: { style: { fontSize: 10.5 } },
     });
     for (const label of scene().children.filter((n) => n.zIndex === 2000)) {
       expect(label).toMatchObject({
@@ -273,40 +295,60 @@ it('exposes meditation, work, socializing and walking at the art capture step', 
 });
 
 it.each([false, true])(
-  'keeps disciples above buildings with foot ordering (fallback=%s)',
+  'shares building depth layer (fallback=%s)',
   async (fail) => {
     mock.fail = fail;
     vi.spyOn(console, 'warn').mockImplementation(() => {});
     const map = await createMap(host);
-    const w = createWorld(42, loadData());
-    const locations = ['药圃', '采石点', '静修室', '松下', '主殿', '空地'];
-    w.disciples.forEach((d, i) => {
-      d.state.location = locations[i];
+    map.draw(createWorld(42, loadData()));
+    expect(scene().children.some((n) => n.zIndex === 2500)).toBe(false);
+    expect(window.__mapStats.rings).toBe(6);
+    expect(window.__mapStats.nameLabels).toBe(6);
+    expect(window.__mapStats.minHeadVisibility).toBeGreaterThanOrEqual(0.6);
+    map.destroy();
+  },
+);
+
+it('compact hides building labels and shows only disciple dots and initials', async () => {
+  window.matchMedia = (() => ({
+    matches: true,
+    addEventListener: vi.fn(),
+    removeEventListener: vi.fn(),
+  })) as unknown as typeof window.matchMedia;
+  const map = await createMap(host);
+  map.draw(createWorld(42, loadData()));
+  expect(window.__mapStats).toMatchObject({
+    mode: 'compact',
+    buildingLabels: 0,
+    markers: 6,
+    markerCssDiameter: 14,
+    discipleSprites: 0,
+    nameLabels: 6,
+    labelOverlaps: [],
+  });
+  expect(scene().children.filter((n) => n.zIndex === 2000)).toHaveLength(0);
+  map.destroy();
+});
+it.each([false, true])(
+  'garden is a ground layer including fallback (%s)',
+  async (fail) => {
+    mock.fail = fail;
+    vi.spyOn(console, 'warn').mockImplementation(() => {});
+    const map = await createMap(host),
+      w = world();
+    w.buildings.push({
+      id: 'B_GARDEN',
+      name: '药圃',
+      level: 1,
+      progress: 0,
+      targetLevel: 0,
+      builtTick: 0,
+      x: 0,
+      y: 0,
     });
+    w.disciples[0].state.location = '药圃';
     map.draw(w);
-    const nodes = scene().children;
-    const layer = nodes.find((n) => n.zIndex === 2500) as Container;
-    expect(layer.sortableChildren).toBe(true);
-    expect(scene().sortableChildren).toBe(true);
-    expect(layer.children).toHaveLength(6);
-    for (const d of layer.children) expect(d.zIndex).toBe(d.position.y);
-    const buildings = nodes.filter(
-      (n) =>
-        n instanceof Container &&
-        !(n instanceof Sprite) &&
-        n.zIndex > 0 &&
-        n.zIndex < 1000,
-    );
-    expect(buildings).toHaveLength(5);
-    for (const b of buildings) {
-      expect(layer.zIndex).toBeGreaterThan(b.zIndex);
-      for (const label of nodes.filter((n) => n.zIndex === 2000)) {
-        expect(label.zIndex).toBeGreaterThan(b.zIndex);
-        expect(label.zIndex).toBeLessThan(layer.zIndex);
-      }
-    }
-    for (const name of nodes.filter((n) => n.zIndex === 3000))
-      expect(name.zIndex).toBeGreaterThan(layer.zIndex);
+    expect(scene().children.filter((n) => n.zIndex === -500)).toHaveLength(1);
     map.destroy();
   },
 );

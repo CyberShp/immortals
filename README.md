@@ -154,3 +154,7 @@ VITE_BASE=/xianfu-web/ npm run build
 `npm run assets` 从只读素材源导出到 `public/assets/`；生成图像与 manifest 一并纳入版本管理。地图采用 640×360 逻辑坐标，普通桌面布局保持 1:1；图片缺失时回退色块/圆点，特质配饰回退 ◇，簿册操作继续可用。构建 JS/CSS 使用 `bundles/`，美术使用 `assets/`，URL 兼容 Vite base `./`。
 
 详见 [美术接入说明](docs/ART-INTEGRATION.md)。外部运行 `node scripts/e2e.mjs http://127.0.0.1:4173` 可生成美术截图、首屏体积报告并验证全素材 404 降级；本轮未在沙箱启动浏览器。
+
+### 地图镜头
+
+地图默认放大 1.5 倍；拖动平移，滚轮以指针为中心缩放（1–3 倍）。右下角「＋」「－」「全景」也可键盘操作；全景恢复居中 1 倍，小地图白框表示当前视口。480px 以下紧凑布局固定全景，以灵根色点和名字首字表示弟子，恢复普通窗口后还原镜头。镜头只存内存，不影响存档。第二轮素材比例、遮挡残余和验收边界见 [ART-INTEGRATION.md](docs/ART-INTEGRATION.md)。

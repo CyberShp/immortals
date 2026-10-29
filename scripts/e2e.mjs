@@ -1,4 +1,3 @@
-import sharp from 'sharp';
 import { chromium } from 'playwright-core';
 import { mkdir, readFile, writeFile, readdir, stat } from 'node:fs/promises';
 import assert from 'node:assert/strict';
@@ -47,6 +46,7 @@ async function recordArt(page, name) {
   const sample = await page.evaluate(() => ({
     tick: window.__xianfu.world().tick,
     ...window.__mapStats,
+    camera: window.__camera.get(),
   }));
   screenshotStats[name] = sample;
   return sample;
@@ -135,8 +135,16 @@ try {
     (await stat('dist/assets/map/base@2x.webp')).size,
   );
   assert.ok(firstLoadBytes < 5_000_000, `First load: ${firstLoadBytes} bytes`);
-  const shot = (name, fullPage = true) =>
-    page.screenshot({ path: `docs/screenshots/${name}.png`, fullPage });
+  const shot = async (name, fullPage = true) => {
+    if (/^0[1-6]-/.test(name)) {
+      await page.waitForFunction(() => !!window.__camera && window.__mapReady);
+      await page.evaluate(() =>
+        window.__camera.set({ zoom: 1.5, x: 300, y: 200 }),
+      );
+    }
+    await recordArt(page, name);
+    return page.screenshot({ path: `docs/screenshots/${name}.png`, fullPage });
+  };
   if (soak) {
     const start = await page.evaluate(() => window.__xianfu.world());
     const started = Date.now();
@@ -183,23 +191,59 @@ try {
     assert.ok(stats.buildingSprites >= 1);
     assert.ok(stats.discipleSprites >= 1);
     assert.equal(stats.fallbacks, 0);
+    assert.equal((await page.evaluate(() => window.__camera.get())).zoom, 1.5);
+    assert.equal(stats.mode, 'full');
+    assert.ok(stats.minHeadVisibility >= 0.6);
+    assert.equal(await page.locator('.root-legend i').count(), 5);
+    assert.equal(await page.getByText('Iris 第一批素材').count(), 0);
+    await recordArt(page, '08-art-main');
     await shot('08-art-main');
+    await page.getByRole('button', { name: '地图全景', exact: true }).click();
+    assert.equal((await page.evaluate(() => window.__camera.get())).zoom, 1);
+    await recordArt(page, '13-art-panorama');
+    await shot('13-art-panorama');
     await page.setViewportSize({ width: 480, height: 320 });
     // Let the canvas resize and repaint; an immediate capture shows stale tiles.
     await page.waitForTimeout(800);
+    const compact = await recordArt(page, '09-art-compact');
+    assert.equal(compact.mode, 'compact');
+    assert.ok(compact.markerCssDiameter >= 12);
+    assert.equal(compact.discipleSprites, 0);
+    assert.equal(compact.buildingLabels, 0);
+    const present = await page.evaluate(
+      () =>
+        window.__xianfu
+          .world()
+          .disciples.filter(
+            (d) =>
+              d.stage !== '坐化' &&
+              !d.state.awayUntil &&
+              d.state.behavior !== '休息' &&
+              d.state.behavior !== '历练',
+          ).length,
+    );
+    assert.equal(compact.markers, present);
     await shot('09-art-compact', false);
     await page.setViewportSize({ width: 1440, height: 900 });
     await prepareArt(page);
-    await recordArt(page, '10-art-disciples-48');
+    assert.ok(
+      (await recordArt(page, '10-art-disciples-48')).minHeadVisibility >= 0.6,
+    );
     await page.screenshot({
       path: 'docs/screenshots/10-art-disciples-48.png',
       clip: canvasBox,
     });
     await prepareArt(page);
+    await page.evaluate(() =>
+      window.__camera.set({ zoom: 1.5, x: 300, y: 200 }),
+    );
     const zoomStats = await recordArt(page, '11-art-zoom');
     // Scan all possible crop edges to maximize the number of visible disciples.
     let region = { x: 0, y: 0, count: -1 };
-    const points = zoomStats.disciples;
+    const points = zoomStats.disciples.map((p) => ({
+      x: 320 + (p.x - zoomStats.camera.x) * zoomStats.camera.zoom,
+      y: 180 + (p.y - zoomStats.camera.y) * zoomStats.camera.zoom,
+    }));
     for (const point of points) {
       for (const dx of [20, 200])
         for (const dy of [48, 140]) {
@@ -213,7 +257,8 @@ try {
         }
     }
     screenshotStats['11-art-zoom'].region = region;
-    const zoom = await page.screenshot({
+    await page.screenshot({
+      path: 'docs/screenshots/11-art-zoom.png',
       clip: {
         x: canvasBox.x + region.x,
         y: canvasBox.y + region.y,
@@ -221,10 +266,50 @@ try {
         height: 140,
       },
     });
-    await sharp(zoom)
-      .resize(660, 420, { kernel: 'nearest' })
-      .png()
-      .toFile('docs/screenshots/11-art-zoom.png');
+    const beforeDrag = await page.evaluate(() => ({
+      camera: window.__camera.get(),
+      scroll: window.scrollY,
+    }));
+    await page.mouse.move(canvasBox.x + 320, canvasBox.y + 180);
+    await page.mouse.down();
+    await page.mouse.move(canvasBox.x + 270, canvasBox.y + 150, { steps: 10 });
+    await page.mouse.up();
+    await page.mouse.wheel(0, -500);
+    await page.waitForFunction(
+      () => Math.abs(window.__camera.get().zoom - 2) < 1e-9,
+    );
+    const afterDrag = await page.evaluate(() => ({
+      camera: window.__camera.get(),
+      scroll: window.scrollY,
+    }));
+    assert.equal(afterDrag.camera.zoom, 2);
+    assert.notEqual(afterDrag.camera.x, beforeDrag.camera.x);
+    assert.equal(afterDrag.scroll, beforeDrag.scroll);
+    await recordArt(page, '14-art-camera-drag');
+    await shot('14-art-camera-drag');
+    await page.evaluate(() => {
+      window.__xianfu.reset();
+      window.__xianfu.artAllBuilt();
+      window.__camera.panorama();
+    });
+    const allBuilt = await recordArt(page, '15-art-all-built');
+    assert.equal(allBuilt.buildingSprites, 5);
+    assert.equal(allBuilt.buildingLabels, 5);
+    const alchemyLabelPairs = allBuilt.labelOverlaps.filter(
+      (o) =>
+        (o.label === 'B_MEDIT' && o.other === 'B_ALCHEMY') ||
+        (o.label === 'B_ALCHEMY' && o.other === 'B_MEDIT'),
+    );
+    assert.equal(alchemyLabelPairs.length, 3);
+    assert.ok(alchemyLabelPairs.every((o) => o.pixels === 0));
+    await canvas.screenshot({ path: 'docs/screenshots/15-art-all-built.png' });
+    await page.evaluate(() =>
+      window.__camera.set({ zoom: 1.5, x: 390, y: 180 }),
+    );
+    await recordArt(page, '16-art-all-built-zoom');
+    await canvas.screenshot({
+      path: 'docs/screenshots/16-art-all-built-zoom.png',
+    });
     await page.evaluate(() => window.__xianfu.reset());
     await page.setViewportSize({ width: 1280, height: 900 });
     assert.equal((await canvas.boundingBox()).width, 640);
@@ -237,6 +322,7 @@ try {
     smallUrl.searchParams.set('discipleHeight', '24');
     await smallArt.goto(smallUrl.href);
     await smallArt.waitForFunction(() => window.__mapReady);
+    await smallArt.evaluate(() => window.__camera.panorama());
     await prepareArt(smallArt);
     await recordArt(smallArt, '12-art-disciples-24');
     await smallArt.screenshot({
@@ -259,6 +345,8 @@ try {
     );
     const fallbackStats = await fallbackPage.evaluate(() => window.__mapStats);
     assert.ok(fallbackStats.fallbacks > 0);
+    assert.ok(fallbackStats.rings > 0);
+    assert.equal(fallbackStats.rings, fallbackStats.nameLabels);
     assert.equal(fallbackStats.baseLoaded, false);
     await fallbackPage.locator('#save-open').click();
     await fallbackPage.locator('#save-text').waitFor();
@@ -366,6 +454,9 @@ try {
           firstLoadResources,
           distTotalBytes,
           screenshotStats,
+          buildingScales: JSON.parse(
+            await readFile('public/assets/manifest.json', 'utf8'),
+          ).files.filter((f) => f.file.includes('-map@')),
           mapStats: stats,
           fallbackStats,
           errors,

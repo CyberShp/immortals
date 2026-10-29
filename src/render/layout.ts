@@ -72,11 +72,11 @@ export function locationRegion(location: string): Region {
 }
 export function discipleSlot(region: Region, index: number, count: number) {
   const [left, top, right, bottom] = region.rect;
-  const columns = Math.min(4, Math.floor((right - left) / 20) + 1);
+  const columns = Math.min(3, Math.floor((right - left) / 34) + 1);
   const row = Math.floor(index / columns);
   const rows = Math.ceil(count / columns);
   const rowCount = Math.min(columns, count - row * columns);
-  const spacing = Math.min(28, (right - left) / Math.max(1, rowCount - 1));
+  const spacing = Math.min(34, (right - left) / Math.max(1, rowCount - 1));
   const width = (rowCount - 1) * spacing;
   const start = Math.max(
     left,
@@ -98,6 +98,143 @@ export function nameBox(x: number, y: number, row: number, height: number) {
 }
 export function buildingLabelPosition(id: string): [number, number] {
   if (id === 'B_HALL') return [285, 69];
+  if (id === 'B_MEDIT') return [426, 129.5];
+  if (id === 'B_GARDEN') return [286, 150.5];
   const [x, y] = plotFoot(id);
   return [x, y + (id === 'B_ALCHEMY' ? 17 : 3)];
+}
+
+export const discipleBodyHeight = (48 * 451) / 462;
+export const doorRules: Record<string, { pixels: number; target: number }> = {
+  hall: { pixels: 72, target: 0.6 },
+  dorm: { pixels: 62, target: 0.4 },
+  meditation: { pixels: 78, target: 0.4 },
+  alchemy: { pixels: 56, target: 0.4 },
+};
+export function buildingScale(
+  key: string,
+  sourceWidth: number,
+  override?: number,
+) {
+  const widthScale = (plots[key][2] - plots[key][0]) / sourceWidth;
+  const rule = doorRules[key];
+  const needed = rule
+    ? (rule.target * discipleBodyHeight * 2) / rule.pixels
+    : widthScale;
+  const scale =
+    override ?? Math.min(Math.max(widthScale, needed), widthScale * 1.15);
+  const doorHeight = rule ? (rule.pixels * scale) / 2 : null;
+  const doorRatio =
+    doorHeight === null ? null : doorHeight / discipleBodyHeight;
+  return {
+    scale,
+    widthScale,
+    relativeScale: scale / widthScale,
+    needed,
+    doorHeight,
+    doorRatio,
+    meetsDoorRule: rule ? doorRatio! >= rule.target - 1e-9 : null,
+  };
+}
+import { CONFIG } from '../sim/config';
+export function rootRingColors(elements: readonly string[]): string[] {
+  return elements.map(
+    (e) =>
+      CONFIG.elements[e as keyof typeof CONFIG.elements]?.color ?? '#808080',
+  );
+}
+export const shortName = (name: string) =>
+  Array.from(name).slice(0, 4).join('') +
+  (Array.from(name).length > 4 ? '…' : '');
+export type Box = { x: number; y: number; width: number; height: number };
+export const intersects = (a: Box, b: Box) =>
+  a.x < b.x + b.width &&
+  a.x + a.width > b.x &&
+  a.y < b.y + b.height &&
+  a.y + a.height > b.y;
+export type NamePoint = {
+  x: number;
+  y: number;
+  name: string;
+  row?: number;
+  height?: number;
+  bodyWidth?: number;
+};
+export const nameFontSize = 10.5;
+export function headBox(p: NamePoint): Box {
+  const height = p.height ?? 48;
+  const width = p.bodyWidth ?? height;
+  return { x: p.x - width / 2, y: p.y - height, width, height: height * 0.35 };
+}
+export function placeNames(points: NamePoint[], obstacles: Box[] = []): Box[] {
+  const boxes: Box[] = [];
+  const heads = points.map(headBox);
+  for (const [index, p] of points.entries()) {
+    const width = Array.from(p.name).length * nameFontSize + 4;
+    // Rear labels end 4px above the displayed body; front labels sit below feet.
+    const base = {
+      x: p.x - width / 2,
+      y: p.row ? p.y - (p.height ?? 48) - 4 - 17 : p.y + 3,
+      width,
+      height: 17,
+    };
+    for (let offset = 0; ; offset++) {
+      // Try small horizontal corrections before moving farther from the person.
+      const found = [0, -2, 2, -4, 4, -6, 6, -8, 8, -10, 10, -12, 12]
+        .map((dx) => ({
+          ...base,
+          x: base.x + dx,
+          y: base.y + (p.row ? -offset : offset),
+        }))
+        .find(
+          (b) =>
+            !obstacles.some((a) => intersects(a, b)) &&
+            !boxes.some((a) => intersects(a, b)) &&
+            !heads.some((head, i) => i !== index && intersects(head, b)),
+        );
+      if (found) {
+        boxes.push(found);
+        break;
+      }
+    }
+  }
+  return boxes;
+}
+export function buildingLabelBox(id: string, text: string): Box {
+  const [x, y] = buildingLabelPosition(id);
+  const width = Array.from(text).length * 11 + 4;
+  return {
+    x: id === 'B_MEDIT' ? x - 2 : x - width / 2,
+    y: y - 2,
+    width,
+    height: 17,
+  };
+}
+export const buildingDepth = (id: string, y: number) =>
+  id === 'B_GARDEN' ? -500 : y;
+export const meditationProtected: Box[] = [
+  { x: 363, y: 114, width: 58, height: 44 },
+  buildingLabelBox('B_MEDIT', '静修室预留位'),
+];
+
+/** CSS object-fit: contain preserves the smaller canvas scale on both axes. */
+export function compactMetrics(cssWidth: number, cssHeight: number) {
+  const scale = Math.max(0.001, Math.min(cssWidth / 640, cssHeight / 360));
+  return {
+    scale,
+    diameter: 14 / scale,
+    fontSize: 11 / scale,
+    spacing: 16 / scale,
+  };
+}
+export function compactSlot(
+  region: Region,
+  index: number,
+  count: number,
+  spacing: number,
+) {
+  return {
+    x: region.center[0] + (index - (count - 1) / 2) * spacing,
+    y: region.center[1],
+  };
 }

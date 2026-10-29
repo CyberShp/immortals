@@ -778,3 +778,37 @@ progress {
     gap: 24px;
   }
 }
+
+#map {
+  position: relative;
+}
+#map canvas {
+  touch-action: none;
+  user-select: none;
+}
+.camera-controls {
+  position: absolute;
+  right: 8px;
+  bottom: 8px;
+  display: flex;
+  gap: 4px;
+}
+.root-legend {
+  display: flex;
+  gap: 5px;
+  font-size: 11px;
+}
+.root-legend i {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  border: 1px solid #263f34;
+  border-radius: 50%;
+  margin-right: 2px;
+}
+@media (max-width: 480px) {
+  .camera-controls,
+  .root-legend {
+    display: none;
+  }
+}
