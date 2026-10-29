@@ -28,7 +28,7 @@ it.each([
 ] as const)('%s 在上一轮末被拦截、目标轮首步可入队', (id, round) => {
   const def = definition(id);
   expect(def.trigger.earliestRound).toBe(round);
-  expect(def.trigger.chance).toBe(id === 'EV_ADV_01' ? 0.06 : 1);
+  expect(def.trigger.chance).toBe(0.3);
   def.trigger.chance = 1;
   defs.splice(0, defs.length, def);
   const last = (round - 1) * 30;
@@ -79,7 +79,7 @@ it.each(['step', 'round'] as const)(
   },
 );
 
-it('第 61 步准行，离山满 30 步在第 91 步归来', () => {
+it('固定种子第 61 步准行，满一轮后按正式 30% 概率最终回山', () => {
   const adv = definition('EV_ADV_01');
   adv.trigger.chance = 1;
   defs.splice(0, defs.length, adv);
@@ -93,8 +93,16 @@ it('第 61 步准行，离山满 30 步在第 91 步归来', () => {
   defs.splice(0, defs.length, definition('EV_ADV_02'));
   while (w.tick < 90) step(w);
   expect(w.events).toHaveLength(0);
-  step(w);
-  expect(w.flags['first:EV_ADV_02']).toBe(91);
+  const traveler = w.disciples.find((d) => d.id === event.roles.A)!;
+  expect(traveler.state.awayUntil).toBe(91);
+  while (w.tick < 120 && !w.events.length) step(w);
+  const returned = w.events.find((e) => e.definitionId === 'EV_ADV_02')!;
+  expect(returned).toBeDefined();
+  expect(returned.roles.A).toBe(traveler.id);
+  expect(returned.createdTick).toBeGreaterThanOrEqual(91);
+  expect(returned.createdTick).toBeLessThanOrEqual(120);
+  expect(resolveEvent(w, returned.id, 0)).toBe(true);
+  expect(traveler.state.awayUntil).toBe(0);
 });
 
 it('最早轮次可省略，指定时必须为正整数', () => {

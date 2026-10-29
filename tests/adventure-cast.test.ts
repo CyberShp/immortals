@@ -131,8 +131,10 @@ it('离山后再绑定故事线不阻止原人回山，有未结事件则等待�
   expect(d.state.awayUntil).toBe(91);
   w.events = [];
   delete w.flags.lastEvent;
-  step(w);
+  while (w.tick < 121 && !w.events.some((e) => e.definitionId === ret.id))
+    step(w);
   const e = w.events.find((e) => e.definitionId === ret.id)!;
+  expect(e).toBeDefined();
   expect(e.roles.A).toBe(d.id);
   expect(resolveEvent(w, e.id, 0)).toBe(true);
   expect(d.state.awayUntil).toBe(0);
@@ -155,4 +157,14 @@ it('可选排除字段由 schema 校验，未配置事件照常选人，旧弟�
   expect(
     discipleSchema.safeParse({ ...legacy, storyLines: ['Z'] }).success,
   ).toBe(false);
+});
+
+it('方案 2 精力门槛为 60，59 不可出行、60 可出行', () => {
+  const w = fresh();
+  w.flags['done:EV_A3'] = 0;
+  const d = w.disciples[0];
+  d.needs.energy = 59;
+  expect(selectRoles(w, adv())).toBeNull();
+  d.needs.energy = 60;
+  expect(selectRoles(w, adv())).toEqual({ A: d.id });
 });

@@ -435,7 +435,7 @@
           {
             "op": "field",
             "key": "needs.energy",
-            "value": 80,
+            "value": 60,
             "compare": "gte",
             "who": "A"
           },
@@ -474,7 +474,7 @@
           "value": 4
         }
       ],
-      "chance": 0.06,
+      "chance": 0.3,
       "cadence": "step",
       "earliestRound": 3
     },
@@ -532,7 +532,7 @@
     },
     "trigger": {
       "conditions": [],
-      "chance": 1,
+      "chance": 0.3,
       "cadence": "step",
       "earliestRound": 4
     },
