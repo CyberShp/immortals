@@ -1,3 +1,4 @@
+import { intersects } from '../src/render/layout';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { advance, createWorld } from '../src/sim/world';
 import { loadData } from '../src/sim/data';
@@ -453,3 +454,69 @@ for (const [search, multiplier] of [
     expect(actual.y).toBeCloseTo(trip.to[1]);
     map.destroy();
   });
+
+it('injury keeps the disciple opaque and adds a separate dashed ring until healed', async () => {
+  const map = await createMap(host),
+    w = world();
+  w.disciples[0].state.injuredUntil = 10;
+  map.draw(w);
+  expect(disciple().alpha).toBe(1);
+  const injuredChildren = disciple().children.length;
+  expect((disciple().children[1] as Sprite).alpha).toBe(1);
+  w.disciples[0].state.injuredUntil = 0;
+  map.draw(w);
+  expect(disciple().alpha).toBe(1);
+  expect(disciple().children.length).toBe(injuredChildren - 1);
+  map.destroy();
+});
+
+it.each([0, 60, 600])(
+  'tick %i opaque building labels clear every rendered head',
+  async (tick) => {
+    const map = await createMap(host),
+      w = createWorld(42, loadData());
+    advance(w, tick);
+    map.draw(w);
+    const heads = scene().children.flatMap((group) => {
+      const sprite = (group as Container).children?.find(
+        (s) =>
+          s instanceof Sprite &&
+          (s.texture as unknown as { src: string }).src.includes('disciple/'),
+      ) as Sprite | undefined;
+      if (!sprite) return [];
+      const src = (sprite.texture as unknown as { src: string }).src;
+      const entry = manifest.files.find((f) => src.endsWith(f.file))!;
+      const scale = Math.abs(sprite.scale.y);
+      return [
+        {
+          x:
+            group.position.x -
+            (sprite.scale.x > 0
+              ? entry.anchor.x
+              : entry.size[0] - entry.anchor.x) *
+              scale,
+          y: group.position.y - entry.anchor.y * scale,
+          width: entry.size[0] * scale,
+          height: entry.size[1] * scale * 0.35,
+        },
+      ];
+    });
+    expect(heads.length).toBeGreaterThan(0);
+    const labels = scene().children.filter((n) => n.zIndex === 2000);
+    expect(labels).toHaveLength(5);
+    for (const label of labels) {
+      const text = (label as unknown as { options: { text: string } }).options
+        .text;
+      const box = {
+        x: label.position.x - text.length * 11,
+        y: label.position.y - 2,
+        width: text.length * 22 + 8,
+        height: 34,
+      };
+      expect([1, 0.35]).toContain(label.alpha);
+      if (label.alpha === 1)
+        for (const head of heads) expect(intersects(box, head)).toBe(false);
+    }
+    map.destroy();
+  },
+);

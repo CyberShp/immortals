@@ -25,6 +25,7 @@ import {
 import { attachCamera } from './camera';
 import {
   visibilityOrder,
+  avoidDiscipleHeads,
   labelOverlaps,
   type LabelOverlap,
   type Mask,
@@ -345,8 +346,12 @@ export async function createMap(
       scale: 1,
     };
     const occluders: Occluder[] = [];
-    const labels: { id: string; box: ReturnType<typeof buildingLabelBox> }[] =
-      [];
+    const labels: {
+      id: string;
+      box: ReturnType<typeof buildingLabelBox>;
+      text: Text;
+    }[] = [];
+    const heads: ReturnType<typeof buildingLabelBox>[] = [];
     const stats = {
       mode: compact ? ('compact' as const) : ('full' as const),
       markers: 0,
@@ -456,9 +461,15 @@ export async function createMap(
           ? `${b.name} Lv${b.level}${b.targetLevel && b.targetLevel > b.level ? ' ⚒' : ''}`
           : `${def.name}预留位`;
         const t = label(text, 22, true);
-        labels.push({ id: def.id, box: buildingLabelBox(def.id, text) });
+        const box = buildingLabelBox(def.id, text);
+        // Use measured Pixi bounds when wider/taller than the conservative estimate.
+        const width = Math.max(box.width, t.width || 0);
+        box.x -= (width - box.width) / 2;
+        box.width = width;
+        box.height = Math.max(box.height, t.height || 0);
+        labels.push({ id: def.id, box, text: t });
         stats.buildingLabels++;
-        t.alpha = b ? 1 : 0.8;
+        t.alpha = 1;
         t.anchor.set(0.5, 0);
         t.position.set(...buildingLabelPosition(def.id));
         t.zIndex = 2000;
@@ -477,7 +488,6 @@ export async function createMap(
             toY: m.toY,
           })),
       });
-    stats.labelOverlaps = labelOverlaps(labels, occluders);
     const namePoints: NamePoint[] = [];
     let active = false;
     for (const d of world.disciples) {
@@ -605,7 +615,39 @@ export async function createMap(
         group.addChild(new Graphics().circle(0, -8, 9).fill(0x4f8a8b));
         stats.fallbacks++;
       }
-      if (d.state.injuredUntil > world.tick) group.alpha = 0.55;
+      group.alpha = 1;
+      if (d.state.injuredUntil > world.tick) {
+        const injuryRing = new Graphics();
+        const rx = compact ? marker.diameter / 2 / cam.zoom + 3 / cam.zoom : 30;
+        const ry = compact ? rx : 11;
+        for (let dash = 0; dash < 12; dash++) {
+          const angle = (dash * Math.PI * 2) / 12;
+          injuryRing.moveTo(Math.cos(angle) * rx, Math.sin(angle) * ry);
+          for (let part = 1; part <= 3; part++) {
+            const a = angle + (part / 3) * (Math.PI / 12);
+            injuryRing.lineTo(Math.cos(a) * rx, Math.sin(a) * ry);
+          }
+        }
+        injuryRing.stroke({
+          color: 0x77756f,
+          width: compact ? 1.5 / cam.zoom : 2,
+        });
+        group.addChild(injuryRing);
+      }
+      if (!compact) {
+        const entry = entries.get(file)!;
+        const scale = height / 96;
+        const facing = pose === 'meditate' ? 1 : m.facing;
+        heads.push({
+          x:
+            m.x -
+            (facing === 1 ? entry.anchor.x : entry.size[0] - entry.anchor.x) *
+              scale,
+          y: m.y - entry.anchor.y * scale,
+          width: entry.size[0] * scale,
+          height: entry.size[1] * scale * 0.35,
+        });
+      }
       if (compact) {
         const initial = label(
           d.name.slice(0, 1),
@@ -660,6 +702,13 @@ export async function createMap(
       }
       scene.addChild(group);
     }
+    for (const label of labels) {
+      const result = avoidDiscipleHeads(label.box, heads);
+      label.box = result.box;
+      label.text.position.y -= result.rise;
+      label.text.alpha = result.alpha;
+    }
+    stats.labelOverlaps = labelOverlaps(labels, occluders);
     placeNames(
       namePoints.map((p) => ({
         ...p,

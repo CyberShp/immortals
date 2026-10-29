@@ -1,16 +1,16 @@
 {
   "passed": true,
-  "walkDormToHallMs": 9889,
+  "walkDormToHallMs": 9887.900000095367,
   "islandVisits": {
-    "main": 37,
-    "north": 84,
-    "west": 44,
-    "east": 71
+    "main": 36,
+    "north": 79,
+    "west": 37,
+    "east": 59
   },
   "bridgeCrossings": {
-    "north": 19,
-    "west": 70,
-    "east": 160
+    "north": 21,
+    "west": 93,
+    "east": 153
   },
   "offWalkableSamples": [],
   "islandSampleCount": 156,
@@ -20,10 +20,10 @@
     "PiP rejection fallback"
   ],
   "nativePipVerified": false,
-  "firstLoadBytes": 1399667,
+  "firstLoadBytes": 1400507,
   "firstLoadBytesByType": {
     "document": 1293,
-    "script": 824806,
+    "script": 825646,
     "stylesheet": 7200,
     "image": 566368
   },
@@ -34,8 +34,8 @@
       "type": "document"
     },
     {
-      "url": "http://localhost:4173/bundles/index-DLePSgaV.js",
-      "bytes": 494696,
+      "url": "http://localhost:4173/bundles/index-BOjk39iu.js",
+      "bytes": 495536,
       "type": "script"
     },
     {
@@ -49,13 +49,13 @@
       "type": "script"
     },
     {
-      "url": "http://localhost:4173/bundles/CanvasPool-BKClwQdf.js",
-      "bytes": 71190,
+      "url": "http://localhost:4173/bundles/Cache-fNcOcM1E.js",
+      "bytes": 1100,
       "type": "script"
     },
     {
-      "url": "http://localhost:4173/bundles/Cache-fNcOcM1E.js",
-      "bytes": 1100,
+      "url": "http://localhost:4173/bundles/CanvasPool-BKClwQdf.js",
+      "bytes": 71190,
       "type": "script"
     },
     {
@@ -67,6 +67,11 @@
       "url": "http://localhost:4173/bundles/getTextureBatchBindGroup-CIH9f4hr.js",
       "bytes": 344,
       "type": "script"
+    },
+    {
+      "url": "http://localhost:4173/bundles/index-BuuZh93T.css",
+      "bytes": 7200,
+      "type": "stylesheet"
     },
     {
       "url": "http://localhost:4173/bundles/getTexelRangeRects-HvxKj03g.js",
@@ -84,18 +89,13 @@
       "type": "script"
     },
     {
-      "url": "http://localhost:4173/bundles/index-BuuZh93T.css",
-      "bytes": 7200,
-      "type": "stylesheet"
-    },
-    {
-      "url": "http://localhost:4173/bundles/init-brtK59wz.js",
-      "bytes": 14842,
+      "url": "http://localhost:4173/bundles/browserAll-C9hNZ2hQ.js",
+      "bytes": 43507,
       "type": "script"
     },
     {
-      "url": "http://localhost:4173/bundles/browserAll-B5PWemNy.js",
-      "bytes": 43507,
+      "url": "http://localhost:4173/bundles/init-BTjMkyv-.js",
+      "bytes": 14842,
       "type": "script"
     },
     {
@@ -109,13 +109,13 @@
       "type": "image"
     },
     {
-      "url": "http://localhost:4173/assets/disciple/talk-96@2x.webp",
-      "bytes": 2528,
+      "url": "http://localhost:4173/assets/disciple/work-96@2x.webp",
+      "bytes": 2694,
       "type": "image"
     },
     {
-      "url": "http://localhost:4173/assets/disciple/work-96@2x.webp",
-      "bytes": 2694,
+      "url": "http://localhost:4173/assets/disciple/talk-96@2x.webp",
+      "bytes": 2528,
       "type": "image"
     },
     {
@@ -129,13 +129,13 @@
       "type": "image"
     },
     {
-      "url": "http://localhost:4173/assets/building/meditation-t1-map@2x.webp",
-      "bytes": 7342,
+      "url": "http://localhost:4173/assets/building/meditation-t2-map@2x.webp",
+      "bytes": 8902,
       "type": "image"
     },
     {
-      "url": "http://localhost:4173/assets/building/meditation-t2-map@2x.webp",
-      "bytes": 8902,
+      "url": "http://localhost:4173/assets/building/meditation-t1-map@2x.webp",
+      "bytes": 7342,
       "type": "image"
     },
     {
@@ -169,6 +169,11 @@
       "type": "image"
     },
     {
+      "url": "http://localhost:4173/assets/disciple/f-walk-pass-96@2x.webp",
+      "bytes": 3758,
+      "type": "image"
+    },
+    {
       "url": "http://localhost:4173/assets/disciple/f-walk-step-96@2x.webp",
       "bytes": 4126,
       "type": "image"
@@ -176,11 +181,6 @@
     {
       "url": "http://localhost:4173/assets/disciple/f-meditate-96@2x.webp",
       "bytes": 3194,
-      "type": "image"
-    },
-    {
-      "url": "http://localhost:4173/assets/disciple/f-walk-pass-96@2x.webp",
-      "bytes": 3758,
       "type": "image"
     },
     {
@@ -219,13 +219,13 @@
       "type": "image"
     },
     {
-      "url": "http://localhost:4173/assets/accessory/ribbon-48@2x.webp",
-      "bytes": 1860,
+      "url": "http://localhost:4173/assets/accessory/sword-48@2x.webp",
+      "bytes": 992,
       "type": "image"
     },
     {
-      "url": "http://localhost:4173/assets/accessory/sword-48@2x.webp",
-      "bytes": 992,
+      "url": "http://localhost:4173/assets/accessory/ribbon-48@2x.webp",
+      "bytes": 1860,
       "type": "image"
     },
     {
@@ -269,7 +269,7 @@
       "type": "image"
     }
   ],
-  "distTotalBytes": 2551468,
+  "distTotalBytes": 2552308,
   "screenshotStats": {
     "08-art-main": {
       "tick": 0,
@@ -944,33 +944,33 @@
       "disciples": [
         {
           "id": "d0",
-          "x": 1454.9152940322158,
-          "y": 970.0833100683426
+          "x": 1454.893297192977,
+          "y": 970.082937240559
         },
         {
           "id": "d1",
-          "x": 1524.906996328487,
-          "y": 999.702606283122
+          "x": 1524.885036622989,
+          "y": 999.7039371743643
         },
         {
           "id": "d2",
-          "x": 1594.0003137436763,
-          "y": 967.1426330402312
+          "x": 1593.9824116084737,
+          "y": 967.1554202796616
         },
         {
           "id": "d3",
-          "x": 1554.395992183177,
-          "y": 929.5569237843279
+          "x": 1554.3740817232406,
+          "y": 929.558906631381
         },
         {
           "id": "d4",
-          "x": 1447.3945252114497,
-          "y": 937.8312403383197
+          "x": 1447.4061851873716,
+          "y": 937.8498962997948
         },
         {
           "id": "d5",
-          "x": 1496.9154762402552,
-          "y": 972.07175877723
+          "x": 1496.893478585602,
+          "y": 972.0714376435855
         }
       ],
       "discipleScale": 0.7,
@@ -1642,8 +1642,8 @@
       "disciples": [
         {
           "id": "d0",
-          "x": 707.6091655263601,
-          "y": 897.8672775239473
+          "x": 707.3943753814463,
+          "y": 897.7515140042859
         },
         {
           "id": "d1",
@@ -1652,7 +1652,7 @@
         },
         {
           "id": "d2",
-          "x": 1708.1720000014304,
+          "x": 1708.4159999990463,
           "y": 760
         },
         {
@@ -1866,8 +1866,8 @@
       "disciples": [
         {
           "id": "d0",
-          "x": 706.084507600084,
-          "y": 897.0455463039414
+          "x": 706.1338036985588,
+          "y": 897.072114980392
         },
         {
           "id": "d1",
@@ -1876,7 +1876,7 @@
         },
         {
           "id": "d2",
-          "x": 1709.9039999985696,
+          "x": 1709.8479999995232,
           "y": 760
         },
         {
@@ -1909,7 +1909,7 @@
         "y": 700
       },
       "region": {
-        "x": 297.7380284200378,
+        "x": 297.76021166435146,
         "y": 220,
         "count": 0
       }
@@ -2095,8 +2095,8 @@
       "disciples": [
         {
           "id": "d0",
-          "x": 710.6672842600864,
-          "y": 899.5154843739426
+          "x": 710.45777583842,
+          "y": 899.4025674973303
         },
         {
           "id": "d1",
@@ -2105,7 +2105,7 @@
         },
         {
           "id": "d2",
-          "x": 1704.698,
+          "x": 1704.9359999995231,
           "y": 760
         },
         {
@@ -3299,8 +3299,8 @@
       "disciples": [
         {
           "id": "d0",
-          "x": 707.4489532040081,
-          "y": 897.7809293242382
+          "x": 707.4700801045539,
+          "y": 897.7923159005063
         },
         {
           "id": "d1",
@@ -3309,7 +3309,7 @@
         },
         {
           "id": "d2",
-          "x": 1708.3540000009536,
+          "x": 1708.33,
           "y": 760
         },
         {
@@ -3704,9 +3704,10 @@
       "discipleSprites": 6,
       "fallbacks": 0,
       "poses": {
-        "walk-pass": 2,
-        "work": 2,
-        "meditate": 2
+        "talk": 2,
+        "meditate": 1,
+        "walk-pass": 1,
+        "work": 2
       },
       "disciples": [
         {
@@ -3716,28 +3717,28 @@
         },
         {
           "id": "d1",
-          "x": 1710,
-          "y": 760
-        },
-        {
-          "id": "d2",
           "x": 2763,
           "y": 921
         },
         {
+          "id": "d2",
+          "x": 2735,
+          "y": 893
+        },
+        {
           "id": "d3",
-          "x": 1682,
+          "x": 1710,
           "y": 760
         },
         {
           "id": "d4",
-          "x": 702,
-          "y": 746
+          "x": 1682,
+          "y": 760
         },
         {
           "id": "d5",
-          "x": 2735,
-          "y": 893
+          "x": 1725,
+          "y": 375
         }
       ],
       "discipleScale": 0.7,
@@ -3879,9 +3880,10 @@
       "discipleSprites": 6,
       "fallbacks": 0,
       "poses": {
-        "walk-pass": 2,
-        "work": 2,
-        "meditate": 2
+        "talk": 2,
+        "meditate": 1,
+        "walk-pass": 1,
+        "work": 2
       },
       "disciples": [
         {
@@ -3891,28 +3893,28 @@
         },
         {
           "id": "d1",
-          "x": 1710,
-          "y": 760
-        },
-        {
-          "id": "d2",
           "x": 2763,
           "y": 921
         },
         {
+          "id": "d2",
+          "x": 2735,
+          "y": 893
+        },
+        {
           "id": "d3",
-          "x": 1682,
+          "x": 1710,
           "y": 760
         },
         {
           "id": "d4",
-          "x": 702,
-          "y": 746
+          "x": 1682,
+          "y": 760
         },
         {
           "id": "d5",
-          "x": 2735,
-          "y": 893
+          "x": 1725,
+          "y": 375
         }
       ],
       "discipleScale": 0.7,
@@ -4083,33 +4085,33 @@
       "disciples": [
         {
           "id": "d0",
-          "x": 1461.5483413518002,
-          "y": 970.1957345991831
+          "x": 1455.6851834580211,
+          "y": 970.0963590416613
         },
         {
           "id": "d1",
-          "x": 1531.5288461365662,
-          "y": 999.3012820523293
+          "x": 1525.6755860732728,
+          "y": 999.6560250864683
         },
         {
           "id": "d2",
-          "x": 1599.3986215928257,
-          "y": 963.2866988622673
+          "x": 1594.6268885184456,
+          "y": 966.6950796296818
         },
         {
           "id": "d3",
-          "x": 1561.0029922150118,
-          "y": 928.9590052294106
+          "x": 1555.1628583331872,
+          "y": 929.4875241327433
         },
         {
           "id": "d4",
-          "x": 1443.8785122427105,
-          "y": 932.2056195883368
+          "x": 1446.9864260263837,
+          "y": 937.178281642214
         },
         {
           "id": "d5",
-          "x": 1503.548769444326,
-          "y": 972.1685951743697
+          "x": 1497.6853942055625,
+          "y": 972.0829984555556
         }
       ],
       "discipleScale": 0.7,
@@ -4147,33 +4149,33 @@
       "disciples": [
         {
           "id": "d0",
-          "x": 1487.6325949589266,
-          "y": 970.6378405925242
+          "x": 1474.8744273731818,
+          "y": 970.4216004639522
         },
         {
           "id": "d1",
-          "x": 1557.5690658757287,
-          "y": 997.7230869166225
+          "x": 1544.8324358610946,
+          "y": 998.4950038872064
         },
         {
           "id": "d2",
-          "x": 1620.6273003888912,
-          "y": 948.1233568650778
+          "x": 1610.2440612982332,
+          "y": 955.5399562155477
         },
         {
           "id": "d3",
-          "x": 1586.9848156679873,
-          "y": 926.6077089893224
+          "x": 1574.2767480809687,
+          "y": 927.7577603546634
         },
         {
           "id": "d4",
-          "x": 1430.051899896413,
-          "y": 910.0830398342608
+          "x": 1436.81468636959,
+          "y": 920.9034981913439
         },
         {
           "id": "d5",
-          "x": 1529.633989984596,
-          "y": 972.5494013136438
+          "x": 1516.8753494585371,
+          "y": 972.3631437877159
         }
       ],
       "discipleScale": 0.7,
@@ -4191,7 +4193,7 @@
       }
     },
     "27-world-islands": {
-      "tick": 5,
+      "tick": 6,
       "mode": "full",
       "markers": 0,
       "markerCssDiameter": 0,
@@ -4340,7 +4342,8 @@
       "fallbacks": 0,
       "poses": {
         "meditate": 3,
-        "walk-step": 3
+        "walk-pass": 2,
+        "walk-step": 1
       },
       "disciples": [
         {
@@ -4350,23 +4353,23 @@
         },
         {
           "id": "d1",
-          "x": 2763,
-          "y": 921
+          "x": 2477.731359581826,
+          "y": 1000.2602680072425
         },
         {
           "id": "d2",
-          "x": 893.7598889164681,
-          "y": 990.2964444509337
+          "x": 1184.2756905878507,
+          "y": 980
         },
         {
           "id": "d3",
-          "x": 1834.0887919769746,
+          "x": 1595.9375127267203,
           "y": 980
         },
         {
           "id": "d4",
-          "x": 2680.955268377693,
-          "y": 882.0923189172655
+          "x": 2735,
+          "y": 893
         },
         {
           "id": "d5",
@@ -4543,18 +4546,18 @@
       "disciples": [
         {
           "id": "d0",
-          "x": 2479.0548180014944,
-          "y": 1000.5060615273756
+          "x": 2298.788846096599,
+          "y": 1018.2845862794638
         },
         {
           "id": "d1",
-          "x": 985.3981208297262,
-          "y": 1015.8977510660574
+          "x": 1105.1510568346966,
+          "y": 985.8977017743417
         },
         {
           "id": "d2",
-          "x": 1884.0185358081237,
-          "y": 912.2824138640722
+          "x": 1826.211705771836,
+          "y": 864.3389064515135
         },
         {
           "id": "d3",
@@ -4563,13 +4566,13 @@
         },
         {
           "id": "d4",
-          "x": 2140.462139429552,
-          "y": 1020.115534857388
+          "x": 2228.261980599849,
+          "y": 1027.1610599647147
         },
         {
           "id": "d5",
-          "x": 2034.0519385878758,
-          "y": 991.592615417862
+          "x": 1929.3328938035518,
+          "y": 945.3330326024301
         }
       ],
       "discipleScale": 0.7,
@@ -4579,11 +4582,11 @@
         "width": 1280,
         "height": 900
       },
-      "visibleDisciples": 4,
+      "visibleDisciples": 5,
       "camera": {
         "zoom": 1.2,
-        "x": 1879.6112294844188,
-        "y": 907.6858664470159
+        "x": 1807.0669495705113,
+        "y": 849.1301768577381
       }
     }
   },

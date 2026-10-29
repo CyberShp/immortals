@@ -1,4 +1,4 @@
-import type { Box } from './layout';
+import { intersects, type Box } from './layout';
 export type Mask = {
   width: number;
   height: number;
@@ -148,4 +148,14 @@ export function labelOverlaps(
     }
   }
   return result;
+}
+
+/** Prefer the smallest upward move; unresolved overlaps yield to disciples. */
+export function avoidDiscipleHeads(box: Box, heads: Box[]) {
+  for (let rise = 0; rise <= 20; rise++) {
+    const candidate = { ...box, y: box.y - rise };
+    if (!heads.some((head) => intersects(candidate, head)))
+      return { box: candidate, rise, alpha: 1 };
+  }
+  return { box: { ...box, y: box.y - 20 }, rise: 20, alpha: 0.35 };
 }

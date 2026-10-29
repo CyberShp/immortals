@@ -1,3 +1,4 @@
+import { avoidDiscipleHeads } from '../src/render/visibility';
 import { expect, it } from 'vitest';
 import { advance, createWorld } from '../src/sim/world';
 import { loadData } from '../src/sim/data';
@@ -85,4 +86,21 @@ it.each([
   points
     .slice(1)
     .forEach((p, i) => expect((p.x - points[i].x) * m.scale).toBeCloseTo(16));
+});
+
+it('building labels rise at most 20 and fade when any head still overlaps', () => {
+  const box = { x: 0, y: 30, width: 80, height: 30 };
+  expect(avoidDiscipleHeads(box, [])).toEqual({ box, rise: 0, alpha: 1 });
+  const head = { x: 10, y: 45, width: 20, height: 25 };
+  const raised = avoidDiscipleHeads(box, [head]);
+  expect(raised.rise).toBe(15);
+  expect(raised.alpha).toBe(1);
+  expect(intersects(raised.box, head)).toBe(false);
+  const blocked = avoidDiscipleHeads(box, [
+    head,
+    { x: 0, y: 0, width: 20, height: 50 },
+  ]);
+  expect(blocked.rise).toBe(20);
+  expect(blocked.alpha).toBe(0.35);
+  expect(avoidDiscipleHeads(box, []).alpha).toBe(1);
 });
