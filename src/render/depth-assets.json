@@ -1,0 +1,35 @@
+{
+  "generatedBy": "scripts/depth-assets.mjs",
+  "sourceDir": "/Volumes/Media/immortal-qa/art-rebuild/depth",
+  "world": {
+    "file": "rebuild/depth/world_alpha.webp",
+    "source": "public/assets/map/world.webp → scripts/depth-world-alpha.py（程序化去纸色背景，岛外透明）",
+    "bytes": 469408
+  },
+  "layers": {
+    "backdrop": {
+      "file": "rebuild/depth/backdrop_sky_far_v1.webp",
+      "source": "/Volumes/Media/immortal-qa/art-rebuild/depth/backdrop_sky_far_v1.jpg",
+      "version": 1,
+      "sha256": "971920f583142fae794aed0341b6a094b15dd07581c36b192f4f158463c0faa1",
+      "width": 1280,
+      "height": 720,
+      "topColor": 7781349,
+      "bottomColor": 13023953,
+      "bytes": 26662
+    },
+    "farIslands": null,
+    "cloudSea": null,
+    "mist": {
+      "file": "rebuild/depth/mist_screen_v1.webp",
+      "source": "/Volumes/Media/immortal-qa/art-rebuild/depth/mist_screen_v1.jpg",
+      "version": 1,
+      "sha256": "1bc0e7683dbea1288ec684bff0a1c91977e76ba17e90ac5cb9816495288d017d",
+      "width": 1280,
+      "height": 720,
+      "topColor": 0,
+      "bottomColor": 7105140,
+      "bytes": 25330
+    }
+  }
+}

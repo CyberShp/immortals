@@ -1,0 +1,33 @@
+{
+  "source": "scripts/depth-world-alpha.py",
+  "islands": [
+    {
+      "island": "main",
+      "cx": 1592,
+      "bottom": 1272,
+      "top": 720,
+      "width": 953
+    },
+    {
+      "island": "north",
+      "cx": 1586,
+      "bottom": 631,
+      "top": 196,
+      "width": 488
+    },
+    {
+      "island": "west",
+      "cx": 656,
+      "bottom": 1160,
+      "top": 718,
+      "width": 696
+    },
+    {
+      "island": "east",
+      "cx": 2647,
+      "bottom": 1136,
+      "top": 733,
+      "width": 708
+    }
+  ]
+}

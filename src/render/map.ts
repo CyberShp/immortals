@@ -43,6 +43,8 @@ import {
   buildingArt,
 } from './layout';
 import { attachCamera } from './camera';
+import { DEPTH, depthEnabled, depthFiles } from './depth-config';
+import { createDepthLayers } from './depth-layers';
 import {
   visibilityOrder,
   labelOverlaps,
@@ -206,6 +208,9 @@ export async function createMap(
   const walkSpeed = WALK_SPEED * walkScale;
   // 开发开关：封闭房屋屋顶淡出。默认关闭，关闭时渲染与改动前一致。
   const roofFade = roofFadeEnabled(location.search);
+  // 开发开关：场景纵深（天空/远峰/云海/落影/全局光/前景雾）。默认关闭，关闭时不建任何纵深对象、不加载纵深素材。
+  const depth = depthEnabled(location.search);
+  const groundFile = depth ? DEPTH.world : 'map/world.webp';
   if (params.get('debug') === '1')
     Object.assign(window, {
       __world: {
@@ -279,7 +284,7 @@ export async function createMap(
     (f) => false || f.file.includes('-map@') || f.file.includes('-96@'),
   );
   const mapEntries = [
-    { file: 'map/world.webp', size: [3200, 1400], anchor: { x: 0, y: 0 } },
+    { file: groundFile, size: [3200, 1400], anchor: { x: 0, y: 0 } },
     { file: 'map/world-mini.webp', size: [320, 140], anchor: { x: 0, y: 0 } },
     { file: gateArt.file, size: gateArt.crop.slice(2), anchor: { x: 0, y: 0 } },
   ];
@@ -292,8 +297,15 @@ export async function createMap(
         [b.exterior, b.shadow, b.interior].map((l) => ({ file: l.file })),
       )
     : [];
+  // depth 素材同样只在开关打开时加载。
+  const depthEntries = depth
+    ? depthFiles()
+        .filter((file) => file !== groundFile)
+        .map((file) => ({ file }))
+    : [];
+  const loadList = [...needed, ...mapEntries, ...roofEntries, ...depthEntries];
   await Promise.all(
-    [...needed, ...mapEntries, ...roofEntries].map(async ({ file }) => {
+    loadList.map(async ({ file }) => {
       try {
         textures.set(
           file,
@@ -314,6 +326,23 @@ export async function createMap(
   const scene = new Container();
   scene.sortableChildren = true;
   app.stage.addChild(scene);
+  const depthLayers = depth ? createDepthLayers(textures) : undefined;
+  if (depthLayers) {
+    app.stage.addChildAt(depthLayers.back, 0);
+    app.stage.addChild(depthLayers.front);
+    if (params.get('debug') === '1')
+      Object.assign(window, {
+        __depth: {
+          config: DEPTH,
+          stats: depthLayers.stats,
+          freeze: (at?: number) => {
+            depthLayers.freeze(at);
+            cancelFrame();
+            paint(performance.now());
+          },
+        },
+      });
+  }
   app.stage.eventMode = 'static';
   app.stage.hitArea = {
     contains: (x: number, y: number) => {
@@ -574,6 +603,7 @@ export async function createMap(
       bounds.width / 2 - cam.x * cam.zoom,
       bounds.height / 2 - cam.y * cam.zoom,
     );
+    depthLayers?.update(cam, bounds, now);
     const marker = {
       ...compactMetrics(bounds.width, bounds.height),
       diameter: 14,
@@ -599,7 +629,7 @@ export async function createMap(
       namedDiscipleIds: [] as string[],
       raisedForVisibility: 0,
       minHeadVisibility: 1,
-      baseLoaded: textures.has('map/world.webp'),
+      baseLoaded: textures.has(groundFile),
       buildingSprites: 0,
       discipleSprites: 0,
       fallbacks: 0,
@@ -616,7 +646,7 @@ export async function createMap(
       visibleDisciples: 0,
     };
     const ground =
-      art('map/world.webp', 1) ??
+      art(groundFile, 1) ??
       new Graphics()
         .ellipse(320, 200, 280, 130)
         .fill(0xd1dac3)
@@ -1469,6 +1499,19 @@ export async function createMap(
     for (const id of motions.keys()) if (!visible.has(id)) motions.delete(id);
     paint(now);
   }
+  // depth=1：云海/前景雾缓慢漂移。只在没有整帧重画排队时低频刷新纵深层，再 render 一次。
+  let depthTimer = 0,
+    depthLast = 0;
+  const depthWindow = host.ownerDocument?.defaultView ?? window;
+  const depthTick = (now: number) => {
+    depthTimer = depthWindow.requestAnimationFrame(depthTick);
+    if (!depthLayers || paused || frame !== 0 || !world) return;
+    if (now - depthLast < 1000 / DEPTH.animateFps) return;
+    depthLast = now;
+    depthLayers.update(camera.get(), app.canvas.getBoundingClientRect(), now);
+    app.render();
+  };
+  if (depthLayers) depthTimer = depthWindow.requestAnimationFrame(depthTick);
   const resize =
     typeof ResizeObserver === 'undefined'
       ? undefined
@@ -1532,6 +1575,7 @@ export async function createMap(
     },
     destroy: () => {
       cancelFrame();
+      if (depthTimer) depthWindow.cancelAnimationFrame(depthTimer);
       resize?.disconnect();
       camera.destroy();
       app.destroy(true, { children: true });
