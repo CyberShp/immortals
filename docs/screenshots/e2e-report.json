@@ -1,0 +1,408 @@
+{
+  "passed": true,
+  "firstLoadBytes": 1047024,
+  "firstLoadBytesByType": {
+    "document": 1293,
+    "script": 773505,
+    "stylesheet": 8954,
+    "image": 263272
+  },
+  "firstLoadResources": [
+    {
+      "url": "http://localhost:4173/?debug=1&speed=1",
+      "bytes": 1293,
+      "type": "document"
+    },
+    {
+      "url": "http://localhost:4173/bundles/index-BhaCGF-f.js",
+      "bytes": 443395,
+      "type": "script"
+    },
+    {
+      "url": "http://localhost:4173/bundles/CanvasPool-BKClwQdf.js",
+      "bytes": 71190,
+      "type": "script"
+    },
+    {
+      "url": "http://localhost:4173/bundles/canvasUtils-B0HNDru7.js",
+      "bytes": 6011,
+      "type": "script"
+    },
+    {
+      "url": "http://localhost:4173/bundles/Filter-LPvnWTqr.js",
+      "bytes": 41958,
+      "type": "script"
+    },
+    {
+      "url": "http://localhost:4173/bundles/Cache-fNcOcM1E.js",
+      "bytes": 1100,
+      "type": "script"
+    },
+    {
+      "url": "http://localhost:4173/bundles/GCManagedHash-BNMlzcZi.js",
+      "bytes": 19313,
+      "type": "script"
+    },
+    {
+      "url": "http://localhost:4173/bundles/getTextureBatchBindGroup-CIH9f4hr.js",
+      "bytes": 344,
+      "type": "script"
+    },
+    {
+      "url": "http://localhost:4173/bundles/RenderTargetSystem-DYiq1aca.js",
+      "bytes": 58807,
+      "type": "script"
+    },
+    {
+      "url": "http://localhost:4173/bundles/getTexelRangeRects-HvxKj03g.js",
+      "bytes": 11358,
+      "type": "script"
+    },
+    {
+      "url": "http://localhost:4173/bundles/GraphicsContext-_4bDhvjE.js",
+      "bytes": 61680,
+      "type": "script"
+    },
+    {
+      "url": "http://localhost:4173/bundles/index-BL1_y8Ct.css",
+      "bytes": 8954,
+      "type": "stylesheet"
+    },
+    {
+      "url": "http://localhost:4173/bundles/browserAll-C9UX59NH.js",
+      "bytes": 43507,
+      "type": "script"
+    },
+    {
+      "url": "http://localhost:4173/bundles/init-C1a5jb2l.js",
+      "bytes": 14842,
+      "type": "script"
+    },
+    {
+      "url": "http://localhost:4173/assets/disciple/walk-pass-96@2x.webp",
+      "bytes": 2296,
+      "type": "image"
+    },
+    {
+      "url": "http://localhost:4173/assets/disciple/meditate-96@2x.webp",
+      "bytes": 2174,
+      "type": "image"
+    },
+    {
+      "url": "http://localhost:4173/assets/disciple/talk-96@2x.webp",
+      "bytes": 2528,
+      "type": "image"
+    },
+    {
+      "url": "http://localhost:4173/assets/disciple/work-96@2x.webp",
+      "bytes": 2694,
+      "type": "image"
+    },
+    {
+      "url": "http://localhost:4173/assets/building/dorm-t1-map@2x.webp",
+      "bytes": 5442,
+      "type": "image"
+    },
+    {
+      "url": "http://localhost:4173/assets/building/dorm-t2-map@2x.webp",
+      "bytes": 6642,
+      "type": "image"
+    },
+    {
+      "url": "http://localhost:4173/assets/building/meditation-t2-map@2x.webp",
+      "bytes": 8902,
+      "type": "image"
+    },
+    {
+      "url": "http://localhost:4173/assets/building/meditation-t1-map@2x.webp",
+      "bytes": 7342,
+      "type": "image"
+    },
+    {
+      "url": "http://localhost:4173/assets/building/garden-t1-map@2x.webp",
+      "bytes": 15830,
+      "type": "image"
+    },
+    {
+      "url": "http://localhost:4173/assets/building/garden-t2-map@2x.webp",
+      "bytes": 18532,
+      "type": "image"
+    },
+    {
+      "url": "http://localhost:4173/assets/building/alchemy-t1-map@2x.webp",
+      "bytes": 8336,
+      "type": "image"
+    },
+    {
+      "url": "http://localhost:4173/assets/building/alchemy-t2-map@2x.webp",
+      "bytes": 9644,
+      "type": "image"
+    },
+    {
+      "url": "http://localhost:4173/assets/building/hall-t1-map@2x.webp",
+      "bytes": 19600,
+      "type": "image"
+    },
+    {
+      "url": "http://localhost:4173/assets/building/hall-t2-map@2x.webp",
+      "bytes": 24740,
+      "type": "image"
+    },
+    {
+      "url": "http://localhost:4173/assets/map/base@2x.webp",
+      "bytes": 111276,
+      "type": "image"
+    },
+    {
+      "url": "http://localhost:4173/assets/disciple/walk-step-96@2x.webp",
+      "bytes": 2648,
+      "type": "image"
+    },
+    {
+      "url": "http://localhost:4173/assets/accessory/ribbon-48@2x.webp",
+      "bytes": 1860,
+      "type": "image"
+    },
+    {
+      "url": "http://localhost:4173/assets/accessory/sword-48@2x.webp",
+      "bytes": 992,
+      "type": "image"
+    },
+    {
+      "url": "http://localhost:4173/assets/accessory/hat-48@2x.webp",
+      "bytes": 1210,
+      "type": "image"
+    },
+    {
+      "url": "http://localhost:4173/assets/accessory/hairpin-48@2x.webp",
+      "bytes": 1444,
+      "type": "image"
+    },
+    {
+      "url": "http://localhost:4173/assets/accessory/scroll-48@2x.webp",
+      "bytes": 1270,
+      "type": "image"
+    },
+    {
+      "url": "http://localhost:4173/assets/accessory/gourd-48@2x.webp",
+      "bytes": 1100,
+      "type": "image"
+    },
+    {
+      "url": "http://localhost:4173/assets/accessory/basket-48@2x.webp",
+      "bytes": 1884,
+      "type": "image"
+    },
+    {
+      "url": "http://localhost:4173/assets/accessory/beads-48@2x.webp",
+      "bytes": 1654,
+      "type": "image"
+    },
+    {
+      "url": "http://localhost:4173/assets/accessory/fan-48@2x.webp",
+      "bytes": 1528,
+      "type": "image"
+    },
+    {
+      "url": "http://localhost:4173/assets/accessory/coins-48@2x.webp",
+      "bytes": 1704,
+      "type": "image"
+    }
+  ],
+  "distTotalBytes": 1576943,
+  "screenshotStats": {
+    "10-art-disciples-48": {
+      "tick": 60,
+      "baseLoaded": true,
+      "buildingSprites": 4,
+      "discipleSprites": 6,
+      "fallbacks": 0,
+      "poses": {
+        "walk-step": 2,
+        "work": 2,
+        "talk": 1,
+        "meditate": 1
+      },
+      "disciples": [
+        {
+          "x": 447,
+          "y": 148
+        },
+        {
+          "x": 271,
+          "y": 185
+        },
+        {
+          "x": 385,
+          "y": 66
+        },
+        {
+          "x": 299,
+          "y": 185
+        },
+        {
+          "x": 195,
+          "y": 90
+        },
+        {
+          "x": 215,
+          "y": 300
+        }
+      ]
+    },
+    "11-art-zoom": {
+      "tick": 60,
+      "baseLoaded": true,
+      "buildingSprites": 4,
+      "discipleSprites": 6,
+      "fallbacks": 0,
+      "poses": {
+        "walk-step": 2,
+        "work": 2,
+        "talk": 1,
+        "meditate": 1
+      },
+      "disciples": [
+        {
+          "x": 443.0923333363533,
+          "y": 143.78383333659173
+        },
+        {
+          "x": 271,
+          "y": 185
+        },
+        {
+          "x": 385.719833332777,
+          "y": 66
+        },
+        {
+          "x": 299,
+          "y": 185
+        },
+        {
+          "x": 195,
+          "y": 90
+        },
+        {
+          "x": 215,
+          "y": 300
+        }
+      ],
+      "region": {
+        "x": 243.0923333363533,
+        "y": 95.78383333659173,
+        "count": 3
+      }
+    },
+    "12-art-disciples-24": {
+      "tick": 60,
+      "baseLoaded": true,
+      "buildingSprites": 4,
+      "discipleSprites": 6,
+      "fallbacks": 0,
+      "poses": {
+        "walk-step": 2,
+        "work": 2,
+        "talk": 1,
+        "meditate": 1
+      },
+      "disciples": [
+        {
+          "x": 447,
+          "y": 148
+        },
+        {
+          "x": 271,
+          "y": 185
+        },
+        {
+          "x": 385,
+          "y": 66
+        },
+        {
+          "x": 299,
+          "y": 185
+        },
+        {
+          "x": 195,
+          "y": 90
+        },
+        {
+          "x": 215,
+          "y": 300
+        }
+      ]
+    }
+  },
+  "mapStats": {
+    "baseLoaded": true,
+    "buildingSprites": 2,
+    "discipleSprites": 6,
+    "fallbacks": 0,
+    "poses": {
+      "meditate": 6
+    },
+    "disciples": [
+      {
+        "x": 173,
+        "y": 300
+      },
+      {
+        "x": 201,
+        "y": 300
+      },
+      {
+        "x": 229,
+        "y": 300
+      },
+      {
+        "x": 257,
+        "y": 300
+      },
+      {
+        "x": 201,
+        "y": 280
+      },
+      {
+        "x": 229,
+        "y": 280
+      }
+    ]
+  },
+  "fallbackStats": {
+    "baseLoaded": false,
+    "buildingSprites": 0,
+    "discipleSprites": 0,
+    "fallbacks": 9,
+    "poses": {
+      "meditate": 6
+    },
+    "disciples": [
+      {
+        "x": 173,
+        "y": 300
+      },
+      {
+        "x": 201,
+        "y": 300
+      },
+      {
+        "x": 229,
+        "y": 300
+      },
+      {
+        "x": 257,
+        "y": 300
+      },
+      {
+        "x": 201,
+        "y": 280
+      },
+      {
+        "x": 229,
+        "y": 280
+      }
+    ]
+  },
+  "errors": []
+}

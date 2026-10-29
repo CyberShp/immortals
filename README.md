@@ -148,3 +148,9 @@ VITE_BASE=/xianfu-web/ npm run build
 ```
 
 需用 HTTP 静态服务器访问构建结果；不承诺直接双击 `file://` 可运行。
+
+## Iris 素材与降级
+
+`npm run assets` 从只读素材源导出到 `public/assets/`；生成图像与 manifest 一并纳入版本管理。地图采用 640×360 逻辑坐标，普通桌面布局保持 1:1；图片缺失时回退色块/圆点，特质配饰回退 ◇，簿册操作继续可用。构建 JS/CSS 使用 `bundles/`，美术使用 `assets/`，URL 兼容 Vite base `./`。
+
+详见 [美术接入说明](docs/ART-INTEGRATION.md)。外部运行 `node scripts/e2e.mjs http://127.0.0.1:4173` 可生成美术截图、首屏体积报告并验证全素材 404 降级；本轮未在沙箱启动浏览器。

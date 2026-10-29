@@ -16,7 +16,7 @@ flowchart LR
   Conditions --> Queue[优先级与保底队列]
   Queue --> Registry[效果类型注册表]
   Registry --> Core
-  Core --> UI[DOM 簿册与 Pixi 占位图]
+  Core --> UI[DOM 簿册与 Pixi 素材地图]
   Core --> Save[IndexedDB 主档与备份]
   Clock[前台固定时钟或离线批次] --> Core
   Core --> CLI[种子回归与统计]
@@ -145,3 +145,11 @@ v1.1 浏览器验证（2026-10-29 08:29 UTC+8，执行者在沙箱外用系统 C
 ADV_01/02 的 A 均配置两字段。对于 `allowAway` 且已离山的候选，故事线排除不重验：这是接续既有旅程，回山 A 仍由 `returned` 条件找到原离山者。即使途中新增 chain binding 也不会卡住回山；若该人占着其他未结事件，按现有同人唯一等待，释放后仍受 6 步间隔与既有优先级调度。结算回山效果才清除 awayUntil。主要角色排除改动当时未调整优先级、间隔、超时或成本；当前超时与 C3 成本已按上述拍板更新为 10/10。
 
 旧存档缺少 storyLines 时 schema 默认空数组，已有 cast 继续有效，不补写历史身份；本次统计基于新版开局。浏览器验收由指挥官执行。
+
+## 美术资源与降级
+
+`npm run assets` 只读 Iris 源，sharp 导出原图和衍生图到 `public/assets/`，manifest 记录像素尺寸、锚点、相对源比例和总量。`src/render/layout.ts` 负责地块、显示位置、建筑/配饰映射与纯姿势选择；显示层不改 sim 或数据数值。
+
+`map.ts` 用 Pixi Assets 加载底图/建筑/弟子，按脚底 y 排序。加载失败逐项回退；仅补间期间调度 rAF，暂停时取消并落到终点。DOM 特质配饰失败回退 ◇。调试接口 `__mapReady` / `__mapStats` 用于外部 E2E，URL `discipleHeight` 用于 24px 可读性比较。Vite `bundles/` 存放构建代码，`assets/` 为美术，使美术 404 测试不拦截程序本身。
+
+[ART-INTEGRATION.md](ART-INTEGRATION.md) 记录缩放、比例冲突、仍占位项和验证边界。视觉质量、首屏实际网络量、真实浏览器交互由外部 E2E 验证，构建和单测不替代该验收。

@@ -1,3 +1,4 @@
+import { accessories } from '../render/layout';
 import { formatAge } from '../display/format';
 import { formatResource, formatLog } from '../display/format';
 import { CONFIG as C } from '../sim/config';
@@ -59,7 +60,7 @@ export async function start() {
   const loop = new FixedLoop();
   let previous = performance.now();
   const root = document.querySelector<HTMLDivElement>('#app')!;
-  root.innerHTML = `<div id="game"><header><div class="seal">仙</div><div><p class="eyebrow">宗门起居录 · 数据与事件</p><h1>模拟仙府</h1></div><span id="season"></span><nav><button id="small">小窗</button><button id="settings-open">设置</button><button id="save-open">存档</button></nav></header><section id="resources" class="resources" aria-label="宗门资源"></section><main><section class="disciples"><div class="section-head"><h2>山中门人</h2><span>各循其道，自有生息</span></div><div id="disciples"></div></section><aside><section class="map-panel"><div class="section-head"><h2>宗门山</h2><span>占位图</span></div><div id="map"></div><p class="caption">一脉青山，半卷人间。</p></section><section class="buildings"><div class="section-head"><h2>山场营造</h2><span id="reputation"></span></div><div id="buildings"></div></section><section class="legacy"><h2>传承录</h2><div id="legacy"></div></section><section class="story"><button id="story-open">本局故事回顾</button></section><section class="journal"><div class="section-head"><h2>山门纪事</h2><span>近事百条</span></div><div id="events"></div><button id="compact-event" class="event-hint" hidden aria-haspopup="dialog"></button><ol id="logs"></ol></section></aside></main><footer>十秒一步 · 三十步一季 <span>按反引号隐藏 · 定期导出存档，留一份山门底册</span></footer></div><div id="cover" hidden><header><h1>季度工作台账</h1><span>内部资料 · 工作底稿</span></header><table><thead><tr><th>事项</th><th>负责人</th><th>进度</th><th>备注</th></tr></thead><tbody><tr><td>资料整理</td><td>项目组</td><td>已完成</td><td>归档备查</td></tr><tr><td>季度复核</td><td>综合组</td><td>进行中</td><td>等待反馈</td></tr></tbody></table></div><p id="notice" role="status"></p><dialog id="modal"><button id="close" class="close" aria-label="关闭">×</button><div id="modal-body"></div></dialog>`;
+  root.innerHTML = `<div id="game"><header><div class="seal">仙</div><div><p class="eyebrow">宗门起居录 · 数据与事件</p><h1>模拟仙府</h1></div><span id="season"></span><nav><button id="small">小窗</button><button id="settings-open">设置</button><button id="save-open">存档</button></nav></header><section id="resources" class="resources" aria-label="宗门资源"></section><main><section class="disciples"><div class="section-head"><h2>山中门人</h2><span>各循其道，自有生息</span></div><div id="disciples"></div></section><aside><section class="map-panel"><div class="section-head"><h2>宗门山</h2><span>Iris 第一批素材</span></div><div id="map"></div><p class="caption">一脉青山，半卷人间。</p></section><section class="buildings"><div class="section-head"><h2>山场营造</h2><span id="reputation"></span></div><div id="buildings"></div></section><section class="legacy"><h2>传承录</h2><div id="legacy"></div></section><section class="story"><button id="story-open">本局故事回顾</button></section><section class="journal"><div class="section-head"><h2>山门纪事</h2><span>近事百条</span></div><div id="events"></div><button id="compact-event" class="event-hint" hidden aria-haspopup="dialog"></button><ol id="logs"></ol></section></aside></main><footer>十秒一步 · 三十步一季 <span>按反引号隐藏 · 定期导出存档，留一份山门底册</span></footer></div><div id="cover" hidden><header><h1>季度工作台账</h1><span>内部资料 · 工作底稿</span></header><table><thead><tr><th>事项</th><th>负责人</th><th>进度</th><th>备注</th></tr></thead><tbody><tr><td>资料整理</td><td>项目组</td><td>已完成</td><td>归档备查</td></tr><tr><td>季度复核</td><td>综合组</td><td>进行中</td><td>等待反馈</td></tr></tbody></table></div><p id="notice" role="status"></p><dialog id="modal"><button id="close" class="close" aria-label="关闭">×</button><div id="modal-body"></div></dialog>`;
   const el = <T extends HTMLElement = HTMLElement>(id: string) =>
     document.getElementById(id) as T;
   const dialog = el<HTMLDialogElement>('modal');
@@ -128,6 +129,11 @@ export async function start() {
       showOffline();
     });
   }
+  function traitBadge(id: string) {
+    const name = traitDefinitions.find((t) => t.id === id)?.accessory ?? id;
+    const art = accessories[name];
+    return `<span title="${escape(name)}">${art ? `<img class="accessory" src="${import.meta.env.BASE_URL}assets/accessory/${art}-48@2x.webp" alt="${escape(name)}" width="24" height="24">` : '◇'} ${escape(traitName(id))}</span>`;
+  }
   function render() {
     el('season').textContent =
       `第 ${world.round + 1} 季 · ${world.season} / ${(world.tick % C.stepsPerRound) + 1} 步${settings.speed > 1 ? ` · 调试 ×${settings.speed}` : ''}`;
@@ -140,7 +146,7 @@ export async function start() {
     el('disciples').innerHTML = world.disciples
       .map(
         (d) =>
-          `<article class="disciple"><div class="portrait" style="border:2px solid ${C.elements[d.root.elements[0]].color}">${escape(d.name.slice(-1))}<small>占位</small></div><div class="disciple-body"><div class="name-line"><h3>${escape(d.name)}</h3><span>${formatAge(d.ageSeasons)} · ${d.stage} · ${d.realm.major}${d.realm.layer}层</span></div><p class="detail">${d.root.grade} · ${d.root.elements.join('')} <span>${d.stage === '坐化' ? '已坐化' : d.state.behavior + ' · ' + d.state.location}</span></p><div class="needs">${(['energy', 'mood', 'drive'] as const).map((k, i) => `<label>${['精力', '心境', '道心'][i]} <meter min="0" max="100" value="${d.needs[k]}">${fmt(d.needs[k])}</meter></label>`).join('')}</div><div class="traits">${d.traits.map((t) => `<span title="占位配饰：${escape(traitDefinitions.find((x) => x.id === t)?.accessory ?? t)}">◇ ${escape(traitName(t))}</span>`).join('')}<small>修为 ${fmt(d.realm.xp)} · 余寿 ${d.remainingSeasons} 季</small></div><label class="policy">方针 <select data-policy="${d.id}" aria-label="${escape(d.name)}的方针">${['均衡', '专修', '勤工'].map((p) => `<option ${p === d.policy ? 'selected' : ''}>${p}</option>`).join('')}</select></label><p class="relations">${Object.entries(
+          `<article class="disciple"><div class="portrait" style="border:2px solid ${C.elements[d.root.elements[0]].color}">${escape(d.name.slice(-1))}<small>占位</small></div><div class="disciple-body"><div class="name-line"><h3>${escape(d.name)}</h3><span>${formatAge(d.ageSeasons)} · ${d.stage} · ${d.realm.major}${d.realm.layer}层</span></div><p class="detail">${d.root.grade} · ${d.root.elements.join('')} <span>${d.stage === '坐化' ? '已坐化' : d.state.behavior + ' · ' + d.state.location}</span></p><div class="needs">${(['energy', 'mood', 'drive'] as const).map((k, i) => `<label>${['精力', '心境', '道心'][i]} <meter min="0" max="100" value="${d.needs[k]}">${fmt(d.needs[k])}</meter></label>`).join('')}</div><div class="traits">${d.traits.map((t) => traitBadge(t)).join('')}<small>修为 ${fmt(d.realm.xp)} · 余寿 ${d.remainingSeasons} 季</small></div><label class="policy">方针 <select data-policy="${d.id}" aria-label="${escape(d.name)}的方针">${['均衡', '专修', '勤工'].map((p) => `<option ${p === d.policy ? 'selected' : ''}>${p}</option>`).join('')}</select></label><p class="relations">${Object.entries(
             d.relations,
           )
             .map(
@@ -150,6 +156,13 @@ export async function start() {
             .join(' / ')}</p></div></article>`,
       )
       .join('');
+    el('disciples')
+      .querySelectorAll<HTMLImageElement>('img.accessory')
+      .forEach((img) => {
+        const fallback = () => img.replaceWith(document.createTextNode('◇'));
+        img.onerror = fallback;
+        if (img.complete && !img.naturalWidth) fallback();
+      });
     el('reputation').textContent =
       `声望 ${formatResource(world.resources.reputation, 'reputation')}`;
     el('buildings').innerHTML = buildingDefinitions
@@ -315,6 +328,8 @@ export async function start() {
   const active = () =>
     !document.hidden || !!(child && !child.closed && !child.document.hidden);
   function visibility() {
+    if (document.hidden) map?.pause();
+    else if (!hidden) map?.draw(world);
     const next = !active();
     if (next === background) return;
     background = next;

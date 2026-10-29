@@ -1,12 +1,56 @@
+import sharp from 'sharp';
 import { chromium } from 'playwright-core';
-import { mkdir, readFile, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, writeFile, readdir, stat } from 'node:fs/promises';
 import assert from 'node:assert/strict';
 const base = process.argv.find((a) => /^https?:/.test(a));
 if (!base)
   throw new Error('用法：node scripts/e2e.mjs http://localhost:4173 [--soak]');
 const soak = process.argv.includes('--soak');
 await mkdir('docs/screenshots', { recursive: true });
+async function directoryBytes(path) {
+  const entries = await readdir(path, { withFileTypes: true });
+  const sizes = await Promise.all(
+    entries.map((entry) => {
+      const child = `${path}/${entry.name}`;
+      return entry.isDirectory()
+        ? directoryBytes(child)
+        : stat(child).then((s) => s.size);
+    }),
+  );
+  return sizes.reduce((a, b) => a + b, 0);
+}
+const distTotalBytes = await directoryBytes('dist');
 const errors = [];
+const screenshotStats = {};
+async function prepareArt(page) {
+  await page.evaluate(() => {
+    window.__xianfu.reset();
+    window.__xianfu.advance(59);
+  });
+  await page.waitForFunction(() => {
+    const p = window.__mapStats.poses;
+    return p.meditate > 0 && p.work > 0 && p.talk > 0;
+  });
+  // Step 60 preserves meditation/work/socializing while one disciple changes location.
+  await page.evaluate(() => window.__xianfu.advance(1));
+  await page.waitForFunction(() => {
+    const p = window.__mapStats.poses;
+    return (
+      p.meditate > 0 &&
+      p.work > 0 &&
+      p.talk > 0 &&
+      (p['walk-step'] || p['walk-pass'])
+    );
+  });
+}
+async function recordArt(page, name) {
+  const sample = await page.evaluate(() => ({
+    tick: window.__xianfu.world().tick,
+    ...window.__mapStats,
+  }));
+  screenshotStats[name] = sample;
+  return sample;
+}
 let browser;
 try {
   browser = await chromium.launch({
@@ -20,6 +64,23 @@ try {
     acceptDownloads: true,
   });
   const page = await context.newPage();
+  const byteReads = [];
+  const firstLoadBytesByType = {};
+  const firstLoadResources = [];
+  const countResponse = (response) => {
+    if (!/^https?:/.test(response.url())) return;
+    byteReads.push(
+      (async () => {
+        const bytes = (await response.body()).length;
+        const type = /\.(webp|png)(?:\?|$)/.test(response.url())
+          ? 'image'
+          : response.request().resourceType();
+        firstLoadResources.push({ url: response.url(), bytes, type });
+        firstLoadBytesByType[type] = (firstLoadBytesByType[type] ?? 0) + bytes;
+      })(),
+    );
+  };
+  page.on('response', countResponse);
   page.on('pageerror', (e) => errors.push(e.message));
   page.on('console', (m) => {
     if (m.type() === 'error') errors.push(m.text());
@@ -28,7 +89,52 @@ try {
   url.searchParams.set('debug', '1');
   url.searchParams.set('speed', soak ? '100' : '1');
   await page.goto(url.href);
-  await page.waitForFunction(() => !!window.__xianfu);
+  await page.waitForFunction(() => !!window.__xianfu && window.__mapReady);
+  await page.waitForLoadState('networkidle');
+  page.off('response', countResponse);
+  await Promise.all(byteReads);
+  // Playwright response bodies can be empty for fetch()-loaded images, so the
+  // byte budget uses the browser's own Resource Timing sizes instead.
+  const timing = await page.evaluate(() =>
+    [
+      ...performance.getEntriesByType('navigation'),
+      ...performance.getEntriesByType('resource'),
+    ].map((e) => ({
+      url: e.name,
+      bytes: e.decodedBodySize,
+      initiator: e.initiatorType,
+    })),
+  );
+  for (const k of Object.keys(firstLoadBytesByType))
+    delete firstLoadBytesByType[k];
+  firstLoadResources.length = 0;
+  for (const r of timing) {
+    if (!/^https?:/.test(r.url)) continue;
+    const type = /\.(webp|png)(?:\?|$)/.test(r.url)
+      ? 'image'
+      : /\.js(?:\?|$)/.test(r.url)
+        ? 'script'
+        : /\.css(?:\?|$)/.test(r.url)
+          ? 'stylesheet'
+          : r.initiator === 'navigation'
+            ? 'document'
+            : r.initiator;
+    firstLoadResources.push({ url: r.url, bytes: r.bytes, type });
+    firstLoadBytesByType[type] = (firstLoadBytesByType[type] ?? 0) + r.bytes;
+  }
+  const firstLoadBytes = Object.values(firstLoadBytesByType).reduce(
+    (a, b) => a + b,
+    0,
+  );
+  const baseResource = firstLoadResources.find((r) =>
+    r.url.endsWith('/assets/map/base@2x.webp'),
+  );
+  assert.ok(baseResource, 'Base map missing from first-load accounting');
+  assert.equal(
+    baseResource.bytes,
+    (await stat('dist/assets/map/base@2x.webp')).size,
+  );
+  assert.ok(firstLoadBytes < 5_000_000, `First load: ${firstLoadBytes} bytes`);
   const shot = (name, fullPage = true) =>
     page.screenshot({ path: `docs/screenshots/${name}.png`, fullPage });
   if (soak) {
@@ -67,6 +173,104 @@ try {
     );
     console.log(report);
   } else {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    const canvas = page.locator('#map canvas');
+    const canvasBox = await canvas.boundingBox();
+    assert.ok(canvasBox);
+    assert.equal(canvasBox.width, 640);
+    const stats = await page.evaluate(() => window.__mapStats);
+    assert.equal(stats.baseLoaded, true);
+    assert.ok(stats.buildingSprites >= 1);
+    assert.ok(stats.discipleSprites >= 1);
+    assert.equal(stats.fallbacks, 0);
+    await shot('08-art-main');
+    await page.setViewportSize({ width: 480, height: 320 });
+    // Let the canvas resize and repaint; an immediate capture shows stale tiles.
+    await page.waitForTimeout(800);
+    await shot('09-art-compact', false);
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await prepareArt(page);
+    await recordArt(page, '10-art-disciples-48');
+    await page.screenshot({
+      path: 'docs/screenshots/10-art-disciples-48.png',
+      clip: canvasBox,
+    });
+    await prepareArt(page);
+    const zoomStats = await recordArt(page, '11-art-zoom');
+    // Scan all possible crop edges to maximize the number of visible disciples.
+    let region = { x: 0, y: 0, count: -1 };
+    const points = zoomStats.disciples;
+    for (const point of points) {
+      for (const dx of [20, 200])
+        for (const dy of [48, 140]) {
+          const x = Math.max(0, Math.min(420, point.x - dx));
+          const y = Math.max(0, Math.min(220, point.y - dy));
+          const count = points.filter(
+            (p) =>
+              p.x >= x && p.x <= x + 220 && p.y - 48 >= y && p.y <= y + 140,
+          ).length;
+          if (count > region.count) region = { x, y, count };
+        }
+    }
+    screenshotStats['11-art-zoom'].region = region;
+    const zoom = await page.screenshot({
+      clip: {
+        x: canvasBox.x + region.x,
+        y: canvasBox.y + region.y,
+        width: 220,
+        height: 140,
+      },
+    });
+    await sharp(zoom)
+      .resize(660, 420, { kernel: 'nearest' })
+      .png()
+      .toFile('docs/screenshots/11-art-zoom.png');
+    await page.evaluate(() => window.__xianfu.reset());
+    await page.setViewportSize({ width: 1280, height: 900 });
+    assert.equal((await canvas.boundingBox()).width, 640);
+    const artContext = await browser.newContext({
+      viewport: { width: 1440, height: 900 },
+    });
+    const smallArt = await artContext.newPage();
+    smallArt.on('pageerror', (e) => errors.push(e.message));
+    const smallUrl = new URL(url);
+    smallUrl.searchParams.set('discipleHeight', '24');
+    await smallArt.goto(smallUrl.href);
+    await smallArt.waitForFunction(() => window.__mapReady);
+    await prepareArt(smallArt);
+    await recordArt(smallArt, '12-art-disciples-24');
+    await smallArt.screenshot({
+      path: 'docs/screenshots/12-art-disciples-24.png',
+      clip: await smallArt.locator('#map canvas').boundingBox(),
+    });
+    await artContext.close();
+    const fallbackContext = await browser.newContext({
+      viewport: { width: 1440, height: 900 },
+    });
+    const fallbackPage = await fallbackContext.newPage();
+    const fallbackErrors = [];
+    fallbackPage.on('pageerror', (e) => fallbackErrors.push(e.message));
+    await fallbackPage.route('**/assets/**', (route) =>
+      route.fulfill({ status: 404, body: 'Missing art' }),
+    );
+    await fallbackPage.goto(url.href);
+    await fallbackPage.waitForFunction(
+      () => window.__mapReady && !!window.__xianfu,
+    );
+    const fallbackStats = await fallbackPage.evaluate(() => window.__mapStats);
+    assert.ok(fallbackStats.fallbacks > 0);
+    assert.equal(fallbackStats.baseLoaded, false);
+    await fallbackPage.locator('#save-open').click();
+    await fallbackPage.locator('#save-text').waitFor();
+    await fallbackPage.locator('#close').click();
+    await fallbackPage.evaluate(() => {
+      window.__xianfu.reset();
+      window.__xianfu.advance(12);
+    });
+    await fallbackPage.locator('#events [data-event]').first().click();
+    await fallbackPage.locator('[data-choice]').first().waitFor();
+    assert.deepEqual(fallbackErrors, []);
+    await fallbackContext.close();
     const elder = page
       .locator('.disciple')
       .filter({ has: page.getByRole('heading', { name: '林守拙' }) });
@@ -138,6 +342,7 @@ try {
     assert.ok(
       box.y >= resources.y + resources.height && box.y + box.height <= 320,
     );
+    await page.waitForTimeout(800);
     await shot('06-compact', false);
     await hint.click();
     await page.locator('[data-choice]').first().waitFor();
@@ -151,7 +356,25 @@ try {
       false,
     );
     assert.deepEqual(errors, []);
-    console.log('六项截图与交互断言通过。');
+    await writeFile(
+      'docs/screenshots/e2e-report.json',
+      JSON.stringify(
+        {
+          passed: true,
+          firstLoadBytes,
+          firstLoadBytesByType,
+          firstLoadResources,
+          distTotalBytes,
+          screenshotStats,
+          mapStats: stats,
+          fallbackStats,
+          errors,
+        },
+        null,
+        2,
+      ) + '\n',
+    );
+    console.log('原六项交互、美术截图、首屏体积及 404 降级断言通过。');
   }
 } catch (error) {
   if (soak)
