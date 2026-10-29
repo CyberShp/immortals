@@ -426,6 +426,7 @@ it('冷却从结算按事件与主角计算；无主角按宗门，行为改变�
     adv = structuredClone(def('EV_ADV_01'));
   adv.trigger.chance = 1;
   // 隔离触发条件，只测正式调度中的冷却键与边界。
+  delete adv.trigger.earliestRound;
   adv.trigger.conditions = [];
   adv.roles = { A: { conditions: [] } };
   defs.splice(0, defs.length, adv);

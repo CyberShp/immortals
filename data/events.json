@@ -473,7 +473,8 @@
         }
       ],
       "chance": 0.03,
-      "cadence": "step"
+      "cadence": "step",
+      "earliestRound": 3
     },
     "hint": "{A}请命下山历练",
     "text": "{A}背好行囊，在山门前等你点头。",
@@ -528,7 +529,8 @@
     "trigger": {
       "conditions": [],
       "chance": 1,
-      "cadence": "step"
+      "cadence": "step",
+      "earliestRound": 4
     },
     "hint": "{A}风尘仆仆回山了",
     "text": "{A}推开山门，衣角破了，眼睛很亮。",

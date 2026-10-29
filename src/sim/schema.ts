@@ -230,6 +230,7 @@ export const eventDefinitionSchema = z
       conditions: z.array(conditionSchema),
       chance: z.number().min(0).max(1),
       cadence: z.enum(['step', 'round']),
+      earliestRound: z.number().int().positive().optional(),
     }),
     hint: prose(16),
     text: prose(40),

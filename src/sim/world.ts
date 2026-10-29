@@ -408,6 +408,10 @@ function schedule(w: World, ctx: StepContext) {
   const candidates: { def: EventDefinition; roles: Roles; pity: boolean }[] =
     [];
   for (const def of definitions) {
+    // tick already counts this step; round N begins at (N - 1) * 30 + 1.
+    // Gate before role selection too: it consumes the shared RNG.
+    if (w.tick <= ((def.trigger.earliestRound ?? 1) - 1) * C.stepsPerRound)
+      continue;
     if (
       ctx.offline &&
       def.chain &&

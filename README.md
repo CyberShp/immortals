@@ -68,6 +68,8 @@ SOAK_MIN=10 SOAK_SPEED=10 node scripts/soak-long.mjs http://localhost:4173/
 
 事件采用 `{id, kind, chain, step, roles, trigger, hint, text, options, priority, cooldown, pity, branches}`；`options` 含 label/effects/default/cost/conditions，可选 `costBalance` 引用数值配置。例如 `{"op":"resource","key":"reputation","value":25}` 表示声望至少 25；`{"op":"any","conditions":[...]}` 表示任一条件。效果按 type 进入注册表，普通数值写 JSON，特殊规则才加代码。
 
+`trigger` 包含 `conditions`、`chance`（0～1）、`cadence`（`step` / `round`），可选 `earliestRound`（正整数，省略等同 1）。最早轮次按统计口径 ⌈tick/30⌉ 判定：第 N 轮首步为 tick = (N−1)×30+1。未到门槛时在角色抽取和概率掷骰之前跳过，不消耗随机数、不登记每轮首次合法掷骰，保底也不能绕过门槛。EV_ADV_01 为 3（最早 tick 61），每步概率仍为 3%；EV_ADV_02 为 4（最早 tick 91），仍需离山满 30 步。4.3 表 ±1 轮仅约束推演表里程碑。
+
 弟子以季存年龄、总寿元和 remainingSeasons；年龄显示向下取整为岁，另显示余寿季数。新局长老为 714/720/6 季；延寿只加总寿元与余寿。招新十二姓名抽签不放回，用尽重置；签池使用记录在世界 flags 中持久化。模拟函数原地修改世界，同 seed 同操作可逐项复现；所有随机调用计数进入存档。自动掌门默认开启，可在设置关闭；方针只指方向，弟子自行选择动作。建筑和事件选项先验条件/成本，不允许负资源。
 
 ## 待拍板参数的一处切换
