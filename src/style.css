@@ -100,6 +100,8 @@ h3 {
   gap: 4px;
 }
 #resources strong {
+  font-size: 14px;
+  color: #2b2b25;
   font-weight: 500;
 }
 #resources small {
@@ -335,7 +337,8 @@ meter {
 }
 .roster-row {
   display: grid;
-  grid-template-columns: 32px 80px 70px 55px 135px 60px 65px 52px;
+  grid-template-columns: 40px 80px 80px 65px 135px 110px 65px 52px 80px;
+  min-width: 871px;
   align-items: center;
   gap: 8px;
   border-top: 1px solid var(--line);
@@ -490,17 +493,12 @@ th {
   dialog {
     padding: 28px 12px 12px;
   }
-  .roster-row {
-    grid-template-columns: 24px 60px 55px 44px 115px;
-    gap: 5px;
-  }
+
   .avatar {
     width: 24px;
     height: 24px;
   }
-  .roster-row > span:nth-of-type(4) {
-    grid-column: 2;
-  }
+
   .roster-filters {
     gap: 8px;
   }
@@ -584,8 +582,18 @@ th {
   align-items: center;
   gap: 8px;
 }
-@media (max-width: 600px) {
-  .roster-row {
-    grid-template-columns: 32px 60px 55px 44px 115px;
-  }
+
+.roster-row button,
+.roster-status {
+  white-space: nowrap;
+}
+.roster-status {
+  display: grid;
+  grid-template-columns: 32px 1fr;
+  align-items: center;
+}
+.roster-events {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }

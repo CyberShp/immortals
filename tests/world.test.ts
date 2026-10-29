@@ -13,8 +13,12 @@ import {
   destination,
   discipleDestinations,
   FOOT_SPACING,
+  STINT,
+  stintOf,
+  islandOf,
+  routeSpeed,
 } from '../src/render/world';
-import { createWorld, step } from '../src/sim/world';
+import { createWorld, step, advance } from '../src/sim/world';
 import { loadData } from '../src/sim/data';
 import buildings from '../docs/world-buildings.json';
 const points = [
@@ -207,5 +211,66 @@ it('six occupants at any shared building front remain walkable and 28 units apar
           28 - 1e-9,
         );
     });
+  }
+});
+
+it('600 simulation ticks choose every island at least eight percent of destinations', () => {
+  const w = createWorld(42, loadData());
+  const counts: Record<string, number> = {};
+  let total = 0;
+  for (let tick = 0; tick <= 600; tick++) {
+    for (const p of discipleDestinations(w.disciples, w.tick)) {
+      const island = islandOf(p);
+      expect(island).not.toBeNull();
+      counts[island!] = (counts[island!] ?? 0) + 1;
+      total++;
+    }
+    advance(w, 1);
+  }
+  console.log({ islandDestinations: counts, total });
+  for (const island of worldMap.islands)
+    expect(counts[island.id] / total).toBeGreaterThanOrEqual(0.08);
+});
+it('idle destination is stable within each phased stint and work goes to its front', () => {
+  const w = createWorld(42, loadData());
+  for (const d of w.disciples) {
+    d.state.behavior = '社交';
+    d.state.location = '空地';
+    for (let tick = 2; tick <= 600; tick++)
+      if (stintOf(d.id, tick) === stintOf(d.id, tick - 1))
+        expect(destination(d, tick)).toEqual(destination(d, tick - 1));
+    d.state.behavior = '做工';
+    d.state.location = '药圃';
+    expect(destination(d, 60)).toEqual(
+      worldMap.slots.find((s) => s.id === 'B_GARDEN')!.front,
+    );
+    d.state.location = '采石点';
+    expect(islandOf(destination(d, 60))).toBe('main');
+  }
+});
+it('longest landing route fits seventy percent of a stint including spaced destinations', () => {
+  const anchors = [...points];
+  // Include six-person crowd offsets, not just the unoccupied map anchors.
+  const w = createWorld(42, loadData());
+  for (const tick of [0, 60, 600]) {
+    advance(w, tick - w.tick);
+    anchors.push(...discipleDestinations(w.disciples, w.tick));
+  }
+  let longest = 0,
+    seconds = 0;
+  for (let i = 0; i < anchors.length; i++)
+    for (let j = i + 1; j < anchors.length; j++) {
+      const path = findPath(anchors[i], anchors[j]);
+      expect(path.length).toBeGreaterThan(0);
+      longest = Math.max(longest, pathLength(path));
+      seconds = Math.max(seconds, pathLength(path) / routeSpeed(path));
+    }
+  console.log({ longestPath: longest, maximumSeconds: seconds });
+  expect(seconds).toBeLessThanOrEqual(STINT * 10 * 0.7);
+}, 30000);
+it('meditation alpha overlaps only its own slot', () => {
+  for (const b of buildings.filter((b) => b.file.includes('meditation'))) {
+    expect(b.overlapSelfSlot).toBeGreaterThan(0);
+    expect(b.overlapNeighborSlots).toBe(0);
   }
 });

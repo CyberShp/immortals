@@ -22,6 +22,115 @@ const distTotalBytes = await directoryBytes('dist');
 const errors = [];
 const screenshotStats = {};
 let walkDormToHallMs;
+const islandVisits = { main: 0, north: 0, west: 0, east: 0 };
+const bridgeCrossings = {};
+const offWalkableSamples = [];
+let islandSampleCount = 0;
+async function verifyIslandWalking(context, base) {
+  const page = await context.newPage();
+  page.on('pageerror', (e) => errors.push(e.message));
+  const url = new URL(base);
+  url.searchParams.set('debug', '1');
+  url.searchParams.set('walkScale', '8');
+  await page.goto(url.href);
+  await page.waitForFunction(
+    () => window.__mapReady && window.__world && window.__xianfu,
+  );
+  await page.evaluate(() => {
+    window.__xianfu.freeze(true);
+    window.__xianfu.reset();
+    window.__camera.panorama();
+  });
+  const ids = await page.evaluate(() =>
+    window.__world.bridges.map((b) => b.id),
+  );
+  ids.forEach((id) => (bridgeCrossings[id] = 0));
+  let panorama = false,
+    female = false;
+  // Preserve sim cadence: one tick per ~1.3s at walkScale=8; sample each 100ms.
+  for (let stint = 0; stint < 24; stint++) {
+    for (let sample = 0; sample < 12 * 13; sample++) {
+      if (sample % 13 === 0)
+        await page.evaluate(() => window.__xianfu.advance(1));
+      await page.waitForTimeout(100);
+      const data = await page.evaluate(() => {
+        const motions = window.__worldMotions();
+        return motions.map((m) => ({
+          ...m,
+          walkable: window.__world.walkable(m.x, m.y),
+          island: window.__world.islandOf(m.x, m.y),
+          bridges: window.__world.bridgeAt(m.x, m.y),
+          arrived: Math.hypot(m.x - m.toX, m.y - m.toY) <= 12,
+        }));
+      });
+      islandSampleCount++;
+      for (const d of data) {
+        if (!d.walkable) offWalkableSamples.push({ stint, sample, ...d });
+        if (d.arrived && d.island) islandVisits[d.island]++;
+        for (const id of d.bridges) bridgeCrossings[id]++;
+      }
+      assert.equal(
+        offWalkableSamples.length,
+        0,
+        'disciple left walkable geometry',
+      );
+      if (
+        !panorama &&
+        new Set(
+          data
+            .filter((d) => d.arrived)
+            .map((d) => d.island)
+            .filter(Boolean),
+        ).size >= 3
+      ) {
+        await page.screenshot({
+          path: 'docs/screenshots/27-world-islands.png',
+        });
+        await recordArt(page, '27-world-islands');
+        panorama = true;
+      }
+    }
+    if (
+      panorama &&
+      ['north', 'west', 'east'].every((id) => islandVisits[id] > 0) &&
+      ids.every((id) => bridgeCrossings[id] > 0)
+    )
+      break;
+  }
+  for (const id of ['north', 'west', 'east'])
+    assert.ok(islandVisits[id] > 0, `no arrival on ${id}`);
+  for (const id of ids)
+    assert.ok(bridgeCrossings[id] > 0, `no crossing on ${id}`);
+  assert.ok(panorama, 'no simultaneous multi-island distribution');
+  // Follow a woman during actual walking, so the female walk sprite is exercised.
+  for (let n = 0; n < 12 && !female; n++) {
+    await page.evaluate(() => window.__xianfu.advance(12));
+    const id = await page.evaluate(() => {
+      const women = window.__xianfu
+        .world()
+        .disciples.filter((d) => d.gender === '女');
+      return window
+        .__worldMotions()
+        .find(
+          (m) =>
+            women.some((d) => d.id === m.id) &&
+            Math.hypot(m.x - m.toX, m.y - m.toY) > 24,
+        )?.id;
+    });
+    if (id) {
+      await page.evaluate((id) => {
+        window.__camera.set({ zoom: 1.2 });
+        window.__camera.follow(id);
+      }, id);
+      await page.waitForTimeout(200);
+      await page.screenshot({ path: 'docs/screenshots/28-world-female.png' });
+      await recordArt(page, '28-world-female');
+      female = true;
+    }
+  }
+  assert.ok(female, 'no female walking sprite available');
+  await page.close();
+}
 async function prepareArt(page) {
   await page.evaluate(() => {
     window.__xianfu.reset();
@@ -255,6 +364,23 @@ try {
       [...document.querySelectorAll('.roster-row .art-icon img')].some(
         (i) => i.complete && i.naturalWidth === 64,
       ),
+    );
+    assert.ok(
+      await page.evaluate(() =>
+        [...document.querySelectorAll('.roster-row')].every((row) => {
+          const style = getComputedStyle(row);
+          const status = row.querySelector('.roster-status');
+          const buttons = [...row.querySelectorAll('button')];
+          return (
+            style.gridTemplateColumns.split(' ').length === 9 &&
+            getComputedStyle(status).whiteSpace === 'nowrap' &&
+            buttons.every(
+              (button) => getComputedStyle(button).whiteSpace === 'nowrap',
+            )
+          );
+        }),
+      ),
+      'roster must retain nine columns and nonwrapping controls',
     );
     await shot('24-world-roster');
     await page.locator('#modal [data-follow]').first().click();
@@ -647,6 +773,7 @@ try {
       await child.close();
       await page.locator('#map canvas').waitFor();
     }
+    await verifyIslandWalking(context, base);
     assert.deepEqual(errors, []);
     await writeFile(
       'docs/screenshots/e2e-report.json',
@@ -654,6 +781,10 @@ try {
         {
           passed: true,
           walkDormToHallMs,
+          islandVisits,
+          bridgeCrossings,
+          offWalkableSamples,
+          islandSampleCount,
           smallWindowCoverage: [
             'window.open fallback',
             'PiP requestWindow shim',
@@ -679,6 +810,23 @@ try {
     console.log('原六项交互、美术截图、首屏体积及 404 降级断言通过。');
   }
 } catch (error) {
+  if (!soak)
+    await writeFile(
+      'docs/screenshots/e2e-report.json',
+      JSON.stringify(
+        {
+          passed: false,
+          errors: [...errors, String(error)],
+          islandVisits,
+          bridgeCrossings,
+          offWalkableSamples,
+          islandSampleCount,
+          screenshotStats,
+        },
+        null,
+        2,
+      ) + '\n',
+    );
   if (soak)
     await writeFile(
       'docs/screenshots/soak-report.json',

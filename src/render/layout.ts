@@ -168,10 +168,19 @@ export function headBox(p: NamePoint): Box {
   const width = p.bodyWidth ?? height;
   return { x: p.x - width / 2, y: p.y - height, width, height: height * 0.35 };
 }
-export function placeNames(points: NamePoint[], obstacles: Box[] = []): Box[] {
+export function placeNames(
+  points: NamePoint[],
+  obstacles: Box[] = [],
+  clearance = 4,
+): Box[] {
   const boxes: Box[] = [];
-  const heads = points.map(headBox);
-  for (const [index, p] of points.entries()) {
+  const bodies = points.map((p) => ({
+    x: p.x - (p.bodyWidth ?? p.height ?? 48) / 2 - clearance,
+    y: p.y - (p.height ?? 48) - clearance,
+    width: (p.bodyWidth ?? p.height ?? 48) + clearance * 2,
+    height: (p.height ?? 48) + clearance * 2,
+  }));
+  for (const p of points) {
     const width = Array.from(p.name).length * nameFontSize + 4;
     // Rear labels end 4px above the displayed body; front labels sit below feet.
     const base = {
@@ -192,7 +201,7 @@ export function placeNames(points: NamePoint[], obstacles: Box[] = []): Box[] {
           (b) =>
             !obstacles.some((a) => intersects(a, b)) &&
             !boxes.some((a) => intersects(a, b)) &&
-            !heads.some((head, i) => i !== index && intersects(head, b)),
+            !bodies.some((body) => intersects(body, b)),
         );
       if (found) {
         boxes.push(found);

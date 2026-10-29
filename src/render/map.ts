@@ -34,8 +34,12 @@ import manifest from '../../public/assets/manifest.json';
 import worldBuildings from '../../docs/world-buildings.json';
 import {
   worldMap,
+  walkable,
+  islandOf,
+  segmentDistance,
   DISCIPLE_SCALE,
   WALK_SPEED,
+  routeSpeed,
   findPath,
   pathLength,
   alongPath,
@@ -115,6 +119,34 @@ export async function createMap(
   } = {},
 ) {
   window.__mapReady = false;
+  const params = new URLSearchParams(location.search);
+  const requestedScale = Number(params.get('walkScale') ?? 1);
+  const walkScale =
+    params.get('debug') === '1' &&
+    Number.isFinite(requestedScale) &&
+    requestedScale > 0
+      ? Math.min(100, requestedScale)
+      : 1;
+  const walkSpeed = WALK_SPEED * walkScale;
+  if (params.get('debug') === '1')
+    Object.assign(window, {
+      __world: {
+        walkable: (x: number, y: number) => walkable([x, y]),
+        islandOf: (x: number, y: number) => islandOf([x, y]),
+        bridges: worldMap.bridges,
+        bridgeAt: (x: number, y: number) =>
+          worldMap.bridges
+            .filter((b) =>
+              b.points
+                .slice(1)
+                .some(
+                  (q, i) =>
+                    segmentDistance([x, y], b.points[i], q) <= b.width / 2,
+                ),
+            )
+            .map((b) => b.id),
+      },
+    });
   const app = new Application();
   await app.init({
     resizeTo: host,
@@ -332,7 +364,7 @@ export async function createMap(
       poses: {} as Record<string, number>,
       disciples: [] as { id: string; x: number; y: number }[],
       discipleScale: DISCIPLE_SCALE,
-      walkSpeed: WALK_SPEED,
+      walkSpeed,
       dormToHallSeconds: walkTimeSeconds(
         worldMap.slots.find((s) => s.id === 'B_DORM')!.front,
         worldMap.slots.find((s) => s.id === 'B_HALL')!.front,
@@ -434,6 +466,17 @@ export async function createMap(
       }
       scene.addChild(group);
     }
+    if (params.get('debug') === '1')
+      Object.assign(window, {
+        __worldMotions: () =>
+          [...motions.entries()].map(([id, m]) => ({
+            id,
+            x: m.x,
+            y: m.y,
+            toX: m.toX,
+            toY: m.toY,
+          })),
+      });
     stats.labelOverlaps = labelOverlaps(labels, occluders);
     const namePoints: NamePoint[] = [];
     let active = false;
@@ -443,7 +486,10 @@ export async function createMap(
       const elapsed = Math.max(0, now - m.start);
       const moving = elapsed < m.duration;
       active ||= moving;
-      const positionOnPath = alongPath(m.path, (elapsed / 1000) * WALK_SPEED);
+      const positionOnPath = alongPath(
+        m.path,
+        (elapsed / 1000) * routeSpeed(m.path) * walkScale,
+      );
       if (positionOnPath[0] !== m.x)
         m.facing = positionOnPath[0] > m.x ? 1 : -1;
       [m.x, m.y] = positionOnPath;
@@ -451,7 +497,11 @@ export async function createMap(
       const position = m;
       group.position.set(position.x, position.y);
       group.zIndex = m.y;
-      const pose = behaviorPose(d.state.behavior, moving, now - m.start);
+      const pose = behaviorPose(
+        d.state.behavior,
+        moving,
+        (((now - m.start) * routeSpeed(m.path)) / WALK_SPEED) * walkScale,
+      );
       stats.poses[pose] = (stats.poses[pose] ?? 0) + 1;
       stats.disciples.push({ id: d.id, x: m.x, y: m.y });
       if (
@@ -623,10 +673,11 @@ export async function createMap(
         width: b.width / 2,
         height: b.height / 2,
       })),
+      4 / (2 * cam.zoom),
     ).forEach((box, i) => {
       const t = label(namePoints[i].name, 21, true);
       t.anchor.set(0.5, 0);
-      t.position.set(box.x * 2 + box.width, box.y * 2 + 4);
+      t.position.set(box.x * 2 + box.width, box.y * 2);
       t.zIndex = 3000;
       scene.addChild(t);
       stats.nameLabels++;
@@ -711,12 +762,15 @@ export async function createMap(
         if (m.toX !== x || m.toY !== y) {
           [m.x, m.y] = alongPath(
             m.path,
-            (Math.max(0, now - m.start) / 1000) * WALK_SPEED,
+            (Math.max(0, now - m.start) / 1000) *
+              routeSpeed(m.path) *
+              walkScale,
           );
           const path = findPath([m.x, m.y], [x, y]);
           if (!path.length) continue;
           m.path = path;
-          m.duration = (pathLength(path) / WALK_SPEED) * 1000;
+          m.duration =
+            (pathLength(path) / (routeSpeed(path) * walkScale)) * 1000;
           m.row = row;
           m.fromX = m.x;
           m.fromY = m.y;
@@ -767,7 +821,7 @@ export async function createMap(
         toY: to[1],
         path,
         start: performance.now(),
-        duration: (pathLength(path) / WALK_SPEED) * 1000,
+        duration: (pathLength(path) / (routeSpeed(path) * walkScale)) * 1000,
       });
       cancelFrame();
       paint(performance.now());

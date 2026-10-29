@@ -60,7 +60,7 @@ export function inPolygon([x, y]: Point, poly: Point[]) {
   }
   return c;
 }
-function segmentDistance(p: Point, a: Point, b: Point) {
+export function segmentDistance(p: Point, a: Point, b: Point) {
   const dx = b[0] - a[0],
     dy = b[1] - a[1],
     t = Math.max(
@@ -311,9 +311,12 @@ export const pathLength = (path: Point[]) =>
       (n, p, i) => n + Math.hypot(p[0] - path[i][0], p[1] - path[i][1]),
       0,
     );
+// Keep local walks at their established pace; long crossings finish within 80s.
+export const routeSpeed = (path: Point[]) =>
+  Math.max(WALK_SPEED, pathLength(path) / 80);
 export function walkTimeSeconds(from: Point, to: Point) {
   const p = findPath(from, to);
-  return p.length ? pathLength(p) / WALK_SPEED : Infinity;
+  return p.length ? pathLength(p) / routeSpeed(p) : Infinity;
 }
 export function alongPath(path: Point[], distance: number): Point {
   for (let i = 1; i < path.length; i++) {
@@ -329,10 +332,24 @@ export function alongPath(path: Point[], distance: number): Point {
   }
   return path.at(-1) ?? [1500, 950];
 }
-export function destination(d: Disciple, tick: number, index = 0): Point {
+export const STINT = 12;
+export function idHash(value: string) {
   let hash = 2166136261;
-  for (const c of `${d.id}:${tick}`)
+  for (const c of value)
     hash = Math.imul(hash ^ c.charCodeAt(0), 16777619) >>> 0;
+  return hash;
+}
+export const stintOf = (id: string, tick: number) =>
+  Math.floor((tick + (idHash(id) % STINT)) / STINT);
+export function islandOf(p: Point) {
+  return (
+    worldMap.islands.find((i) =>
+      inPolygon([p[0] - i.offset[0], p[1] - i.offset[1]], i.walkable),
+    )?.id ?? null
+  );
+}
+export function destination(d: Disciple, tick: number, index = 0): Point {
+  const hash = idHash(`${d.id}:${stintOf(d.id, tick)}`);
   const building = d.state.location.startsWith('工地:')
     ? d.state.location.slice(3)
     : (
@@ -351,7 +368,7 @@ export function destination(d: Disciple, tick: number, index = 0): Point {
       : ['修炼', '休息'].includes(d.state.behavior)
         ? 'meditate'
         : 'social';
-  if (tick === 0 || d.state.location === '空地') {
+  if (tick === 0) {
     const spots = worldMap.spots.filter(
       (s) => s.island === 'main' && s.kind === 'social',
     );
@@ -371,6 +388,8 @@ export function destination(d: Disciple, tick: number, index = 0): Point {
   }
   if (building && d.state.behavior === '做工')
     p = worldMap.slots.find((s) => s.id === building)!.front;
+  else if (d.state.behavior === '做工' && d.state.location === '采石点')
+    p = nearestWalkable([1720, 752]);
   else {
     const spots = worldMap.spots.filter((s) => s.kind === kind),
       s = spots[hash % spots.length],
@@ -417,11 +436,7 @@ export function discipleDestinations(
 ): Point[] {
   const occupied: Point[] = [];
   for (const [i, d] of disciples.entries()) {
-    const anchor = destination(
-      d,
-      tick,
-      tick === 0 || d.state.location === '空地' ? i : 0,
-    );
+    const anchor = destination(d, tick, tick === 0 ? i : 0);
     occupied.push(spacedLanding(anchor, occupied));
   }
   return occupied;

@@ -233,12 +233,12 @@ export async function start() {
       )
         .map(
           (d) =>
-            `<article class="roster-row">${portrait(d, 32)}<button data-detail="${d.id}">${escape(d.name)}</button><span>${d.realm.major}${d.realm.layer}层</span><span>${d.state.behavior}</span><div>${needs(d)}</div><span>${d.state.behavior.includes('突破') ? icon('event-breakthrough') : relatedEvents(world, d.id)[0] ? icon(eventIcon(relatedEvents(world, d.id)[0].kind)) : ''}${relatedEvents(world, d.id).length ? '有事件 ' : ''}${d.state.injuredUntil > world.tick ? '受伤 ' : ''}${d.state.behavior.includes('突破') ? '突破中' : ''}</span><select data-policy="${d.id}" aria-label="${escape(d.name)}的方针">${['均衡', '专修', '勤工'].map((p) => `<option ${d.policy === p ? 'selected' : ''}>${p}</option>`).join('')}</select><button data-follow="${d.id}">定位</button>${relatedEvents(
+            `<article class="roster-row">${portrait(d, 32)}<button data-detail="${d.id}">${escape(d.name)}</button><span>${d.realm.major}${d.realm.layer}层</span><span>${d.state.behavior}</span><div>${needs(d)}</div><span class="roster-status"><span>${d.state.behavior.includes('突破') ? icon('event-breakthrough') : relatedEvents(world, d.id)[0] ? icon(eventIcon(relatedEvents(world, d.id)[0].kind)) : ''}</span><span>${relatedEvents(world, d.id).length ? '有事件 ' : ''}${d.state.injuredUntil > world.tick ? '受伤 ' : ''}${d.state.behavior.includes('突破') ? '突破中' : ''}</span></span><select data-policy="${d.id}" aria-label="${escape(d.name)}的方针">${['均衡', '专修', '勤工'].map((p) => `<option ${d.policy === p ? 'selected' : ''}>${p}</option>`).join('')}</select><button data-follow="${d.id}">定位</button><div class="roster-events">${relatedEvents(
               world,
               d.id,
             )
               .map((e) => `<button data-event="${e.id}">待办事件</button>`)
-              .join('')}</article>`,
+              .join('')}</div></article>`,
         )
         .join('')}</div>`,
     );

@@ -430,3 +430,26 @@ it('new target during a walk replans from the interpolated current point without
   ).toBeLessThanOrEqual(WALK_SPEED * 0.5 + 1e-8);
   map.destroy();
 });
+
+for (const [search, multiplier] of [
+  ['?debug=1&walkScale=8', 8],
+  ['?walkScale=8', 1],
+  ['?debug=1&walkScale=NaN', 1],
+  ['?debug=1&walkScale=-2', 1],
+] as const)
+  it(`walkScale only accelerates valid debug requests: ${search}`, async () => {
+    vi.stubGlobal('location', { search });
+    const map = await createMap(host),
+      w = world();
+    map.draw(w);
+    const trip = map.walkDormToHall(w.disciples[0].id);
+    expect(trip.duration * multiplier).toBeCloseTo(9881.20058494918);
+    mock.now = trip.duration;
+    const [id, callback] = [...mock.frames][0];
+    mock.frames.delete(id);
+    callback(mock.now);
+    const actual = window.__mapStats.disciples[0];
+    expect(actual.x).toBeCloseTo(trip.to[0]);
+    expect(actual.y).toBeCloseTo(trip.to[1]);
+    map.destroy();
+  });

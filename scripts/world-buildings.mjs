@@ -49,11 +49,18 @@ for (let pass = 0; pass < 2; pass++) {
       .toBuffer({ resolveWithObject: true });
     function inspect(scale) {
       if (key !== 'garden') y = b + bottomOffset * exportScale * scale;
-      let overlap = 0,
+      let overlapSelfSlot = 0,
+        overlapNeighborSlots = 0,
         bottom = -Infinity,
         left = Infinity,
         right = -Infinity;
-      const protectedRect = world.slots.find((s) => s.id === 'B_MEDIT').rect;
+      const neighbors = [
+        ...world.slots.filter((s) => s.id !== slot.id),
+        { id: 'plaza', rect: [1413, 920, 1631, 1046] },
+      ];
+      const overlapsBySlot = Object.fromEntries(
+        neighbors.map((s) => [s.id, 0]),
+      );
       for (let py = 0; py < info.height; py++)
         for (let px = 0; px < info.width; px++) {
           if (!data[(py * info.width + px) * 4 + 3]) continue;
@@ -62,15 +69,28 @@ for (let pass = 0; pass < 2; pass++) {
           bottom = Math.max(bottom, wy + scale);
           left = Math.min(left, wx);
           right = Math.max(right, wx + scale);
-          if (
-            wx + scale > protectedRect[0] &&
-            wx < protectedRect[2] &&
-            wy + scale > protectedRect[1] &&
-            wy < protectedRect[3]
-          )
-            overlap++;
+          const overlaps = (rect) =>
+            wx + scale > rect[0] &&
+            wx < rect[2] &&
+            wy + scale > rect[1] &&
+            wy < rect[3];
+          if (overlaps(slot.rect)) overlapSelfSlot++;
+          let neighbor = false;
+          for (const s of neighbors)
+            if (overlaps(s.rect)) {
+              overlapsBySlot[s.id]++;
+              neighbor = true;
+            }
+          if (neighbor) overlapNeighborSlots++;
         }
-      return { overlap, bottom, left, right };
+      return {
+        overlapSelfSlot,
+        overlapNeighborSlots,
+        overlapsBySlot,
+        bottom,
+        left,
+        right,
+      };
     }
     let scale = 1;
     if (key === 'garden') {
@@ -103,13 +123,17 @@ for (let pass = 0; pass < 2; pass++) {
         bodyCaps[key] ? bodyCaps[key] / bodyWidth : Infinity,
       );
       let maxScale = cap;
-      if (key === 'alchemy') {
+      if (key === 'alchemy' || key === 'meditation') {
         let lo = 0,
           hi = cap;
         for (let i = 0; i < 40; i++) {
           const mid = (lo + hi) / 2;
           const a = inspect(mid / exportScale);
-          if (a.overlap === 0 && a.bottom <= 1090) lo = mid;
+          if (
+            a.overlapNeighborSlots === 0 &&
+            (key !== 'alchemy' || a.bottom <= 1090)
+          )
+            lo = mid;
           else hi = mid;
         }
         maxScale = lo;
