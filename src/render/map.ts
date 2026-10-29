@@ -25,7 +25,6 @@ import {
 import { attachCamera } from './camera';
 import {
   visibilityOrder,
-  avoidDiscipleHeads,
   labelOverlaps,
   type LabelOverlap,
   type Mask,
@@ -34,6 +33,12 @@ import {
 import manifest from '../../public/assets/manifest.json';
 import worldBuildings from '../../docs/world-buildings.json';
 import gateArt from '../../scripts/clean-gate-art.json';
+import {
+  buildingLabelPosition,
+  buildingLabelBox,
+  layoutBuildingLabels,
+} from './building-labels';
+export { buildingLabelPosition } from './building-labels';
 import {
   worldMap,
   walkable,
@@ -54,24 +59,6 @@ function plotFoot(id: string): Point {
   const s = worldMap.slots.find((s) => s.id === id)!;
   return [(s.rect[0] + s.rect[2]) / 2, s.rect[3]];
 }
-function buildingLabelPosition(id: string): Point {
-  const s = worldMap.slots.find((s) => s.id === id)!;
-  return id === 'B_ALCHEMY'
-    ? [(s.rect[0] + s.rect[2]) / 2, s.rect[3] + 34]
-    : id === 'B_MEDIT'
-      ? [s.rect[2] + 70, s.rect[1] + 10]
-      : [(s.rect[0] + s.rect[2]) / 2, s.rect[1] - 50];
-}
-function buildingLabelBox(id: string, text: string) {
-  const [x, y] = buildingLabelPosition(id);
-  return {
-    x: x - text.length * 9,
-    y: y - 2,
-    width: text.length * 18 + 8,
-    height: 28,
-  };
-}
-
 // Layered translucent ellipses give a soft edge without a raster art generator.
 function groundShadow(width: number, y = 3) {
   const g = new Graphics();
@@ -120,6 +107,7 @@ declare global {
       labelOverlaps: LabelOverlap[];
       rings: number;
       nameLabels: number;
+      namedDiscipleIds: string[];
       raisedForVisibility: number;
       minHeadVisibility: number;
       baseLoaded: boolean;
@@ -253,11 +241,28 @@ export async function createMap(
     },
   };
   app.stage.on('pointertap', () => {
-    if (!camera.wasDragged()) callbacks.blank?.();
+    if (!camera.wasDragged()) {
+      select();
+      callbacks.blank?.();
+    }
   });
   const overlay = new Container();
   app.stage.addChild(overlay);
   const hits = new Map<string, Container>();
+  let selectedId: string | undefined;
+  let hoveredId: string | undefined;
+  function select(id?: string) {
+    if (selectedId === id) return;
+    selectedId = id;
+    cancelFrame();
+    paint(performance.now());
+  }
+  function hover(id?: string) {
+    if (hoveredId === id) return;
+    hoveredId = id;
+    cancelFrame();
+    paint(performance.now());
+  }
   const hitLayer = new Container();
   app.stage.addChild(hitLayer);
   const mini = new Container();
@@ -410,7 +415,7 @@ export async function createMap(
       box: ReturnType<typeof buildingLabelBox>;
       text: Text;
     }[] = [];
-    const heads: ReturnType<typeof buildingLabelBox>[] = [];
+
     const stats = {
       mode: compact ? ('compact' as const) : ('full' as const),
       markers: 0,
@@ -419,6 +424,7 @@ export async function createMap(
       labelOverlaps: [] as LabelOverlap[],
       rings: 0,
       nameLabels: 0,
+      namedDiscipleIds: [] as string[],
       raisedForVisibility: 0,
       minHeadVisibility: 1,
       baseLoaded: textures.has('map/world.webp'),
@@ -556,17 +562,22 @@ export async function createMap(
           stats.fallbacks++;
         }
       }
-      if (!compact) {
+      {
         const text = b
           ? `${b.name} Lv${b.level}${b.targetLevel && b.targetLevel > b.level ? ' ⚒' : ''}`
           : `${def.name}预留位`;
-        const t = label(text, 18, true);
+        const t = label(text, 16, true);
         const box = buildingLabelBox(def.id, text);
-        // Use measured Pixi bounds when wider/taller than the conservative estimate.
-        const width = Math.max(box.width, t.width || 0);
-        box.x -= (width - box.width) / 2;
-        box.width = width;
-        box.height = Math.max(box.height, t.height || 0);
+        // Fit real font/stroke metrics into the ground-safe plaque rectangle.
+        // Uniform scaling preserves glyph proportions across platform fonts.
+        t.style.lineHeight = 18;
+        t.scale.set(
+          Math.min(
+            1,
+            box.width / (t.width || box.width),
+            box.height / (t.height || box.height),
+          ),
+        );
         labels.push({ id: def.id, box, text: t });
         stats.buildingLabels++;
         t.alpha = 1;
@@ -576,6 +587,13 @@ export async function createMap(
         scene.addChild(t);
       }
       scene.addChild(group);
+    }
+    const placedLabels = layoutBuildingLabels(labels);
+    for (const placed of placedLabels) {
+      const label = labels.find((l) => l.id === placed.id)!;
+      label.text.position.x += placed.box.x - label.box.x;
+      label.text.position.y += placed.box.y - label.box.y;
+      label.box = placed.box;
     }
     if (params.get('debug') === '1')
       Object.assign(window, {
@@ -609,7 +627,7 @@ export async function createMap(
             toY: m.toY,
           })),
       });
-    const namePoints: NamePoint[] = [];
+    const namePoints: (NamePoint & { id: string })[] = [];
     let active = false;
     for (const d of world.disciples) {
       const m = motions.get(d.id);
@@ -667,9 +685,14 @@ export async function createMap(
         hitLayer.addChild(hit);
         hit.eventMode = 'static';
         hit.cursor = 'pointer';
+        hit.on('pointerover', () => hover(d.id));
+        hit.on('pointerout', () => {
+          if (hoveredId === d.id) hover();
+        });
         hit.on('pointertap', (e) => {
           e.stopPropagation();
           if (camera.wasDragged()) return;
+          select(d.id);
           const time = performance.now();
           if (lastTap.id === d.id && time - lastTap.at < 350)
             camera.follow(d.id);
@@ -777,40 +800,14 @@ export async function createMap(
         });
         group.addChild(injuryRing);
       }
-      if (!compact) {
-        const entry = entries.get(file)!;
-        const scale = height / 96;
-        const facing = pose === 'meditate' ? 1 : m.facing;
-        heads.push({
-          x:
-            m.x -
-            (facing === 1 ? entry.anchor.x : entry.size[0] - entry.anchor.x) *
-              scale,
-          y: m.y - entry.anchor.y * scale,
-          width: entry.size[0] * scale,
-          height: entry.size[1] * scale,
-        });
-      }
-      if (compact) {
-        const initial = label(
-          d.name.slice(0, 1),
-          marker.fontSize / cam.zoom,
-          true,
-        );
-        initial.style.lineHeight = marker.fontSize / cam.zoom;
-        initial.style.stroke = { color: 0x263f34, width: 2 / marker.scale };
-        initial.anchor.set(0.5);
-        group.addChild(initial);
-        stats.nameLabels++;
-      } else
-        namePoints.push({
-          x: m.x,
-          y: m.y,
-          row: 0,
-          height: compact ? 10 : height,
-          bodyWidth: (entries.get(file)!.size[0] * height) / 96,
-          name: compact ? d.name.slice(0, 1) : shortName(d.name),
-        });
+      namePoints.push({
+        id: d.id,
+        x: m.x,
+        y: m.y,
+        height: compact ? 14 / cam.zoom : height,
+        bodyWidth: (entries.get(file)!.size[0] * height) / 96,
+        name: shortName(d.name),
+      });
       const event = relatedEvents(world, d.id)[0];
       if (event) {
         const dot = new Graphics()
@@ -846,12 +843,6 @@ export async function createMap(
       }
       scene.addChild(group);
     }
-    for (const label of labels) {
-      const result = avoidDiscipleHeads(label.box, heads);
-      label.box = result.box;
-      label.text.position.y -= result.rise;
-      label.text.alpha = result.alpha;
-    }
     screenLabels = labels
       .filter((l) => l.text.visible && l.text.alpha > 0)
       .map((l) => {
@@ -873,39 +864,21 @@ export async function createMap(
           r.y + r.height > bounds.top,
       );
     stats.labelOverlaps = labelOverlaps(labels, occluders);
-    const buildingBoxes = [
-      ...worldBuildings
-        .filter((b) =>
-          world!.buildings.some((w) =>
-            b.file.includes('/' + buildingArt[w.id] + '-'),
-          ),
-        )
-        .map((b) => {
-          const entry = entries.get(b.file)!;
-          return {
-            x: b.x - entry.anchor.x * b.scale,
-            y: b.y - entry.anchor.y * b.scale,
-            width: entry.size[0] * b.scale,
-            height: entry.size[1] * b.scale,
-          };
-        }),
-      {
-        x: gateArt.crop[0],
-        y: gateArt.crop[1],
-        width: gateArt.crop[2],
-        height: gateArt.crop[3],
-      },
-      ...labels.filter((l) => l.text.alpha > 0).map((l) => l.box),
-    ];
-    overheadNames(namePoints, buildingBoxes).forEach((box, i) => {
-      const t = label(namePoints[i].name, overheadNameFontSize, true);
+    const activeId = namePoints.some((p) => p.id === hoveredId)
+      ? hoveredId
+      : selectedId;
+    const inspected = namePoints.find((p) => p.id === activeId);
+    if (inspected) {
+      // A deliberate inspection reveals exactly one label, even in a crowd.
+      const box = overheadNames([inspected])[0];
+      const t = label(inspected.name, overheadNameFontSize, true);
       t.anchor.set(0.5, 0);
       t.position.set(box.x + box.width / 2, box.y);
       t.zIndex = 3000;
-      t.alpha = Number(box.visible);
       scene.addChild(t);
-      stats.nameLabels += Number(box.visible);
-    });
+      stats.nameLabels = 1;
+      stats.namedDiscipleIds.push(inspected.id);
+    }
     for (const [id, hit] of hits) {
       if (
         !motions.has(id.replace('event:', '')) ||
@@ -914,6 +887,7 @@ export async function createMap(
         ) ||
         (id.startsWith('event:') && !relatedEvents(world, id.slice(6)).length)
       ) {
+        if (hoveredId === id) hoveredId = undefined;
         hit.destroy();
         hits.delete(id);
       }
@@ -1023,7 +997,12 @@ export async function createMap(
   return {
     draw,
     follow: (id: string) => camera.follow(id),
-    reset: () => motions.clear(),
+    select,
+    reset: () => {
+      motions.clear();
+      selectedId = undefined;
+      hoveredId = undefined;
+    },
     labels: labelRects,
     position: (id: string) => {
       const m = motions.get(id);

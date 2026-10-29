@@ -194,6 +194,14 @@ async function recordArt(page, name) {
   return sample;
 }
 // BEGIN CLEAN SCREENSHOT HELPERS (also exercised without a browser in vitest)
+async function withIsolatedContext(browser, options, run) {
+  const context = await browser.newContext(options);
+  try {
+    return await run(context);
+  } finally {
+    await context.close();
+  }
+}
 const cleanOverlaySelector = [
   'dialog:visible',
   '[role="dialog"]:visible',
@@ -205,10 +213,11 @@ const cleanOverlaySelector = [
   '.modal-backdrop:visible',
   '[data-overlay]:visible',
 ].join(',');
-async function cleanScreenshot(page, path, clip) {
+async function cleanScreenshot(page, path, clip, hoveredId) {
   // Escape uses the application's closeAll handler, including card cleanup.
   // Never hide DOM/CSS or alter story flags to manufacture an unobstructed shot.
   await page.keyboard.press('Escape');
+  if (!hoveredId) await page.mouse.move(0, 0);
   if (await page.locator('#close').isVisible())
     await page.locator('#close').click();
   for (
@@ -234,6 +243,16 @@ async function cleanScreenshot(page, path, clip) {
     camera: window.__camera.get(),
     stats: window.__mapStats,
   }));
+  assert.equal(
+    sample.stats.nameLabels,
+    hoveredId ? 1 : 0,
+    'unexpected disciple name count in screenshot',
+  );
+  assert.deepEqual(
+    sample.stats.namedDiscipleIds,
+    hoveredId ? [hoveredId] : [],
+    'unexpected named disciple',
+  );
   if (clip) await page.screenshot({ path, clip, scale: 'css' });
   else await page.locator('#map canvas').screenshot({ path, scale: 'css' });
   assert.equal(
@@ -482,6 +501,37 @@ async function verifyClean(context) {
       screenshotSpriteHeight,
     ),
   };
+  // Real pointer events, not a render-state shortcut, drive the inspection label.
+  const target = captured.stats.disciples.find((d) =>
+    evidence.visible.includes(d.id),
+  );
+  assert.ok(target);
+  await page.mouse.move(
+    canvas.x + target.screenX,
+    canvas.y + target.screenY - 12,
+  );
+  await page.waitForFunction(() => window.__mapStats.nameLabels === 1);
+  const hoveredId = await page.evaluate(
+    () => window.__mapStats.namedDiscipleIds[0],
+  );
+  assert.ok(evidence.visible.includes(hoveredId));
+  captures.hover = await cleanScreenshot(
+    page,
+    `${output}/xianfu-clean-hover.png`,
+    evidence.clip,
+    hoveredId,
+  );
+  await page.mouse.move(0, 0);
+  await page.waitForFunction(() => window.__mapStats.nameLabels === 0);
+  await page.evaluate((id) => window.__ui.openCard(id), hoveredId);
+  await page.waitForFunction(
+    (id) =>
+      window.__mapStats.nameLabels === 1 &&
+      window.__mapStats.namedDiscipleIds[0] === id,
+    hoveredId,
+  );
+  await page.keyboard.press('Escape');
+  await page.waitForFunction(() => window.__mapStats.nameLabels === 0);
   assert.deepEqual(errors, []);
   await writeFile(
     `${output}/xianfu-clean-report.json`,
@@ -510,13 +560,16 @@ try {
     headless: true,
     args: ['--enable-unsafe-swiftshader'],
   });
-  const context = await browser.newContext({
+  const contextOptions = {
     viewport: { width: 1280, height: 900 },
     acceptDownloads: true,
-  });
-  if (process.argv.includes('--clean')) {
-    await verifyClean(context);
-  } else if (process.argv.includes('--bridges')) {
+  };
+  // Clean sampling writes real saves (autosave/pagehide). A new page shares
+  // IndexedDB; a new context is required for the subsequent fresh-start checks.
+  if (process.argv.includes('--clean'))
+    await withIsolatedContext(browser, contextOptions, verifyClean);
+  const context = await browser.newContext(contextOptions);
+  if (process.argv.includes('--bridges')) {
     await mkdir(bridgeOutput, { recursive: true });
     await verifyIslandWalking(context, base);
     assert.deepEqual(errors, []);
@@ -694,6 +747,20 @@ try {
     assert.equal(stats.mode, 'full');
     assert.equal(stats.raisedForVisibility, 0);
     assert.equal(await page.locator('#resources .art-icon').count(), 4);
+    if (stats.visibleDisciples < 3) {
+      const diagnostic = await page.evaluate(() => ({
+        tick: window.__xianfu.world().tick,
+        disciples: window.__xianfu.world().disciples,
+        camera: window.__camera.get(),
+        viewport: { width: innerWidth, height: innerHeight },
+        stats: window.__mapStats,
+      }));
+      screenshotStats['first-screen-failure'] = diagnostic;
+      console.error(
+        'First-screen visibility failure:',
+        JSON.stringify(diagnostic, null, 2),
+      );
+    }
     assert.ok(stats.visibleDisciples >= 3);
     assert.equal(await page.locator('.roster:visible').count(), 0);
     assert.ok(
@@ -805,7 +872,7 @@ try {
     assert.equal(compact.mode, 'compact');
     assert.ok(compact.markerCssDiameter >= 12);
     assert.equal(compact.discipleSprites, 0);
-    assert.equal(compact.buildingLabels, 0);
+    assert.equal(compact.buildingLabels, 5);
     const present = compact.disciples.filter((d) => d.alpha > 0).length;
     assert.equal(compact.markers, present);
     await shot('09-art-compact', false);
@@ -893,6 +960,24 @@ try {
         (o.label === 'B_ALCHEMY' && o.other === 'B_MEDIT'),
     );
     assert.equal(alchemyLabelPairs.length, 3);
+    const assertNoLabelOverlaps = (sample) => {
+      const overlaps = sample.labelOverlaps.filter((o) => o.pixels > 0);
+      if (overlaps.length)
+        console.error(
+          'Building label overlaps:',
+          JSON.stringify(
+            { tick: sample.tick, camera: sample.camera, overlaps },
+            null,
+            2,
+          ),
+        );
+      assert.deepEqual(
+        overlaps,
+        [],
+        'building plaques must avoid every other plaque and building',
+      );
+    };
+    assertNoLabelOverlaps(allBuilt);
     assert.ok(alchemyLabelPairs.every((o) => o.pixels === 0));
     await canvas.screenshot({ path: 'docs/screenshots/15-art-all-built.png' });
     await page.evaluate(() =>
@@ -908,6 +993,7 @@ try {
         window.__camera.set({ zoom: 1.05, x: 1535, y: 900 });
       }, tier);
       await page.waitForFunction(() => window.__mapStats.buildingSprites === 5);
+      assertNoLabelOverlaps(await recordArt(page, `all-built-labels-t${tier}`));
       await page.evaluate(
         () =>
           new Promise((resolve) =>
@@ -962,10 +1048,7 @@ try {
     const fallbackStats = await fallbackPage.evaluate(() => window.__mapStats);
     assert.ok(fallbackStats.fallbacks > 0);
     assert.ok(fallbackStats.rings > 0);
-    assert.ok(
-      fallbackStats.nameLabels > 0 &&
-        fallbackStats.nameLabels <= fallbackStats.rings,
-    );
+    assert.equal(fallbackStats.nameLabels, 0);
     assert.equal(fallbackStats.baseLoaded, false);
     await fallbackPage.waitForFunction(
       () => document.querySelectorAll('#resources img').length === 0,

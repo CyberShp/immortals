@@ -16,24 +16,40 @@ const helpers = source
   .join('\n')
   .split('// END CLEAN SCREENSHOT HELPERS')[0];
 const {
+  withIsolatedContext,
   cleanScreenshot,
   cleanCloseupCamera,
   cleanCloseupEvidence,
   cleanOverlaySelector,
 } = runInNewContext(
-  `${helpers}\n({cleanScreenshot,cleanCloseupCamera,cleanCloseupEvidence,cleanOverlaySelector})`,
-  { assert },
+  `${helpers}\n({withIsolatedContext,cleanScreenshot,cleanCloseupCamera,cleanCloseupEvidence,cleanOverlaySelector})`,
+  {
+    assert: {
+      ...assert,
+      deepEqual: (actual, expected, message) =>
+        // Mirror Playwright JSON transport across the VM realm boundary.
+        assert.deepEqual(
+          JSON.parse(JSON.stringify(actual)),
+          JSON.parse(JSON.stringify(expected)),
+          message,
+        ),
+    },
+  },
 );
 function pageMock({ stuck = false, reopens = false, delayed = false } = {}) {
   let overlays = 1,
     checks = 0;
   const order = [];
-  const sample = { camera: { zoom: 1.5 }, stats: {} };
+  const sample = {
+    camera: { zoom: 1.5 },
+    stats: { nameLabels: 0, namedDiscipleIds: [] },
+  };
   const screenshot = vi.fn(async () => {
     order.push('screenshot');
     if (reopens) overlays = 1;
   });
   const page = {
+    mouse: { move: vi.fn(async () => {}) },
     keyboard: {
       press: vi.fn(async () => {
         order.push('escape');
@@ -88,6 +104,20 @@ describe('Clean1 screenshot blockers', () => {
       '.overlay:visible',
     ])
       expect(cleanOverlaySelector).toContain(selector);
+  });
+  it('refuses ordinary screenshots with a stray name and permits exactly the requested hover name', async () => {
+    const m = pageMock();
+    m.sample.stats.nameLabels = 1;
+    m.sample.stats.namedDiscipleIds = ['d1'];
+    await expect(cleanScreenshot(m.page, 'main.png')).rejects.toThrow(
+      'unexpected disciple name count',
+    );
+    expect(m.screenshot).not.toHaveBeenCalled();
+    await cleanScreenshot(m.page, 'hover.png', undefined, 'd1');
+    expect(m.screenshot).toHaveBeenCalledOnce();
+    await expect(
+      cleanScreenshot(m.page, 'hover.png', undefined, 'd2'),
+    ).rejects.toThrow('unexpected named disciple');
   });
   it('refuses to save a screenshot when any overlay survives closing', async () => {
     const m = pageMock({ stuck: true });
@@ -177,4 +207,33 @@ describe('Clean1 actual closeup framing', () => {
       'two visible disciples',
     );
   });
+});
+
+describe('Clean scenario storage isolation', () => {
+  it.each([false, true])(
+    'closes its own context even on failure=%s',
+    async (fails) => {
+      const contexts = [];
+      const browser = {
+        newContext: vi.fn(async () => {
+          const context = { savedTick: 0, close: vi.fn(async () => {}) };
+          contexts.push(context);
+          return context;
+        }),
+      };
+      const run = withIsolatedContext(browser, {}, async (context) => {
+        context.savedTick = 120; // autosave/pagehide in the long sampling scene
+        if (fails) throw new Error('sampling failed');
+      });
+      if (fails) await expect(run).rejects.toThrow('sampling failed');
+      else await run;
+      expect(contexts[0].close).toHaveBeenCalledOnce();
+      const fresh = await browser.newContext({});
+      expect(fresh).not.toBe(contexts[0]);
+      expect(fresh.savedTick).toBe(0);
+      expect(source).toContain(
+        'await withIsolatedContext(browser, contextOptions, verifyClean)',
+      );
+    },
+  );
 });

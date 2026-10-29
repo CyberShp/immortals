@@ -45,8 +45,14 @@ vi.mock('pixi.js', () => {
     removeChildren() {
       return this.children.splice(0);
     }
-    on() {
+    handlers = new Map<string, (...args: unknown[]) => void>();
+    on(event: string, fn: (...args: unknown[]) => void) {
+      this.handlers.set(event, fn);
       return this;
+    }
+    emit(event: string, ...args: unknown[]) {
+      this.handlers.get(event)?.(...args);
+      return true;
     }
     destroy() {}
   }
@@ -122,7 +128,9 @@ vi.mock('pixi.js', () => {
   };
 });
 import { Assets, Application, Sprite, Container } from 'pixi.js';
-import { createMap } from '../src/render/map';
+import { createMap, buildingLabelPosition } from '../src/render/map';
+import buildings from '../docs/world-buildings.json';
+import { buildingArt } from '../src/render/layout';
 const host = {
   appendChild: vi.fn(),
   append: vi.fn(),
@@ -269,6 +277,7 @@ describe('map orchestration without browser/GPU', () => {
     expect(
       (disciple().children.find((n) => n instanceof Sprite) as Sprite).scale.y,
     ).toBe(0.25);
+    map.select(w.disciples[0].id);
     const name = scene().children.find((n) => n.zIndex === 3000)!;
     expect(name).toMatchObject({
       alpha: 1,
@@ -278,7 +287,7 @@ describe('map orchestration without browser/GPU', () => {
       expect(label).toMatchObject({
         options: {
           style: {
-            fontSize: 18,
+            fontSize: 16,
             fill: 0xffffff,
             stroke: { color: 0x263f34, width: 2 },
           },
@@ -297,14 +306,14 @@ describe('map orchestration without browser/GPU', () => {
   });
 });
 
-it('draws names above disciples and building labels above buildings', async () => {
+it('building plaques are always present and unselected disciple names are absent', async () => {
   const map = await createMap(host);
   const w = createWorld(42, loadData());
   map.draw(w);
   const nodes = scene().children;
   const labels = nodes.filter((n) => n.zIndex === 2000 || n.zIndex === 3000);
-  expect(labels.length).toBe(5 + 6);
-  expect(nodes.filter((n) => n.zIndex === 3000).length).toBe(6);
+  expect(labels.length).toBe(5);
+  expect(nodes.filter((n) => n.zIndex === 3000).length).toBe(0);
   expect(window.__mapStats.poses).toEqual({ meditate: 6 });
   expect(window.__mapStats.disciples.length).toBe(6);
   map.destroy();
@@ -354,7 +363,7 @@ it.each([false, true])(
   },
 );
 
-it('compact hides building labels and shows only disciple dots and initials', async () => {
+it('compact keeps building plaques and defaults to unnamed disciple dots', async () => {
   mock.width = 480;
   window.matchMedia = (() => ({
     matches: true,
@@ -365,14 +374,13 @@ it('compact hides building labels and shows only disciple dots and initials', as
   map.draw(createWorld(42, loadData()));
   expect(window.__mapStats).toMatchObject({
     mode: 'compact',
-    buildingLabels: 0,
+    buildingLabels: 5,
     markers: 6,
     markerCssDiameter: 14,
     discipleSprites: 0,
-    nameLabels: 6,
-    labelOverlaps: [],
+    nameLabels: 0,
   });
-  expect(scene().children.filter((n) => n.zIndex === 2000)).toHaveLength(0);
+  expect(scene().children.filter((n) => n.zIndex === 2000)).toHaveLength(5);
   map.destroy();
 });
 it.each([false, true])(
@@ -493,55 +501,81 @@ it('injury keeps the disciple opaque and adds a separate dashed ring until heale
 });
 
 it.each([0, 60, 600])(
-  'tick %i opaque building labels clear every rendered head',
+  'tick %i building plaques stay centered below art and never hide',
   async (tick) => {
     const map = await createMap(host),
       w = createWorld(42, loadData());
     advance(w, tick);
     map.draw(w);
-    const heads = scene().children.flatMap((group) => {
-      const sprite = (group as Container).children?.find(
-        (s) =>
-          s instanceof Sprite &&
-          (s.texture as unknown as { src: string }).src.includes('disciple/'),
-      ) as Sprite | undefined;
-      if (!sprite) return [];
-      const src = (sprite.texture as unknown as { src: string }).src;
-      const entry = manifest.files.find((f) => src.endsWith(f.file))!;
-      const scale = Math.abs(sprite.scale.y);
-      return [
-        {
-          x:
-            group.position.x -
-            (sprite.scale.x > 0
-              ? entry.anchor.x
-              : entry.size[0] - entry.anchor.x) *
-              scale,
-          y: group.position.y - entry.anchor.y * scale,
-          width: entry.size[0] * scale,
-          height: entry.size[1] * scale,
-        },
-      ];
-    });
-    expect(heads.length).toBeGreaterThan(0);
-    const labels = scene().children.filter((n) => n.zIndex === 2000);
-    expect(labels).toHaveLength(5);
-    for (const label of labels) {
-      const text = (label as unknown as { options: { text: string } }).options
-        .text;
-      const box = {
-        x: label.position.x - text.length * 9,
-        y: label.position.y - 2,
-        width: text.length * 18 + 8,
-        height: 28,
-      };
-      expect([1, 0]).toContain(label.alpha);
-      if (label.alpha === 1)
-        for (const head of heads) expect(intersects(box, head)).toBe(false);
+    const plaques = scene().children.filter((n) => n.zIndex === 2000);
+    expect(plaques).toHaveLength(5);
+    for (const s of worldMap.slots.filter((s) => s.id !== 'B_GATE')) {
+      const [x, y] = buildingLabelPosition(s.id);
+      expect(x).toBe((s.rect[0] + s.rect[2]) / 2);
+      const bottom = Math.max(
+        s.rect[3],
+        ...buildings
+          .filter((b) => b.file.includes('/' + buildingArt[s.id] + '-'))
+          .map((b) => b.bottom),
+      );
+      expect(y - bottom).toBe(8);
+      const label = plaques.find(
+        (n) =>
+          Math.abs(n.position.x - x) <= 80 &&
+          n.position.y >= y &&
+          n.position.y <= y + 24,
+      )!;
+      expect(label).toBeDefined();
+      expect(label.alpha).toBe(1);
     }
     map.destroy();
   },
 );
+it('hover overrides selection with exactly one head label and restores it on pointer-out', async () => {
+  const map = await createMap(host),
+    w = createWorld(42, loadData());
+  map.draw(w);
+  const layer = (mock.apps.at(-1) as Application).stage
+    .children[2] as Container;
+  const [first, second] = layer.children;
+  const baselineDisciples = structuredClone(window.__mapStats.disciples);
+  const baselineVisible = window.__mapStats.visibleDisciples;
+  expect(baselineVisible).toBeGreaterThanOrEqual(3);
+  const assertBodiesUnchanged = () => {
+    expect(window.__mapStats.disciples).toEqual(baselineDisciples);
+    expect(window.__mapStats.visibleDisciples).toBe(baselineVisible);
+  };
+  expect(window.__mapStats.nameLabels).toBe(0);
+  map.select(w.disciples[0].id);
+  assertBodiesUnchanged();
+  expect(window.__mapStats.namedDiscipleIds).toEqual([w.disciples[0].id]);
+  second.emit('pointerover', {} as never);
+  assertBodiesUnchanged();
+  expect(window.__mapStats.namedDiscipleIds).toEqual([w.disciples[1].id]);
+  first.emit('pointerout', {} as never); // stale out from a different overlapping hit target
+  expect(window.__mapStats.namedDiscipleIds).toEqual([w.disciples[1].id]);
+  expect(scene().children.filter((n) => n.zIndex === 3000)).toHaveLength(1);
+  second.emit('pointerout', {} as never);
+  assertBodiesUnchanged();
+  expect(window.__mapStats.namedDiscipleIds).toEqual([w.disciples[0].id]);
+  map.select();
+  expect(window.__mapStats.nameLabels).toBe(0);
+  second.emit('pointertap', { stopPropagation: () => {} } as never);
+  expect(window.__mapStats.namedDiscipleIds).toEqual([w.disciples[1].id]);
+  const label = scene().children.find((n) => n.zIndex === 3000)!;
+  const d = window.__mapStats.disciples[1];
+  expect(label.position.x).toBe(d.x);
+  expect(label.position.y + 20).toBeCloseTo(d.y - 96 * 0.7 - 8);
+  (mock.apps.at(-1) as Application).stage.emit('pointertap', {} as never);
+  assertBodiesUnchanged();
+  expect(window.__mapStats.nameLabels).toBe(0);
+  map.select(w.disciples[0].id);
+  assertBodiesUnchanged();
+  map.reset();
+  map.draw(w);
+  expect(window.__mapStats.namedDiscipleIds).toEqual([]);
+  map.destroy();
+});
 
 it('Clean1 actual motion controller samples 3 seeds, idle/work, interruptions and arrivals for 1200 seconds each', async () => {
   let samples = 0,

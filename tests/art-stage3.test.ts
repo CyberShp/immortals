@@ -1,10 +1,9 @@
 import { describe, it, expect } from 'vitest';
-import { readFile } from 'node:fs/promises';
 import sharp from 'sharp';
 import { headSpecks } from '../scripts/alpha-components';
 import { assetUrl, portraitFile, eventIcon, artImage } from '../src/app/art';
 import { discipleArtFile } from '../src/render/world-scale';
-import { placeNames } from '../src/render/layout';
+import { overheadNames } from '../src/render/layout';
 import roster from '../data/roster.json';
 import events from '../data/events.json';
 describe('W3 presentation', () => {
@@ -69,14 +68,12 @@ describe('W3 presentation', () => {
     for (const p of [0, 12, 13, 17, 18]) rgba[p * 4 + 3] = 1;
     expect(headSpecks(rgba, 5, 5)).toEqual([0]);
   });
-  it('map names stay below feet, clear of female canvas top at every scale', async () => {
-    const source = await readFile('src/render/map.ts', 'utf8');
-    expect(source).toMatch(/row: 0,/);
+  it('inspected names retain fixed clearance above the female canvas at every scale', () => {
     for (const height of [24, 32, 67.2, 96]) {
-      const [box] = placeNames([
+      const [box] = overheadNames([
         { x: 100, y: 100, name: '白芷', height, row: 0 },
       ]);
-      expect(box.y).toBeGreaterThan(100);
+      expect(box.y + box.height).toBe(100 - height - 8);
     }
   });
 });

@@ -126,6 +126,7 @@ export async function start() {
   };
   function closeCard() {
     cardId = undefined;
+    map?.select();
     el('disciple-card').hidden = true;
   }
   function closeAll() {
@@ -189,6 +190,7 @@ export async function start() {
     if (!d) return;
     dialog.close();
     cardId = id;
+    map?.select(id);
     const card = el('disciple-card');
     card.hidden = false;
     card.innerHTML = `${portrait(d)}<strong>${escape(d.name)}</strong><p>${d.realm.major}${d.realm.layer}层 · ${d.state.behavior}</p><div class="card-needs">${needs(d)}</div><button data-detail="${id}">详情</button><button data-follow="${id}">定位</button>`;
