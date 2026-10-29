@@ -70,7 +70,8 @@ it('reports dorm to hall walking duration', () => {
     seconds: walkTimeSeconds(a, b),
   });
 });
-it('four source dimensions and world budget', async () => {
+// 原 world.webp ≤1.5MB 上限：已取消预算，指挥官 2026-10-30 02:26 决定；只保留尺寸校验并报告体积。
+it('four source dimensions and world map size report', async () => {
   for (const file of [
     'map_main_clean_v1.jpg',
     'map_island_north_v1.jpg',
@@ -84,9 +85,9 @@ it('four source dimensions and world budget', async () => {
   }
   const m = await sharp('public/assets/map/world.webp').metadata();
   expect([m.width, m.height]).toEqual([3200, 1400]);
-  expect((await stat('public/assets/map/world.webp')).size).toBeLessThanOrEqual(
-    1500000,
-  );
+  console.log({
+    worldWebpBytes: (await stat('public/assets/map/world.webp')).size,
+  });
 });
 it('alchemy actual alpha masks avoid meditation and cliff', async () => {
   for (const b of buildings.filter((b) => b.file.includes('alchemy'))) {

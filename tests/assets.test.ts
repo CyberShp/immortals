@@ -65,7 +65,8 @@ describe('Iris assets', () => {
     expect(behaviorPose('修炼', true, WALK_FRAME_MS)).toBe('walk-pass');
     expect(behaviorPose('修炼', true, WALK_FRAME_MS * 2)).toBe('walk-step');
   });
-  it('the whole public/assets directory is under 5MB and agrees with manifest', async () => {
+  // 原“public/assets 低于 5MB”上限：已取消预算，指挥官 2026-10-30 02:26 决定；只保留与 manifest 一致性校验并报告体积。
+  it('the whole public/assets directory agrees with manifest', async () => {
     async function bytes(dir: URL): Promise<number> {
       let total = 0;
       for (const e of await readdir(dir, { withFileTypes: true })) {
@@ -76,7 +77,7 @@ describe('Iris assets', () => {
     }
     const total = await bytes(root);
     expect(total).toBe(manifest.totalBytes);
-    expect(total).toBeLessThan(5_000_000);
+    console.log({ publicAssetsBytes: total });
   });
   it('68 retained originals are byte-identical to the read-only source', async () => {
     const originals = manifest.files.filter((f) => f.file === f.source);

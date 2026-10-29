@@ -7,7 +7,6 @@ import {
 } from 'node:fs/promises';
 import { format } from 'prettier';
 import { tsImport } from 'tsx/esm/api';
-import assert from 'node:assert/strict';
 const {
   worldMap,
   inPolygon,
@@ -52,7 +51,7 @@ const firstLoadUpperBound = await Promise.all(
   files.map(async (file) => ({ file, bytes: (await stat(file)).size })),
 );
 const bytes = firstLoadUpperBound.reduce((n, f) => n + f.bytes, 0);
-assert.ok(bytes <= 2500000, `Upper bound ${bytes}`);
+// 首屏静态上界只报告不断言：已取消预算，指挥官 2026-10-30 02:26 决定（原 ≤2,500,000）。
 const report = {
   areas,
   areaSampling: 4,
@@ -75,6 +74,6 @@ await writeFile(
 );
 await appendFile(
   'STATUS.md',
-  `- ${new Date().toLocaleString('sv-SE', { timeZone: 'Asia/Shanghai' })} W1 净可走面积（4px 栅格，扣建筑底座/地块与障碍，单位²）：${JSON.stringify(areas)}；总计主岛 ${report.totalAreaRatio.toFixed(3)} 倍，未达 3 倍；首屏静态保守上界 ${bytes} bytes（全部 bundles+实际地图/建筑/弟子+所有小饰品），≤2.5MB，选整图；浏览器网络实测待外部 e2e。\n`,
+  `- ${new Date().toLocaleString('sv-SE', { timeZone: 'Asia/Shanghai' })} W1 净可走面积（4px 栅格，扣建筑底座/地块与障碍，单位²）：${JSON.stringify(areas)}；总计主岛 ${report.totalAreaRatio.toFixed(3)} 倍，未达 3 倍；首屏静态保守上界 ${bytes} bytes（全部 bundles+实际地图/建筑/弟子+所有小饰品，仅报告，预算已取消），选整图；浏览器网络实测待外部 e2e。\n`,
 );
 console.log(report.trip, areas, bytes);

@@ -59,6 +59,8 @@ Node/sharp 读取 public/assets 实际 WebP，以每 4 逻辑 px 网格遍历所
 
 ## 验证与体积
 
+> **已取消预算，指挥官 2026-10-30 02:26 决定**：不再设首屏体积（1.6 MB / 2.5 MB）、public/assets 总量（5 MB）、world.webp（1.5 MB）及贴图/图集内存上限，以后不以体积为由删减美术或动画帧。下文各轮的“预算/限额/上限”数字均为当时的历史记录，现只作参考；相关脚本与测试已改为只报告不失败。首屏仍须能正常打开，能后台加载的资源放后台加载。
+
 本轮不运行浏览器。scripts/e2e.mjs 保留原 01–06 与 --soak，更新 08–12，新增 13 全景、14 拖动及滚轮；报告每张美术截图的地图/镜头状态以及 manifest 建筑表。首屏字节仍以 Resource Timing decodedBodySize 为准。404 测试补充名字和光环计数。
 
 旧 screenshots 报告属于上一轮，不能作为本轮通过证据；本轮浏览器截图、交互及首屏体积等待外部执行。当前 public/assets 总计 794378 字节（含 manifest），低于 5MB。Node 测试验证真实图片 alpha、裁切、布局、镜头边界及地图调度；sim 输出执行前后逐字比较。
@@ -99,7 +101,7 @@ npm run lint
 
 **坐标约定**：上述 points 是桥头对接定位点。为落实“从锚点向岛内压入”，实际桥面在两端沿轴延伸 10px；世界可走多边形包含这 10px。报告同时记录实际精灵 alpha 的轴向范围，测试要求含旋转取整后仍为 8–12px（不把模糊投影算作桥面）。原始岛图在北、西、东岛侧已画有木质引桥，因此这些位置是原图不透明岛面/木引桥，不是纯草地；测试同时核对岛顶可走多边形和原始岛图的非背景像素，不用“JPEG 处处 alpha=255”充数。主岛侧三个接点在草地上。
 
-构建直接用 `build-world.mjs` 从源岛图合成的 canvas 加新桥及派生阴影，整图按原 HEAD 编码：WebP quality 86、effort 6，若超过 1.5MB 则每次降 5，低于 35 报错；小地图从未压缩合成图缩至 320×140，quality 75。两份旧基线 fixture 已删除，构建不读取 Git 或旧世界图。`docs/world-build.json` 记录实际 quality/字节数，`docs/bridge-build.json` 记录变换、接岸和右栏杆 alpha 检查。现有世界几何保持不变，`npm run world` 不重写岛轮廓、资源点或建筑位。
+构建直接用 `build-world.mjs` 从源岛图合成的 canvas 加新桥及派生阴影，整图按原 HEAD 编码：WebP quality 86、effort 6，若超过 1.5MB 则每次降 5，低于 35 报错（历史描述；现行 build-bridges.mjs 固定 quality 86，无体积分支；已取消预算，指挥官 2026-10-30 02:26 决定）；小地图从未压缩合成图缩至 320×140，quality 75。两份旧基线 fixture 已删除，构建不读取 Git 或旧世界图。`docs/world-build.json` 记录实际 quality/字节数，`docs/bridge-build.json` 记录变换、接岸和右栏杆 alpha 检查。现有世界几何保持不变，`npm run world` 不重写岛轮廓、资源点或建筑位。
 
 桥外回归测试通过 `git show` 读取 Bridge1 开始时的 HEAD（固定为 `a2b79f6381cf1ae006fed537686651e296433c39`，避免后续提交让比较基线跟着移动）。RGB 通道绝对差按 0–255 统计：主图 MAE ≤1.5、99 分位 ≤8，实测 0.299907／5；小地图 MAE ≤1.5、99 分位 ≤12，实测 1.166200／11。小地图 quality 75 下的缩采样及编码块传播使尾部差异稍高，因此单独使用 12，主图阈值没有放宽。另检查旧拼装桥全部覆盖范围（含 25px 边界）都落在桥区内，并将删除的东桥尾段与原岛图校色像素比较；旧 HEAD 拼装结果会被该检查拒绝。world.json 非桥字段仍逐字对照。
 
@@ -372,3 +374,14 @@ v1 原稿自带的旧桥由 v2 原像素替换。原管线无旧桥专用遮盖/
 ## e704264 人物与台基回归修复
 
 本轮不改图片、建筑位置或sim。行走源图默认朝左，按资源朝向翻转；步频改为实际脚点位移累计，stride=0.7×渲染身高（默认47.04px）；台基/栏杆/台阶像素测量后加18px鞋尖安全半径，以render覆盖表替代旧四点菱形。建筑排序改用台基前沿，按Iris补充，台基/台阶/静修室地板都在地面层，主体只保留屋身/屋顶及前立柱。完整失败证据、方向列表、世界坐标几何与入口、分步提交边界、--walk/--pedestal命令见 `docs/RENDER-BUGFIXES.md`。本机Chrome已真实运行--pedestal（8张2x截图）与四向录帧。
+
+## 体积与内存预算取消（2026-10-30）
+
+已取消预算，指挥官 2026-10-30 02:26 决定。改动：
+
+- `scripts/first-screen-budget.mjs`：删除 `bytes <= 2_500_000` 断言，只输出静态首屏上界（`limit: null`）。
+- `scripts/e2e.mjs`：删除 `firstLoadBytes <= 2_500_000` 断言，改为打印 `firstLoadBytes`；`e2e-report.json` 照旧记录分类字节数。首屏资源清单相关断言（例如首屏不加载头像/事件图标）保留，它们约束的是加载时机，不是体积。
+- `scripts/check-world.mjs`：删除 `bytes <= 2500000` 断言，只报告。
+- `tests/assets.test.ts`：删除 public/assets `< 5_000_000`，保留与 `manifest.totalBytes` 一致性校验。
+- `tests/world.test.ts`：删除 world.webp `<= 1500000`，保留尺寸校验并打印字节数。
+- 仓库中未发现贴图/图集内存上限常量，也未发现 manifest/build 脚本中的 totalBytes 上限（`totalBytes` 只是自引用统计）。

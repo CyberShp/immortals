@@ -1,7 +1,7 @@
 // Conservative on-disk upper bound, not browser Resource Timing measurement.
+// 只报告不断言：已取消预算，指挥官 2026-10-30 02:26 决定（原 ≤2,500,000 bytes 失败条件已删除）。
 // Includes ALL JS chunks even though some renderers are loaded on demand.
 import { readFile, readdir, stat } from 'node:fs/promises';
-import assert from 'node:assert/strict';
 const manifest = JSON.parse(
   await readFile('public/assets/manifest.json', 'utf8'),
 );
@@ -20,14 +20,14 @@ const paths = new Set([
 ]);
 let bytes = 0;
 for (const file of paths) bytes += (await stat(`dist/${file}`)).size;
-assert.ok(bytes <= 2_500_000, `Static first-screen upper bound ${bytes}`);
 console.log(
   JSON.stringify(
     {
       method: 'static upper bound; all bundles included; browser not run',
       files: paths.size,
       bytes,
-      limit: 2_500_000,
+      limit: null,
+      note: '已取消预算，指挥官 2026-10-30 02:26 决定',
     },
     null,
     2,

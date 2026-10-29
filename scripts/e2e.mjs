@@ -875,7 +875,7 @@ try {
   page.off('response', countResponse);
   await Promise.all(byteReads);
   // Playwright response bodies can be empty for fetch()-loaded images, so the
-  // byte budget uses the browser's own Resource Timing sizes instead.
+  // first-load byte report uses the browser's own Resource Timing sizes instead.
   const timing = await page.evaluate(() =>
     [
       ...performance.getEntriesByType('navigation'),
@@ -934,7 +934,8 @@ try {
     baseResource.bytes,
     (await stat('dist/assets/map/world.webp')).size,
   );
-  assert.ok(firstLoadBytes <= 2_500_000, `First load: ${firstLoadBytes} bytes`);
+  // 首屏体积只报告不断言：已取消预算，指挥官 2026-10-30 02:26 决定（原 ≤2,500,000 bytes）。
+  console.log({ firstLoadBytes });
   const shot = async (name, fullPage = true) => {
     if (/^0[1-6]-/.test(name)) {
       await page.waitForFunction(() => !!window.__camera && window.__mapReady);
@@ -1505,7 +1506,9 @@ try {
         2,
       ) + '\n',
     );
-    console.log('原六项交互、美术截图、首屏体积及 404 降级断言通过。');
+    console.log(
+      '原六项交互、美术截图及 404 降级断言通过（首屏体积只报告，预算已取消）。',
+    );
   }
 } catch (error) {
   if (!soak)
