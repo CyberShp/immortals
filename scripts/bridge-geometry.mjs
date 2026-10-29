@@ -30,7 +30,10 @@ export function segments(bridge) {
     const length = Math.hypot(end[0] - start[0], end[1] - start[1]);
     const u = [(end[0] - start[0]) / length, (end[1] - start[1]) / length];
     const a = start.map(
-      (v, c) => v - u[c] * (i === 0 ? landingOverlap : 9 - platformRadius(u)),
+      (v, c) =>
+        v -
+        u[c] *
+          (i === 0 ? landingOverlap : platform.overlap - platformRadius(u)),
     );
     const b = end.map(
       (v, c) =>
@@ -38,7 +41,7 @@ export function segments(bridge) {
         u[c] *
           (i === bridge.points.length - 2
             ? landingOverlap
-            : 9 - platformRadius(u.map((v) => -v))),
+            : platform.overlap - platformRadius(u.map((v) => -v))),
     );
     return { a, b, u, length: Math.hypot(b[0] - a[0], b[1] - a[1]) };
   });

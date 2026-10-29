@@ -1,6 +1,7 @@
 import { expect, it } from 'vitest';
 import sharp from 'sharp';
 import { execFileSync } from 'node:child_process';
+import platforms from '../scripts/platform-geometry.json';
 import landing from '../docs/east-v2-landing.json';
 import bridgeReport from '../docs/bridge-build.json';
 it('v2 grass supports the full 40px deck at least 10px beyond its cliff-top boundary', async () => {
@@ -46,6 +47,14 @@ it('v2 recomposition preserves pixels outside the east replacement region within
     n = 0;
   for (let y = 0; y < 1400; y++)
     for (let x = 0; x < 3200; x++) {
+      // Round platform replacement is intentional; retain the same codec tolerance elsewhere.
+      if (
+        platforms.joints.some(
+          (j) =>
+            Math.abs(x - j.center[0]) < 125 && Math.abs(y - j.center[1]) < 110,
+        )
+      )
+        continue;
       if (x >= 2290 && x <= 2495 && y >= 945 && y <= 1120) continue;
       for (let c = 0; c < 3; c++) {
         const i = (y * 3200 + x) * 3 + c;

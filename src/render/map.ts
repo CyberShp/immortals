@@ -485,15 +485,7 @@ export async function createMap(
     ground.zIndex = -1000;
 
     scene.addChild(ground);
-    for (const joint of platform.joints) {
-      const sprite = art(platform.file, platform.scale);
-      if (sprite) {
-        sprite.position.set(...(joint.center as [number, number]));
-        sprite.zIndex = -950;
-        sprite.eventMode = 'none';
-        scene.addChild(sprite);
-      }
-    }
+    // Round platforms are baked below bridges in world.webp.
     const gate = art(gateArt.file, 1);
     if (gate) {
       gate.position.set(gateArt.crop[0], gateArt.crop[1]);

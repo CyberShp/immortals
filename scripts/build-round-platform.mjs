@@ -3,7 +3,7 @@ import { readFile, writeFile, mkdir } from 'node:fs/promises';
 import { execFileSync } from 'node:child_process';
 import { format } from 'prettier';
 import { finishEdges } from './grounded-edge.mjs';
-const spec = JSON.parse(await readFile('scripts/platform-source.json'));
+const spec = JSON.parse(await readFile('scripts/round-platform-source.json'));
 const world = JSON.parse(await readFile('data/world.json'));
 function inside([x, y], p) {
   let c = false;
@@ -47,23 +47,14 @@ for (let y = 0; y < info.height; y++)
         inside(p, poly) ? Math.min(1, distance(p, poly) / spec.feather) : 0,
       ),
     );
-    if (
-      spec.holes.some((h) => inside(p, h)) &&
-      !spec.components.slice(5).some((poly) => inside(p, poly))
-    )
-      a = 0;
-    // Hand-defined geometric feather on the three fading post feet, not a colour key.
-    for (const [l, r, start, end] of [
-      [246, 292, 480, 555],
-      [390, 409, 550, 610],
-      [552, 601, 716, 773],
-      [861, 908, 480, 546],
-    ])
+    // Geometric fades preserve the source's fading beams without colour keying.
+    for (const [l, r, start, end] of spec.fades)
       if (x >= l && x <= r && y > start)
         a *= Math.max(0, 1 - (y - start) / (end - start));
+    if (spec.holes.some((h) => inside(p, h))) a = 0;
     data[i + 3] = Math.round(a * 255);
   }
-const crop = [236, 120, 682, 655];
+const crop = spec.crop;
 const cut = await sharp(data, { raw: info })
   .extract({ left: crop[0], top: crop[1], width: crop[2], height: crop[3] })
   .raw()
@@ -75,17 +66,21 @@ const encoded = execFileSync(
   { input: pixels, maxBuffer: 10e6 },
 );
 await mkdir('public/assets/bridge', { recursive: true });
-await writeFile('public/assets/bridge/platform-map@2x.webp', encoded);
-const lengths = spec.deck.map((a, i) =>
-  Math.hypot(
-    a[0] - spec.deck[(i + 1) % 4][0],
-    a[1] - spec.deck[(i + 1) % 4][1],
-  ),
+await writeFile('public/assets/bridge/platform-round.webp', encoded);
+const bridgePostWorldSamples = spec.bridgePostMeasurements.flatMap((m) =>
+  m.ranges.map(([a, b]) => ((b - a) * 40) / m.walkableWidth),
 );
-const scale = 50 / (lengths.reduce((a, b) => a + b) / 4);
-const local = spec.deck.map((p) =>
-  p.map((v, c) => (v - spec.anchor[c]) * scale),
-);
+const bridgePostWorld =
+  bridgePostWorldSamples.reduce((a, b) => a + b) /
+  bridgePostWorldSamples.length;
+const postDiameter =
+  spec.postMeasurements.reduce((a, p) => a + p.diameter, 0) /
+  spec.postMeasurements.length;
+const scale = bridgePostWorld / postDiameter;
+const local = Array.from({ length: 64 }, (_, i) => [
+  Math.cos((i * Math.PI) / 32) * spec.ellipse[0] * scale,
+  Math.sin((i * Math.PI) / 32) * spec.ellipse[1] * scale,
+]);
 const joints = world.bridges.flatMap((b) =>
   b.points.slice(1, -1).map((center, i) => {
     const prev = b.points[i],
@@ -102,17 +97,30 @@ const joints = world.bridges.flatMap((b) =>
       angles: [angle(prev, center), angle(center, next)],
       polygon: local.map((p) => p.map((v, c) => v + center[c])),
       scale,
-      sideLengths: lengths.map((l) => l * scale),
-      overlap: 9,
+      overlap: 25,
     };
   }),
 );
 const config = {
-  file: 'bridge/platform-map@2x.webp',
+  file: 'bridge/platform-round.webp',
   size: crop.slice(2),
   anchor: spec.anchor.map((v, c) => v - crop[c]),
   scale,
   deckLocal: local,
+  baked: true,
+  overlap: 25,
+  bridgePostWorld,
+  bridgePostWorldSamples,
+  postDiameterWorld: postDiameter * scale,
+  deckWidth: spec.ellipse[0] * 2 * scale,
+  deckRatio: (spec.ellipse[0] * 2 * scale) / 40,
+  targetDeckScale: 60 / (spec.ellipse[0] * 2),
+  targetDeckPostRatio:
+    ((60 / (spec.ellipse[0] * 2)) * postDiameter) / bridgePostWorld,
+  posts: spec.postMeasurements.map((p) => ({
+    ...p,
+    local: p.center.map((v, c) => (v - spec.anchor[c]) * scale),
+  })),
   joints,
   northScreenshot: [1575, 735],
 };
@@ -128,8 +136,11 @@ const f = {
   scale: 1,
   source: spec.source,
   crop,
-  platformDeck: spec.deck,
+  platformDeck: local,
 };
+manifest.files = manifest.files.filter(
+  (e) => e.file !== 'bridge/platform-map@2x.webp',
+);
 const index = manifest.files.findIndex((e) => e.file === f.file);
 if (index < 0) manifest.files.push(f);
 else manifest.files[index] = f;

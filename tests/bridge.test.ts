@@ -8,6 +8,7 @@ import manifest from '../public/assets/manifest.json';
 import report from '../docs/bridge-build.json';
 import {
   worldMap,
+  platformWalkables,
   inPolygon,
   walkable,
   findPath,
@@ -125,7 +126,11 @@ it('deck centerlines are walkable and both rail exteriors are blocked over the g
             p[0] - ((z[1] - a[1]) / len) * d * sign,
             p[1] + ((z[0] - a[0]) / len) * d * sign,
           ];
-          if (islandAt(q)) continue; // Grass next to a shore is legitimately walkable.
+          if (
+            islandAt(q) ||
+            platformWalkables.some((p) => inPolygon(q, p.polygon))
+          )
+            continue; // Grass next to a shore is legitimately walkable.
           expect(walkable(q), `${b.id} outside ${q}`).toBe(false);
           outsideChecks++;
         }

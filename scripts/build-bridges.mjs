@@ -181,6 +181,26 @@ export async function buildBridges(canvas, islands, calibration) {
       });
     }
   }
+  await blank(3200, 1400)
+    .composite(layers)
+    .png()
+    .toFile('/tmp/xianfu-round-bridges.png');
+  await sharp(canvas, { raw: { width: 3200, height: 1400, channels: 3 } })
+    .png()
+    .toFile('/tmp/xianfu-round-islands.png');
+  // Bake shared round platforms first, then bridge shadows/decks above them.
+  const platform = JSON.parse(await readFile('scripts/platform-geometry.json'));
+  const platformArt = await sharp('public/assets/' + platform.file)
+    .resize({ width: Math.round(platform.size[0] * platform.scale) })
+    .png()
+    .toBuffer();
+  layers.unshift(
+    ...platform.joints.map((j) => ({
+      input: platformArt,
+      left: Math.round(j.center[0] - platform.anchor[0] * platform.scale),
+      top: Math.round(j.center[1] - platform.anchor[1] * platform.scale),
+    })),
+  );
   // Compose exclusively from the source-island canvas and new bridge layers.
   // HEAD's whole-image lossy pipeline, including its size fallback.
   const composed = await sharp(canvas, {

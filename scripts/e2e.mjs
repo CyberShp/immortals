@@ -735,7 +735,7 @@ async function verifyPlatforms(browser) {
         ([x, y]) => window.__camera.set({ x, y, zoom: 0.95 }),
         center,
       );
-      const path = `${bridgeOutput}/xianfu-grounded-platform-${id}-2x.png`;
+      const path = `${bridgeOutput}/xianfu-grounded-${id === 'north' ? 'platform' : 'round'}-${id}-2x.png`;
       const capture = await cleanScreenshot(
         page,
         path,
