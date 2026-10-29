@@ -67,6 +67,11 @@ try {
     );
     console.log(report);
   } else {
+    const elder = page
+      .locator('.disciple')
+      .filter({ has: page.getByRole('heading', { name: '林守拙' }) });
+    assert.match(await elder.innerText(), /178 岁/);
+    assert.match(await elder.innerText(), /余寿 6 季/);
     await shot('01-main');
     const title = await page.title();
     await page.keyboard.press('Backquote');

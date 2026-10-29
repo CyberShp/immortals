@@ -31,3 +31,7 @@ export function formatLog(text: string) {
         formatResource(Number(value), keys[label]) + gap + label,
     );
 }
+
+export function formatAge(ageSeasons: number) {
+  return `${Math.floor(ageSeasons / 4)} 岁`;
+}

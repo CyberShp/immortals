@@ -100,6 +100,8 @@ export function applyOffline(
       },
     });
   for (const d of w.disciples)
+    d.realm.xp = Math.min(d.realm.xp, C.xpThreshold[d.realm.layer - 1]);
+  for (const d of w.disciples)
     for (const [id, r] of Object.entries(d.relations)) {
       const old = relationsBefore.get(`${d.id}:${id}`) ?? '平常';
       const current = relationTier(r.value);

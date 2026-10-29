@@ -135,8 +135,8 @@
   "relationTiers": [-60, -20, 20, 60],
   "scheduler": {
     "interval": 6,
-    "timeout": 30,
-    "daySteps": 15
+    "daySteps": 15,
+    "autoResolveSteps": 30
   },
   "autoBuild": [
     {
@@ -160,7 +160,20 @@
       "round": 4
     }
   ],
-  "names": ["云知秋", "叶听雨", "顾长风", "宁小满", "楚望舒", "柳归舟"],
+  "names": [
+    "云知秋",
+    "叶听雨",
+    "顾长风",
+    "宁小满",
+    "楚望舒",
+    "柳归舟",
+    "温如玉",
+    "陆小川",
+    "江晚晴",
+    "秦九歌",
+    "许清禾",
+    "方寸心"
+  ],
   "jobs": {
     "constructionPriority": 100,
     "reservePriority": 10,
@@ -170,5 +183,8 @@
     "alchemyPriority": 3,
     "fireAlchemyPriority": 6,
     "reserveConstruction": true
+  },
+  "costs": {
+    "c3BlessStone": 0
   }
 }

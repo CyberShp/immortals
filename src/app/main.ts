@@ -1,3 +1,4 @@
+import { formatAge } from '../display/format';
 import { formatResource, formatLog } from '../display/format';
 import { CONFIG as C } from '../sim/config';
 import { loadData, traitName } from '../sim/data';
@@ -10,6 +11,7 @@ import {
   build,
   buildingOrder,
   costText,
+  optionCost,
   optionAvailable,
   defaultOption,
   relationTier,
@@ -138,7 +140,7 @@ export async function start() {
     el('disciples').innerHTML = world.disciples
       .map(
         (d) =>
-          `<article class="disciple"><div class="portrait" style="border:2px solid ${C.elements[d.root.elements[0]].color}">${escape(d.name.slice(-1))}<small>占位</small></div><div class="disciple-body"><div class="name-line"><h3>${escape(d.name)}</h3><span>${d.ageSeasons / 4} 岁 · ${d.stage} · ${d.realm.major}${d.realm.layer}层</span></div><p class="detail">${d.root.grade} · ${d.root.elements.join('')} <span>${d.stage === '坐化' ? '已坐化' : d.state.behavior + ' · ' + d.state.location}</span></p><div class="needs">${(['energy', 'mood', 'drive'] as const).map((k, i) => `<label>${['精力', '心境', '道心'][i]} <meter min="0" max="100" value="${d.needs[k]}">${fmt(d.needs[k])}</meter></label>`).join('')}</div><div class="traits">${d.traits.map((t) => `<span title="占位配饰：${escape(traitDefinitions.find((x) => x.id === t)?.accessory ?? t)}">◇ ${escape(traitName(t))}</span>`).join('')}<small>修为 ${fmt(d.realm.xp)} · 余寿 ${d.remainingSeasons} 季</small></div><label class="policy">方针 <select data-policy="${d.id}" aria-label="${escape(d.name)}的方针">${['均衡', '专修', '勤工'].map((p) => `<option ${p === d.policy ? 'selected' : ''}>${p}</option>`).join('')}</select></label><p class="relations">${Object.entries(
+          `<article class="disciple"><div class="portrait" style="border:2px solid ${C.elements[d.root.elements[0]].color}">${escape(d.name.slice(-1))}<small>占位</small></div><div class="disciple-body"><div class="name-line"><h3>${escape(d.name)}</h3><span>${formatAge(d.ageSeasons)} · ${d.stage} · ${d.realm.major}${d.realm.layer}层</span></div><p class="detail">${d.root.grade} · ${d.root.elements.join('')} <span>${d.stage === '坐化' ? '已坐化' : d.state.behavior + ' · ' + d.state.location}</span></p><div class="needs">${(['energy', 'mood', 'drive'] as const).map((k, i) => `<label>${['精力', '心境', '道心'][i]} <meter min="0" max="100" value="${d.needs[k]}">${fmt(d.needs[k])}</meter></label>`).join('')}</div><div class="traits">${d.traits.map((t) => `<span title="占位配饰：${escape(traitDefinitions.find((x) => x.id === t)?.accessory ?? t)}">◇ ${escape(traitName(t))}</span>`).join('')}<small>修为 ${fmt(d.realm.xp)} · 余寿 ${d.remainingSeasons} 季</small></div><label class="policy">方针 <select data-policy="${d.id}" aria-label="${escape(d.name)}的方针">${['均衡', '专修', '勤工'].map((p) => `<option ${p === d.policy ? 'selected' : ''}>${p}</option>`).join('')}</select></label><p class="relations">${Object.entries(
             d.relations,
           )
             .map(
@@ -231,7 +233,7 @@ export async function start() {
     const event = world.events.find((e) => e.id === id);
     if (!event) return;
     show(
-      `<p class="eyebrow">◇ ${escape(event.kind)} · 图标占位</p><h2>${escape(event.hint)}</h2><p>${escape(event.text)}</p><div class="actions">${event.options.map((o, i) => `<button data-choice="${i}" ${optionAvailable(world, event, i) ? '' : 'disabled'}>${escape(o)}${i === (defaultOption(world, event) < 0 ? event.defaultOption : defaultOption(world, event)) ? ' · ★默认' : ''}<small>${formatLog(costText(event.choices[i]?.cost ?? {}))}${optionAvailable(world, event, i) ? '' : ' · 条件或资源不足'}</small></button>`).join('')}</div>`,
+      `<p class="eyebrow">◇ ${escape(event.kind)} · 图标占位</p><h2>${escape(event.hint)}</h2><p>${escape(event.text)}</p><div class="actions">${event.options.map((o, i) => `<button data-choice="${i}" ${optionAvailable(world, event, i) ? '' : 'disabled'}>${escape(o)}${i === (defaultOption(world, event) < 0 ? event.defaultOption : defaultOption(world, event)) ? ' · ★默认' : ''}<small>${formatLog(costText(event.choices[i] ? optionCost(event.choices[i]) : {}))}${optionAvailable(world, event, i) ? '' : ' · 条件或资源不足'}</small></button>`).join('')}</div>`,
     );
     el('modal-body')
       .querySelectorAll<HTMLButtonElement>('[data-choice]')

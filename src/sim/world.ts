@@ -275,12 +275,25 @@ function pay(w: World, cost: EventOption['cost']) {
   for (const [k, v] of Object.entries(cost))
     w.resources[k as keyof typeof cost] -= v!;
 }
+export function optionCost(option: EventOption): EventOption['cost'] {
+  return {
+    ...option.cost,
+    ...(option.costBalance?.stone
+      ? { stone: C.costs[option.costBalance.stone] }
+      : {}),
+  };
+}
 export function optionAvailable(w: World, e: Pending, index: number) {
   const o = e.choices[index];
-  return !!o && afford(w, o.cost) && all(w, o.conditions, e.roles);
+  return !!o && afford(w, optionCost(o)) && all(w, o.conditions, e.roles);
 }
 export function defaultOption(w: World, e: Pending) {
-  return e.choices.findIndex((o, i) => o.default && optionAvailable(w, e, i));
+  const preferred = e.choices.findIndex(
+    (o, i) => o.default && optionAvailable(w, e, i),
+  );
+  return preferred >= 0
+    ? preferred
+    : e.choices.findIndex((_, i) => optionAvailable(w, e, i));
 }
 export function setPolicy(w: World, id: string, policy: Disciple['policy']) {
   if (!['均衡', '专修', '勤工'].includes(policy)) throw new Error('未知方针');
@@ -582,7 +595,13 @@ function recruit(w: World, mood = 0) {
     );
   const d = structuredClone(w.disciples[0]);
   d.id = `d${w.disciples.length}`;
-  d.name = pick(w, C.names);
+  let names = C.names.filter((name) => !w.flags[`recruitName:${name}`]);
+  if (!names.length) {
+    for (const name of C.names) delete w.flags[`recruitName:${name}`];
+    names = C.names;
+  }
+  d.name = pick(w, names);
+  w.flags[`recruitName:${d.name}`] = true;
   d.gender = random(w.rng) < 0.5 ? '男' : '女';
   d.ageSeasons = 56 + Math.floor(random(w.rng) * 48);
   d.lifespanSeasons = 400;
@@ -611,6 +630,13 @@ function recruit(w: World, mood = 0) {
   w.disciples.push(d);
   log(w, `${d.name}拜入山门。`);
 }
+export function rewardAmount(resource: string, value: number) {
+  return resource === 'pill'
+    ? Math.floor(value)
+    : ['stone', 'herb'].includes(resource)
+      ? Math.round(value)
+      : value;
+}
 type EffectContext = {
   w: World;
   e: Pending;
@@ -623,7 +649,7 @@ const handlers: Record<Effect['type'], (f: Effect, c: EffectContext) => void> =
   {
     resources: (f, { w }) => {
       for (const [k, v] of Object.entries(f.values ?? {}))
-        w.resources[k as keyof World['resources']] += v;
+        w.resources[k as keyof World['resources']] += rewardAmount(k, v);
     },
     need: (f, { targets }) =>
       targets.forEach((d) => {
@@ -658,15 +684,15 @@ const handlers: Record<Effect['type'], (f: Effect, c: EffectContext) => void> =
         injury = 0.15 + bonus(a, 'injury');
       const multi = a.root.elements.includes('金') ? 1.2 : 1;
       if (r < lucky) {
-        w.resources.stone += 60 * multi;
-        w.resources.pill += multi;
+        w.resources.stone += rewardAmount('stone', 60 * multi);
+        w.resources.pill += rewardAmount('pill', multi);
         w.resources.reputation += 5;
       } else if (r >= 1 - injury) {
-        w.resources.stone += 10 * multi;
+        w.resources.stone += rewardAmount('stone', 10 * multi);
         a.state.injuredUntil = w.tick + 60;
       } else {
-        w.resources.stone += 30 * multi;
-        w.resources.herb += 15 * multi;
+        w.resources.stone += rewardAmount('stone', 30 * multi);
+        w.resources.herb += rewardAmount('herb', 15 * multi);
       }
       a.realm.xp += bonus(a, 'adventureXp');
       a.state.awayUntil = 0;
@@ -709,7 +735,10 @@ const handlers: Record<Effect['type'], (f: Effect, c: EffectContext) => void> =
           relation(x, y).tags.push(f.key!);
     },
     lifespan: (f, { a }) => {
-      if (a.remainingSeasons > 0) a.remainingSeasons += Number(f.value);
+      if (a.remainingSeasons > 0) {
+        a.remainingSeasons += Number(f.value);
+        a.lifespanSeasons += Number(f.value);
+      }
     },
     concern: (_, { a, b }) => {
       if (relation(a, b).value >= 40) b.needs.mood = clamp(b.needs.mood - 5);
@@ -747,7 +776,10 @@ const handlers: Record<Effect['type'], (f: Effect, c: EffectContext) => void> =
         Number(w.flags[`retry:${e.definitionId}`] ?? 0) + 1;
     },
     treasure: (f, { w, a }) => {
-      w.resources.stone += Number(f.value) * traitEffect(a, 'treasure');
+      w.resources.stone += rewardAmount(
+        'stone',
+        Number(f.value) * traitEffect(a, 'treasure'),
+      );
     },
     motivation: (f, { w, a }) => {
       a.flags.motivationUntil = w.tick + Number(f.value) * 30;
@@ -782,7 +814,7 @@ export function resolveEvent(
     )
   )
     return false;
-  pay(w, option.cost);
+  pay(w, optionCost(option));
   for (const f of option.effects) {
     const targets =
       f.target === 'all'
@@ -1193,10 +1225,8 @@ export function step(w: World, ctx: StepContext = {}): World {
   }
   for (const e of [...w.events]) {
     if (ctx.offline && e.chain) continue;
-    if (ctx.offline || w.tick - e.createdTick >= 30) {
-      let choice = defaultOption(w, e);
-      if (choice < 0)
-        choice = e.choices.findIndex((_, i) => optionAvailable(w, e, i));
+    if (ctx.offline || w.tick - e.createdTick >= C.scheduler.autoResolveSteps) {
+      const choice = defaultOption(w, e);
       if (choice >= 0) resolveEvent(w, e.id, choice, ctx);
     }
   }
@@ -1204,9 +1234,7 @@ export function step(w: World, ctx: StepContext = {}): World {
   if (ctx.offline)
     for (const e of [...w.events])
       if (!e.chain) {
-        let i = defaultOption(w, e);
-        if (i < 0)
-          i = e.choices.findIndex((_, index) => optionAvailable(w, e, index));
+        const i = defaultOption(w, e);
         if (i >= 0) resolveEvent(w, e.id, i, ctx);
       }
   for (const n of [20, 50])

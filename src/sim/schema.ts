@@ -169,6 +169,10 @@ export const optionSchema = z
     effects: z.array(effectSchema),
     default: z.boolean(),
     cost: costSchema,
+    costBalance: z
+      .object({ stone: z.enum(['c3BlessStone']).optional() })
+      .strict()
+      .optional(),
     conditions: z.array(conditionSchema),
   })
   .strict();

@@ -708,7 +708,7 @@
         "conditions": []
       }
     ],
-    "priority": 1,
+    "priority": 3,
     "cooldown": 0,
     "pity": 0,
     "branches": []
@@ -888,7 +888,7 @@
         {
           "op": "completed",
           "key": "EV_A2",
-          "value": 1
+          "value": 2
         }
       ],
       "chance": 1,
@@ -1124,12 +1124,12 @@
         {
           "op": "completed",
           "key": "EV_B1",
-          "value": 0
+          "value": 1
         },
         {
           "op": "field",
           "key": "remainingSeasons",
-          "value": 2,
+          "value": 3,
           "compare": "lte",
           "who": "A"
         }
@@ -1322,7 +1322,7 @@
         "conditions": [
           {
             "op": "trait",
-            "values": ["T_AMOROUS", "T_WINE"]
+            "values": ["T_AMOROUS"]
           }
         ]
       },
@@ -1345,20 +1345,14 @@
         {
           "op": "field",
           "key": "state.behavior",
-          "value": "社交",
-          "compare": "eq",
-          "who": "A"
-        },
-        {
-          "op": "field",
-          "key": "state.behavior",
           "value": "修炼",
           "compare": "eq",
           "who": "B"
         },
         {
-          "op": "alone",
-          "who": "B"
+          "op": "building",
+          "key": "B_MEDIT",
+          "value": 1
         }
       ],
       "chance": 1,
@@ -1372,7 +1366,7 @@
         "effects": [
           {
             "type": "relation",
-            "value": 15
+            "value": 20
           }
         ],
         "cost": {},
@@ -1400,7 +1394,7 @@
     ],
     "priority": 3,
     "cooldown": 0,
-    "pity": 3,
+    "pity": 2,
     "branches": []
   },
   {
@@ -1413,7 +1407,7 @@
         "conditions": [
           {
             "op": "trait",
-            "values": ["T_AMOROUS", "T_WINE"]
+            "values": ["T_AMOROUS"]
           }
         ]
       },
@@ -1431,11 +1425,11 @@
         {
           "op": "completed",
           "key": "EV_C1",
-          "value": 0
+          "value": 1
         },
         {
           "op": "relation",
-          "value": 30,
+          "value": 20,
           "compare": "gte"
         },
         {
@@ -1453,6 +1447,10 @@
       {
         "label": "默许",
         "effects": [
+          {
+            "type": "relation",
+            "value": 10
+          },
           {
             "type": "studyTogether",
             "value": 2
@@ -1493,7 +1491,7 @@
         "conditions": [
           {
             "op": "trait",
-            "values": ["T_AMOROUS", "T_WINE"]
+            "values": ["T_AMOROUS"]
           }
         ]
       },
@@ -1515,7 +1513,7 @@
         },
         {
           "op": "relation",
-          "value": 60,
+          "value": 40,
           "compare": "gte"
         }
       ],
@@ -1545,11 +1543,12 @@
             }
           }
         ],
-        "cost": {
-          "stone": 30
-        },
+        "cost": {},
         "default": true,
-        "conditions": []
+        "conditions": [],
+        "costBalance": {
+          "stone": "c3BlessStone"
+        }
       },
       {
         "label": "再等等",
@@ -1599,7 +1598,7 @@
         {
           "op": "field",
           "key": "needs.energy",
-          "value": 50,
+          "value": 40,
           "compare": "gte",
           "who": "A"
         }
@@ -1653,7 +1652,7 @@
     ],
     "priority": 3,
     "cooldown": 0,
-    "pity": 3,
+    "pity": 2,
     "branches": []
   },
   {

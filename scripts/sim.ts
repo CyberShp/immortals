@@ -7,6 +7,7 @@ import {
   defaultOption,
   type World,
 } from '../src/sim/world';
+import { eventDefinitions } from '../src/sim/catalog';
 import { writeFileSync } from 'node:fs';
 const args = process.argv.slice(2);
 const arg = (k: string, d: number) =>
@@ -19,8 +20,7 @@ for (const n of [rounds, count, seed])
     throw new Error('参数必须为 0 至 10000 的整数');
 const auto = (w: World) => {
   for (const e of [...w.events]) {
-    let i = defaultOption(w, e);
-    if (i < 0) i = e.choices.findIndex((o) => Object.keys(o.cost).length === 0);
+    const i = defaultOption(w, e);
     if (i >= 0) resolveEvent(w, e.id, i);
   }
 };
@@ -76,11 +76,12 @@ if (args.includes('--seeds')) {
     'first:EV_SEC_02',
     'reputation:20',
     'reputation:50',
+    ...eventDefinitions.map((e) => `first:${e.id}`),
   ];
   const report = {
     模式: args.includes('--idle')
       ? '零操作超时默认'
-      : '出现即选默认（不可负担时选免费项）',
+      : '出现即选默认（不可负担时选第一个付得起的选项）',
     种子数: count,
     轮数: rounds,
     主殿Lv2完成率:
@@ -94,6 +95,12 @@ if (args.includes('--seeds')) {
       ]),
     ),
     每局完成数分布: distribution,
+    SEC_02命中率:
+      results.filter((w) => w.flags['first:EV_SEC_02'] !== undefined).length /
+      count,
+    每局至少三条比例:
+      results.filter((w) => ends.filter((id) => complete(w, id)).length >= 3)
+        .length / count,
     每局至少三条: results.every(
       (w) => ends.filter((id) => complete(w, id)).length >= 3,
     ),

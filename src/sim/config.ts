@@ -18,7 +18,26 @@ function shape(value: unknown): z.ZodType {
     )
     .strict();
 }
-export const configSchema = shape(raw);
+export const configSchema = shape(raw).superRefine((value, ctx) => {
+  const config = value as typeof raw;
+  for (const [path, n, min] of [
+    [['scheduler', 'autoResolveSteps'], config.scheduler.autoResolveSteps, 1],
+    [['costs', 'c3BlessStone'], config.costs.c3BlessStone, 0],
+  ] as const) {
+    if (!Number.isSafeInteger(n) || n < min)
+      ctx.addIssue({
+        code: 'custom',
+        path: [...path],
+        message: `必须为不小于 ${min} 的安全整数`,
+      });
+  }
+  if (config.names.length !== 12 || new Set(config.names).size !== 12)
+    ctx.addIssue({
+      code: 'custom',
+      path: ['names'],
+      message: '姓名池必须有 12 个不同姓名',
+    });
+});
 export const CONFIG = validate(
   configSchema,
   raw,

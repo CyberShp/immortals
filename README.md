@@ -1,6 +1,6 @@
-# 模拟仙府 · M2 数据与事件
+# 模拟仙府 · M2 数据与事件 v1.1
 
-纯静态宗门挂机原型。TypeScript 严格模式、Vite、PixiJS v8 小地图与原生 DOM 界面。数据、事件和营造已接入；美术仍为明确标注的占位。六轮故事完成率尚未通过设计门槛。
+纯静态宗门挂机原型。TypeScript 严格模式、Vite、PixiJS v8 小地图与原生 DOM 界面。数据、事件和营造已接入；美术仍为明确标注的占位。v1.1 默认操作的六轮故事与主殿完成率达到门槛；零操作与完整事件节奏仍有缺口，详见 `docs/M2-VALIDATION.md`。
 
 ## 运行
 
@@ -59,15 +59,24 @@ SOAK_MIN=10 SOAK_SPEED=10 node scripts/soak-long.mjs http://localhost:4173/
 
 - `/Volumes/Media/immortal-qa/design/01-gameplay-core.md`
 - `/Volumes/Media/immortal-qa/design/03-web-tech-proposal.md`
-- `/Volumes/Media/immortal-qa/design/02-systems-and-events.md`
+- `/Volumes/Media/immortal-qa/design/02-systems-and-events.md`（v1.1）
+- `/Volumes/Media/immortal-qa/design/02a-design-decisions.md`
 
 ## 数据格式
 
 新局来源为 `data/roster.json` 六人、`balance.json` 数值、`buildings.json` 建筑、`traits.json` 特质、`events.json` 事件。`data/initial.json` 仅保留为 M1 样本。所有 JSON 在加载时经 zod 校验，失败显示中文文件与字段路径；具体字段见 `src/sim/schema.ts`、`src/sim/data.ts`。设计依据另含 `/Volumes/Media/immortal-qa/design/art/ART-STYLE-WEB-v1.md`，只引用源路径。
 
-事件采用 `{id, kind, chain, step, roles, trigger, hint, text, options, priority, cooldown, pity, branches}`；`options` 含 label/effects/default/cost/conditions。例如 `{"op":"resource","key":"reputation","value":25}` 表示声望至少 25；`{"op":"any","conditions":[...]}` 表示任一条件。效果按 type 进入注册表，普通数值写 JSON，特殊规则才加代码。
+事件采用 `{id, kind, chain, step, roles, trigger, hint, text, options, priority, cooldown, pity, branches}`；`options` 含 label/effects/default/cost/conditions，可选 `costBalance` 引用数值配置。例如 `{"op":"resource","key":"reputation","value":25}` 表示声望至少 25；`{"op":"any","conditions":[...]}` 表示任一条件。效果按 type 进入注册表，普通数值写 JSON，特殊规则才加代码。
 
-弟子以季存年龄、总寿元和 remainingSeasons。模拟函数原地修改世界，同 seed 同操作可逐项复现；所有随机调用计数进入存档。自动掌门默认开启，可在设置关闭；方针只指方向，弟子自行选择动作。建筑和事件选项先验条件/成本，不允许负资源。
+弟子以季存年龄、总寿元和 remainingSeasons；年龄显示向下取整为岁，另显示余寿季数。新局长老为 714/720/6 季；延寿只加总寿元与余寿。招新十二姓名抽签不放回，用尽重置；签池使用记录在世界 flags 中持久化。模拟函数原地修改世界，同 seed 同操作可逐项复现；所有随机调用计数进入存档。自动掌门默认开启，可在设置关闭；方针只指方向，弟子自行选择动作。建筑和事件选项先验条件/成本，不允许负资源。
+
+## 待拍板参数的一处切换
+
+`data/balance.json` 的 `scheduler.autoResolveSteps` 当前为 **30**（候选 10）；`costs.c3BlessStone` 当前为 **0**（候选 10 或 30）。只改 JSON 对应数值，再重新构建/加载即可，无需修改代码。等待步数由 zod 限定为正安全整数，成本为非负安全整数。
+
+C3 选项使用 `"costBalance": {"stone":"c3BlessStone"}` 引用 `balance.costs`，UI 展示、支付判定、默认退路与实际扣款均通过 `optionCost` 读取参数。已用单测验证 10 步超时、10 灵石扣款及不足时退路。正式配置保留 30/0，等指挥官拍板。
+
+事件奖励入库时，丹药小数向下取整，灵石/灵草四舍五入；常规劳作仍按设计保留小数产出，不对整个库存取整。旧存档保持已有年龄、剧情与已锁定选项，不重写历史；验证基于 v1.1 新局。
 
 ## 接入新事件
 
@@ -85,9 +94,9 @@ npm run sim -- --seeds 100 --rounds 6 --report docs/sim-100.json
 npm run sim -- --seeds 100 --rounds 6 --idle --report docs/sim-idle-100.json
 ```
 
-默认 sim 在事件出现时立即选默认；`--idle` 才是前台 30 步超时处理，两者分别统计。默认成本不足时采用首个可用免费项。统计命令成功退出表示模拟正常运行，**不表示节奏/故事目标通过**。具体缺口与参数解释见 `docs/ARCHITECTURE.md`「待 Lore 确认」。
+默认 sim 在事件出现时立即选默认；`--idle` 才是前台 30 步超时处理，两者分别统计。默认成本不足时采用列表中第一个付得起且条件可用的选项（不限定免费），与零操作处理共用逻辑。统计命令成功退出表示模拟正常运行，**不表示节奏/故事目标通过**。统计含全部事件首次出现中位轮次（⌈步/30⌉）、命中数、A/B/C/D 完成率、完成线数分布、≥3 条比例和 SEC_02 命中率。具体缺口与 26 条决定对照见 `docs/ARCHITECTURE.md`。
 
-离线分段累计有效时间，再向下取整：十分钟 2 轮、八小时 45 轮、一天 74 轮、七天 160 轮；负时间不补算，七天封顶。每人最多两次成功小突破，不筑基、不坐化，年龄最多八季。通用事件默认结算，最多保留三个连锁决策节点，汇总含关系档位变化和十条以内提示。
+离线分段累计有效时间，再向下取整：十分钟 2 轮、八小时 45 轮、一天 74 轮、七天 160 轮；负时间不补算，七天封顶。每人最多两次成功小突破，不筑基、不坐化，年龄最多八季；离线结束每人修为按当前层截断为 100/150/200，溢出丢弃；离线不新开工程，已开工继续完成。通用事件默认结算，最多保留三个连锁决策节点，汇总含关系档位变化和十条以内提示。
 
 ## 存档与隐藏
 
