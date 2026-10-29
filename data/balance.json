@@ -136,7 +136,7 @@
   "scheduler": {
     "interval": 6,
     "daySteps": 15,
-    "autoResolveSteps": 30
+    "autoResolveSteps": 10
   },
   "autoBuild": [
     {
@@ -185,6 +185,6 @@
     "reserveConstruction": true
   },
   "costs": {
-    "c3BlessStone": 0
+    "c3BlessStone": 10
   }
 }

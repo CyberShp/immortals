@@ -47,9 +47,11 @@ function medit(w: World) {
   b.level = 1;
   b.targetLevel = 0;
 }
+const originalTimeout = C.scheduler.autoResolveSteps;
+const originalCost = C.costs.c3BlessStone;
 afterEach(() => {
-  C.scheduler.autoResolveSteps = 30;
-  C.costs.c3BlessStone = 0;
+  C.scheduler.autoResolveSteps = originalTimeout;
+  C.costs.c3BlessStone = originalCost;
 });
 describe('v1.1 条件边界', () => {
   it('B2 距 B1 满一轮且余寿不超过三轮', () => {
@@ -192,32 +194,32 @@ describe('v1.1 条件边界', () => {
   });
 });
 describe('参数、支付和寿元', () => {
-  it('超时可切换为十步，第九步仍未结算', () => {
-    C.scheduler.autoResolveSteps = 10;
+  it.each([10, 17])('超时参数 %i 步生效，前一步仍未结算', (timeout) => {
+    C.scheduler.autoResolveSteps = timeout;
     const w = fresh();
     step(w);
     const e = w.events[0];
-    advance(w, 9);
+    advance(w, timeout - 1);
     expect(w.events.some((x) => x.id === e.id)).toBe(true);
     step(w);
-    expect(w.flags[`done:${e.definitionId}`]).toBe(e.createdTick + 10);
+    expect(w.flags[`done:${e.definitionId}`]).toBe(e.createdTick + timeout);
   });
-  it('C3 成本十灵石真实扣款；不足则退到第二项且不透支', () => {
-    C.costs.c3BlessStone = 10;
+  it.each([10, 23])('C3 成本 %i 灵石真实扣款；不足走退路且关系减十', (cost) => {
+    C.costs.c3BlessStone = cost;
     const w = fresh();
-    w.resources.stone = 10;
+    w.resources.stone = cost;
     const e = pending(w, 'EV_C3');
-    expect(optionCost(e.choices[0])).toEqual({ stone: 10 });
+    expect(optionCost(e.choices[0])).toEqual({ stone: cost });
     expect(defaultOption(w, e)).toBe(0);
     resolveEvent(w, e.id, defaultOption(w, e));
     expect(w.resources.stone).toBe(0);
     expect(w.disciples[2].relations.d1.tags).toContain('道侣');
     const x = fresh();
-    x.resources.stone = 9;
+    x.resources.stone = cost - 1;
     const f = pending(x, 'EV_C3');
     expect(defaultOption(x, f)).toBe(1);
     resolveEvent(x, f.id, defaultOption(x, f));
-    expect(x.resources.stone).toBe(9);
+    expect(x.resources.stone).toBe(cost - 1);
     expect(x.disciples[2].relations.d1.value).toBe(-5);
     expect(x.flags['done:EV_C3']).toBeUndefined();
   });

@@ -34,7 +34,11 @@ describe('确定性模拟', () => {
     expect(w.resources.stone).toBe(before + 1);
     advance(w, 179);
     expect(w.disciples[5].stage).toBe('坐化');
-    expect(w.events.every((e) => w.tick - e.createdTick < 30)).toBe(true);
+    expect(
+      w.events.every(
+        (e) => w.tick - e.createdTick < CONFIG.scheduler.autoResolveSteps,
+      ),
+    ).toBe(true);
     expect(w.resources.stone).toBeLessThanOrEqual(w.capacity.stone);
   });
   it('数据错误带文件与字段路径', () => {

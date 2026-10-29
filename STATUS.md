@@ -16,3 +16,6 @@
 - 2026-10-29 09:04:06 开始：方案 2 正式数据（ADV_01 精力≥60、ADV_01/02 概率 30%），交 codex exec #7（Mac mini）
 - 2026-10-29 09:06:53 codex #7 完成；复验 build/test/lint/sim 通过，全默认达标；e2e 6 图+短 soak 已跑；开始长挂机
 - 2026-10-29 09:10:35 指挥官拍板 autoResolveSteps=10、c3BlessStone=10：中止方案 2 长挂机（改为最终参数再跑）；方案 2 先本地提交
+- 2026-10-29 09:10:52 开始：拍板参数 autoResolveSteps=10、c3BlessStone=10，交 codex exec #8（Mac mini）
+- 2026-10-29 09:14:08 codex #8 完成；复验 build/test/lint/sim 通过；e2e 6 图+短 soak 已跑；开始最终参数长挂机
+- 2026-10-29 09:25:07 长挂机（最终参数）通过：600 步、自动结算 85 个、错误 0；提交拍板参数
