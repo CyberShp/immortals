@@ -114,7 +114,11 @@ it('closed diamond collisions retain diagonal free space, legal reachable entran
   const old = execFileSync('git', ['show', '0073c92:data/world.json'], {
       encoding: 'utf8',
     }),
-    now = await readFile('data/world.json', 'utf8');
+    now = (await readFile('data/world.json', 'utf8'))
+      // East v2 changes exactly these three geometric tuples; bridge.test.ts validates them.
+      .replace('[2390, 1029]', '[2350, 1033]')
+      .replace('[2401.940446, 1047.905707]', '[2361.940446, 1051.905707]')
+      .replace('[2397.960298, 1008.104219]', '[2357.960298, 1012.104219]');
   expect(now.slice(0, now.indexOf('  "slots":'))).toBe(
     old.slice(0, old.indexOf('  "slots":')),
   );

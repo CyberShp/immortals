@@ -75,7 +75,7 @@ it('four source dimensions and world budget', async () => {
     'map_main_clean_v1.jpg',
     'map_island_north_v1.jpg',
     'map_island_west_v1.jpg',
-    'map_island_east_v1.jpg',
+    'map_island_east_v2.png',
   ]) {
     const m = await sharp(
       '/Volumes/Media/immortal-qa/design/art/concept/' + file,

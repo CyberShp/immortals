@@ -63,7 +63,7 @@
     }
   ],
   "edge": { "samples": 12558, "beige": 0, "ratio": 0 },
-  "outsideJointMAE": 0.12214296498100974,
+  "outsideJointMAE": 0.17857950285808027,
   "north": {
     "segmentCount": 1,
     "angle": 90,

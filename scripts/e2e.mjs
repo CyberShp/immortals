@@ -648,6 +648,13 @@ async function verifyGrounded(context, gardenOnly = false) {
     page,
     `${output}/xianfu-grounded-${gardenOnly ? 'garden-' : ''}east.png`,
   );
+  await page.evaluate(() =>
+    window.__camera.set({ zoom: 1.5, x: 2390, y: 1029 }),
+  );
+  captures.eastLanding = await cleanScreenshot(
+    page,
+    `${output}/xianfu-east-v2-landing.png`,
+  );
   for (const capture of Object.values(captures))
     assertDefaultDiscipleSize(capture);
   if (!gardenOnly) {

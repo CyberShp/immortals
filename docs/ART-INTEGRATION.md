@@ -315,7 +315,7 @@ build/lint通过；26文件323测试通过，包括原多种子1200秒idle/work�
 
 原东岛打坐参考点本地[750,400]（world[2763,921]）进入扩大后的围栏。其data坐标未改；表现层已有`nearestWalkable`将实际落点投影到world **[2770,930]**。测试改为检查与运行时代码一致的有效落点、所有岛间路径仍经过桥、所有采样弟子不入碰撞；新增此参考点的专门回归。不是放开围栏，也不是把无路判成有路。data/world.json仍只有B_GARDEN四个几何字段变化。
 
-旧引桥只读取证：build-world east.source=`/Volumes/Media/immortal-qa/design/art/concept/map_island_east_v1.jpg`。斜桥木板、四根柱子及接触暗边保守包围盒（含约1–2px抗锯齿余量）：东岛本地 **[328,472,435,550]**，世界 **[2341,993,2448,1071]**。`scripts/east-old-bridge-preview.mjs`只读取原稿并叠加标注，输出`/tmp/xianfu-east-old-bridge.png`与`artifacts/xianfu-east-old-bridge.png`；没有重建/修改桥。
+东岛旧引桥已由 Iris v2 原稿替换为草地崖壁；原 v1 旧桥预览脚本退役，当前落点证据见 `scripts/east-v2-landing.mjs`。
 
 `--grounded`新增`xianfu-grounded-hall-2x.png`和`xianfu-grounded-dorm-2x.png`，输出目录仍为`/Volumes/Media/GrokBot/workspace/`；相机zoom=0.95×2=**1.9**，分别对准world[1440,850]/[1260,900]，游戏默认弟子高度（此zoom下配置屏幕高度127.68 CSS px），沿用关弹窗和默认尺寸断言。`--garden`仍输出东岛与全景；完整验证继续单独运行`--clean`。
 
@@ -374,3 +374,13 @@ node scripts/e2e.mjs http://127.0.0.1:4173 --clean
 验证：build、28文件330测试、lint通过；四组sim与上一轮从git368d2d1独立归档运行的输出逐字一致（默认含npm头、100轮、100轮idle、100种子×50轮）；首屏**1,617,501 / 2,500,000 bytes**。未跑浏览器，未新增依赖、未提交/推送、未动stash或design。
 
 本步文件：`src/render/world.ts`、新增`src/render/main-corridor.json`、`scripts/build-corridor.mjs`、`scripts/corridor-preview.mjs`、`tests/corridor.test.ts`，以及STATUS/本文。
+
+## 东岛底图 v2
+
+默认来源改为只读 `design/art/concept/map_island_east_v2.png`（1280×720），可用 `EAST_ISLAND_SOURCE` 覆盖；未使用备选补丁。运行 `node scripts/build-platform.mjs`、`node scripts/build-world.mjs`（内部调用 build-bridges）、`node scripts/platform-preview.mjs` 重建。平台仍是独立地面层 sprite，并非烘进 world；桥烘焙逻辑和平台 9px 压入保持。world q86 / mini q75 不变。
+
+v1 原稿自带的旧桥由 v2 原像素替换。原管线无旧桥专用遮盖/特殊 mask；移除旧桥预览脚本与过时的旧桥尾像素测试，改用 v2 草地落点及区域外差异测试。旧桥历史说明已更新。
+
+`east-v2-landing.mjs` 手量 v2 草地/崖顶边界，沿40px桥面每1px横向采样、每0.25px轴向采样，要求源像素不透明且非米色背景。原落点中心可压入76.75px，但北侧桥面边缘擦崖，最小压入0px。东桥末点沿原轴延长40.20px：本地 **(337,512)→(377,508)**，世界 **(2350,1033)→(2390,1029)**。只更新该末点及 walkable 两个末端顶点；转角和方向角 -5.710593° 不变。新桥端中心深度117px，整幅桥面最小14.25px；扣除实际 alpha 栅格桥端回缩0.649px与手量边界2px余量，保守压入 **11.60px**。标注与合成对照 `/tmp/xianfu-east-v2-landing.png`，完整采样 `docs/east-v2-landing.json`。
+
+`src/sim`不读取data/world.json；四组输出与368d2d1独立基线逐字一致。e2e `--grounded` / `--garden` 额外输出 `xianfu-east-v2-landing.png`，相机对准新桥头，默认弟子尺寸，截图前关闭弹窗；本地未跑浏览器。原 `--clean` 与 `--bridges` 断言保留。

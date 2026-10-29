@@ -58,14 +58,14 @@ it('Iris shore anchors are fixed and both ends have source-island overlap of exa
   ).toEqual([
     [1575, 525],
     [875, 995],
-    [2350, 1033],
+    [2390, 1029],
   ]);
   const originals = new Map<string, Buffer>();
   for (const island of worldMap.islands) {
     const source =
       island.id === 'main'
         ? homedir() + '/cutwork/backup/map_main_clean_v1.jpg'
-        : `/Volumes/Media/immortal-qa/design/art/concept/map_island_${island.id}_v1.jpg`;
+        : `/Volumes/Media/immortal-qa/design/art/concept/map_island_${island.id}_${island.id === 'east' ? 'v2.png' : 'v1.jpg'}`;
     originals.set(
       island.id,
       await sharp(source).removeAlpha().raw().toBuffer(),
@@ -231,90 +231,6 @@ it('whole-image lossy encoding preserves outside-bridge pixels within codec tole
     expect(changedInside, name).toBeGreaterThan(0);
   }
 });
-it('old tile footprints are contained in bridge regions and the removed east tail restores source island art', async () => {
-  const oldWorld = JSON.parse(
-    execFileSync('git', ['show', `${report.baselineCommit}:data/world.json`], {
-      encoding: 'utf8',
-    }),
-  ) as typeof worldMap;
-  for (const b of oldWorld.bridges)
-    for (let i = 1; i < b.points.length; i++) {
-      const a = b.points[i - 1],
-        z = b.points[i];
-      for (
-        let y = Math.floor(Math.min(a[1], z[1]) - 25);
-        y <= Math.ceil(Math.max(a[1], z[1]) + 25);
-        y++
-      )
-        for (
-          let x = Math.floor(Math.min(a[0], z[0]) - 25);
-          x <= Math.ceil(Math.max(a[0], z[0]) + 25);
-          x++
-        ) {
-          if (segmentDistance([x, y], a, z) > 25) continue;
-          expect(
-            report.regions.some(
-              (r) =>
-                x >= r.left &&
-                x < r.left + r.width &&
-                y >= r.top &&
-                y < r.top + r.height,
-            ),
-            `${b.id} old footprint ${x},${y}`,
-          ).toBe(true);
-        }
-    }
-  // This old baked segment was removed, not covered by the new bridge. Compare
-  // with the original island pixels, not HEAD (which still contains those tiles).
-  const source = await sharp(
-    '/Volumes/Media/immortal-qa/design/art/concept/map_island_east_v1.jpg',
-  )
-    .removeAlpha()
-    .raw()
-    .toBuffer();
-  const actual = await sharp('public/assets/map/world.webp')
-    .removeAlpha()
-    .raw()
-    .toBuffer();
-  const old = await sharp(
-    execFileSync('git', [
-      'show',
-      `${report.baselineCommit}:public/assets/map/world.webp`,
-    ]),
-  )
-    .removeAlpha()
-    .raw()
-    .toBuffer();
-  const differences: number[] = [],
-    oldDifferences: number[] = [];
-  const paper = [245, 236, 221],
-    target = [241, 232, 212];
-  for (let y = 1002; y < 1030; y++)
-    for (let x = 2380; x < 2410; x++)
-      for (let c = 0; c < 3; c++) {
-        const v = source[((y - 521) * 1280 + x - 2013) * 3 + c];
-        const calibrated = Math.min(
-          target[c],
-          Math.min(
-            255,
-            Math.round(
-              v *
-                (1 +
-                  (target[c] / paper[c] - 1) *
-                    Math.max(0, Math.min(1, (v - 125) / 80))),
-            ),
-          ),
-        );
-        const i = (y * 3200 + x) * 3 + c;
-        differences.push(Math.abs(actual[i] - calibrated));
-        oldDifferences.push(Math.abs(old[i] - calibrated));
-      }
-  const stats = differenceStats(differences),
-    oldStats = differenceStats(oldDifferences);
-  console.log({ removedEastTail: stats, oldTiledTail: oldStats });
-  expect(stats.mae).toBeLessThanOrEqual(5);
-  expect(oldStats.mae).toBeGreaterThan(5); // Demonstrate this check rejects the old tiles.
-});
 it('north right rail survives middle cropping, rotation and lower-half repetition', async () => {
   const f = manifest.files.find((f) => f.file === 'map/bridge-h@2x.webp')!;
   const { data, info } = await sharp(`public/assets/${f.file}`)
@@ -335,12 +251,17 @@ it('north right rail survives middle cropping, rotation and lower-half repetitio
   expect(report.northRail.toY - report.northRail.fromY + 1).toBe(114);
   expect(report.northRail.missingRows).toEqual([]);
 });
-it('Clean1 preserves bridge and other-island geometry bytes from HEAD', async () => {
+it('east v2 changes only the authorized east bridge endpoint geometry', async () => {
   const before = execFileSync('git', ['show', 'HEAD:data/world.json'], {
     encoding: 'utf8',
   });
   const after = await readFile('data/world.json', 'utf8');
-  const fixed = (s: string) =>
-    s.slice(s.indexOf('    {\n      "id": "north"'), s.indexOf('  "slots":'));
-  expect(fixed(after)).toBe(fixed(before));
+  const old = JSON.parse(before),
+    current = JSON.parse(after);
+  const east = old.bridges.find((b: { id: string }) => b.id === 'east');
+  // Only this task's endpoint and its two terminal walkable vertices may differ.
+  east.points[east.points.length - 1] = [2390, 1029];
+  east.walkable[2] = [2401.940446, 1047.905707];
+  east.walkable[3] = [2397.960298, 1008.104219];
+  expect(current).toEqual(old);
 });

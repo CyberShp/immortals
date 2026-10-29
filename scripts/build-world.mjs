@@ -198,7 +198,7 @@ const definitions = [
   {
     id: 'east',
     offset: [2013, 521],
-    source: root + 'map_island_east_v1.jpg',
+    source: process.env.EAST_ISLAND_SOURCE ?? root + 'map_island_east_v2.png',
     envelope: [
       [309, 350],
       [375, 318],

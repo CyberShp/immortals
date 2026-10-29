@@ -107,7 +107,10 @@ it('original body widths are retained and only allowed world geometry changes', 
   const old = JSON.parse(
     execFileSync('git', ['show', 'HEAD:data/world.json'], { encoding: 'utf8' }),
   );
-  expect(worldMap.bridges).toEqual(old.bridges);
+  expect(worldMap.bridges.filter((b) => b.id !== 'east')).toEqual(
+    old.bridges.filter((b: { id: string }) => b.id !== 'east'),
+  );
+  // East v2 endpoint and terminal deck vertices are covered by bridge.test.ts.
   expect(worldMap.islands.slice(1)).toEqual(old.islands.slice(1));
   expect(worldMap.width).toBe(old.width);
   expect(worldMap.height).toBe(old.height);
