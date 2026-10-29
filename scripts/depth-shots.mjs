@@ -7,6 +7,9 @@ import sharp from 'sharp';
 
 const base = process.argv[2] ?? 'http://127.0.0.1:5199';
 const out = process.argv[3] ?? '/tmp/depth-shots';
+const onTag = process.argv.includes('--on-tag')
+  ? process.argv[process.argv.indexOf('--on-tag') + 1]
+  : 'on';
 const VW = 1280,
   VH = 900;
 const browser = await chromium.launch({
@@ -81,7 +84,8 @@ for (const on of [false, true]) {
   };
   await page.mouse.move(640, 450);
   await settle();
-  const tag = on ? 'on' : 'off';
+  // --on-tag on2：开启图文件名用 on2（第二轮），关闭图仍为 off。
+  const tag = on ? onTag : 'off';
   const z = (await page.evaluate(() => window.__camera.get())).zoom;
   const shots = [
     ['center', null],

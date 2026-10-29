@@ -10,11 +10,13 @@ import {
   depthEnabled,
   depthFiles,
   drift,
+  farIslandItems,
   islandShadowEllipses,
   maxTravel,
   mistCoverage,
   mistMaskAt,
   parallaxPoint,
+  saturateColor,
 } from '../src/render/depth-config';
 import manifest from '../public/assets/manifest.json';
 const root = new URL('../public/assets/', import.meta.url);
@@ -48,7 +50,7 @@ describe('纵深参数与 spec 三节一致', () => {
       parallax: 0.85,
       blend: 'multiply',
       color: 0x5a5a7a,
-      alpha: 0.18,
+      alpha: 0.26,
     });
     expect(DEPTH.light.warm).toEqual({
       color: 0xfff1d0,
@@ -155,11 +157,30 @@ describe('纵深素材', () => {
   it('路径带版本号、文件存在、尺寸与哈希一致', async () => {
     for (const [key, l] of Object.entries(assets.layers)) {
       if (!l) continue;
-      expect(l.file, key).toMatch(/^rebuild\/depth\/[a-z_]+_v\d+\.webp$/);
-      const buf = await readFile(new URL(l.file, root));
-      expect(buf.length, key).toBe(l.bytes);
-      const m = await sharp(buf).metadata();
-      expect([m.width, m.height], key).toEqual([l.width, l.height]);
+      if ('parts' in l) {
+        let total = 0;
+        for (const part of l.parts) {
+          expect(part.file, key).toMatch(
+            /^rebuild\/depth\/[a-z_]+_v\d+_\d+\.webp$/,
+          );
+          const buf = await readFile(new URL(part.file, root));
+          expect(buf.length, part.file).toBe(part.bytes);
+          total += buf.length;
+          const m = await sharp(buf).metadata();
+          expect([m.width, m.height], part.file).toEqual([
+            part.width,
+            part.height,
+          ]);
+          expect(m.hasAlpha, part.file).toBe(true);
+        }
+        expect(total, key).toBe(l.bytes);
+      } else {
+        expect(l.file, key).toMatch(/^rebuild\/depth\/[a-z_]+_v\d+\.webp$/);
+        const buf = await readFile(new URL(l.file, root));
+        expect(buf.length, key).toBe(l.bytes);
+        const m = await sharp(buf).metadata();
+        expect([m.width, m.height], key).toEqual([l.width, l.height]);
+      }
       expect(l.sha256).toMatch(/^[0-9a-f]{64}$/);
       // 源图仍在时校验来源哈希（Iris 的目录不在 CI 上时跳过）
       const src = await readFile(l.source).catch(() => null);
@@ -195,5 +216,68 @@ describe('纵深素材', () => {
     expect(
       manifest.files.some((f) => f.file.startsWith('rebuild/depth/')),
     ).toBe(false);
+  });
+});
+
+describe('纵深第二轮素材', () => {
+  it('L0 用最新 backdrop v2；云海用正式素材（非占位）', () => {
+    expect(DEPTH.backdrop.asset?.version).toBe(2);
+    expect(DEPTH.backdrop.asset?.file).toBe(
+      'rebuild/depth/backdrop_sky_far_v2.webp',
+    );
+    expect(DEPTH.cloudSea.placeholder).toBe(false);
+    expect(DEPTH.cloudSea.asset?.file).toBe('rebuild/depth/cloud_sea_v1.webp');
+    expect(DEPTH.mist.asset?.file).toBe('rebuild/depth/mist_screen_v1.webp');
+  });
+  it('远岛切成 5 张，配置 5 个位置，视差/透明度/缩放按 spec', () => {
+    expect(DEPTH.farIslands.asset?.parts).toHaveLength(5);
+    expect(DEPTH.farIslands).toMatchObject({
+      parallax: 0.35,
+      alpha: 0.8,
+      scale: 0.4,
+    });
+    const items = farIslandItems();
+    expect(items.map((i) => i.part)).toEqual([1, 2, 3, 4, 5]);
+    for (const i of items) expect(depthFiles()).toContain(i.file);
+  });
+  it('云海上缘渐隐无硬边、透明区确为透明', async () => {
+    const { data, info } = await sharp(
+      await readFile(new URL(DEPTH.cloudSea.asset!.file, root)),
+    )
+      .extractChannel(3)
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    const row = (y: number) => {
+      let n = 0;
+      for (let x = 0; x < info.width; x++) n += data[y * info.width + x];
+      return n / info.width;
+    };
+    expect(row(0)).toBe(0);
+    // 行均值逐行变化平缓（上缘消散区没有一刀切）。
+    for (let y = 1; y < info.height / 2; y++)
+      expect(Math.abs(row(y) - row(y - 1)), `row ${y}`).toBeLessThan(12);
+  });
+  it('远岛边缘无绿边（半透明像素 G 不明显高于 R/B）', async () => {
+    for (const part of DEPTH.farIslands.asset!.parts) {
+      const { data } = await sharp(await readFile(new URL(part.file, root)))
+        .raw()
+        .toBuffer({ resolveWithObject: true });
+      let bad = 0,
+        edge = 0;
+      for (let k = 0; k < data.length; k += 4) {
+        if (data[k + 3] === 0 || data[k + 3] === 255) continue;
+        edge++;
+        if (data[k + 1] - Math.max(data[k], data[k + 2]) > 20) bad++;
+      }
+      expect(edge, part.file).toBeGreaterThan(0);
+      expect(bad / edge, part.file).toBeLessThan(0.01);
+    }
+  });
+  it('天空饱和度参数默认 0.85，公式保持亮度', () => {
+    expect(DEPTH.backdrop.skySaturation).toBe(0.85);
+    expect(saturateColor(0x808080, 0.85)).toBe(0x808080);
+    expect(saturateColor(0x6fb5e5, 1)).toBe(0x6fb5e5);
+    const g = saturateColor(0x6fb5e5, 0);
+    expect((g >> 16) & 255).toBe(g & 255);
   });
 });

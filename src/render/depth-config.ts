@@ -16,9 +16,18 @@ export type DepthAsset = {
   topColor: number;
   bottomColor: number;
 };
+export type DepthPart = {
+  file: string;
+  x: number;
+  y: number;
+  width: number;
+  height: number;
+};
+export type DepthPartsAsset = Omit<DepthAsset, 'file'> & { parts: DepthPart[] };
 type Layers = typeof assets.layers;
-const layer = (key: keyof Layers) =>
+const layer = (key: Exclude<keyof Layers, 'farIslands'>) =>
   (assets.layers[key] ?? null) as DepthAsset | null;
+const farParts = (assets.layers.farIslands ?? null) as DepthPartsAsset | null;
 
 /** 世界中心：视差层在此镜头位置与岛对齐（全景镜头即在此）。 */
 export const WORLD_CENTER = { x: 1600, y: 700 } as const;
@@ -36,15 +45,37 @@ export const DEPTH = {
     alpha: 1,
     /** 铺满时额外放大（防止取整露 1px 边）。 */
     overscan: 1.02,
+    /**
+     * 天空饱和度倍率（1 = 素材原样，0 = 灰度）。第二轮：默认降约 15% 与米色 UI 协调，Iris 看成图再定。
+     * 加载时在 CPU 上对 L0 纹理与兜底渐变做 c' = Y + s·(c − Y)（Y 为 Rec.601 亮度），无逐帧开销。
+     */
+    skySaturation: 0.85,
   },
-  /** spec 三节 L1 远景小浮岛：视差 0.35，normal，alpha 0.8，缩放 0.3–0.5。素材未出 → 跳过。 */
+  /**
+   * spec 三节 L1 远景小浮岛：视差 0.35，normal，alpha 0.8，缩放 0.3–0.5。
+   * 素材 far_islands_v1 按连通域切成 5 张（parts，源图从左到右编号 1–5）。
+   */
   farIslands: {
-    asset: layer('farIslands'),
+    asset: farParts,
     z: 1,
     parallax: 0.35,
     blend: 'normal' as DepthBlend,
     alpha: 0.8,
+    /** 相对源图像素的基础缩放（世界 px / 源 px）。 */
     scale: 0.4,
+    /** 屏幕缩放 = scale × itemScale × (1 − zoomFollow + zoomFollow·zoom)：远处物体随镜头缩放得更少。 */
+    zoomFollow: 0.5,
+    /**
+     * 每个远岛的位置（视差 0.35 层的世界坐标，岛图中心）与个体缩放。错落排在远峰前、近岛后：
+     * 默认镜头左上/右上天空与全景两侧各能看到几座，其余被近岛挡住一部分。
+     */
+    items: [
+      { part: 1, x: 150, y: 150, scale: 1.0 },
+      { part: 2, x: 1070, y: 400, scale: 0.85 },
+      { part: 3, x: 2050, y: 475, scale: 0.9 },
+      { part: 4, x: 2950, y: 225, scale: 0.75 },
+      { part: 5, x: 2500, y: 351, scale: 1.05 },
+    ],
   },
   /**
    * spec 三节 L2 中景云海（岛下）：视差 0.6，normal，每分钟 20–40 px 横向漂移。
@@ -57,9 +88,13 @@ export const DEPTH = {
     z: 2,
     parallax: 0.6,
     blend: (layer('cloudSea') ? 'normal' : 'screen') as DepthBlend,
-    alpha: 0.85,
-    /** 世界 y：云海带顶边（主岛/西岛/东岛崖底约 1140–1270，带顶在其上方以托住崖底）。 */
-    top: 880,
+    /** 正式素材自带 alpha（亮度→alpha、反预乘），层 alpha 取 1；占位时 0.85。 */
+    alpha: layer('cloudSea') ? 1 : 0.85,
+    /**
+     * 世界 y：云海带顶边（纹理顶边，素材上 ~39% 为透明的消散区）。主岛/西岛/东岛崖底约 1140–1270，
+     * 可见云顶约在 top + 0.39·height ≈ 1000，托住崖底。
+     */
+    top: layer('cloudSea') ? 720 : 880,
     /** 云海带高度（世界 px，按 zoom 缩放后再乘视差层的缩放）。 */
     height: 760,
     /** 横向平铺一格的世界宽度。 */
@@ -72,7 +107,8 @@ export const DEPTH = {
     parallax: 0.85,
     blend: 'multiply' as DepthBlend,
     color: 0x5a5a7a,
-    alpha: 0.18,
+    /** 第二轮：0.18 → 0.26（Iris 同意）。 */
+    alpha: 0.26,
     /** 椭圆中心在崖底下方多少世界 px。 */
     offsetY: 70,
     /** 椭圆半宽 = 岛面宽 × rx；半高 = 岛面宽 × ry。 */
@@ -212,8 +248,28 @@ export function drift(nowMs: number, pxPerMin: number) {
 export function depthFiles() {
   return [
     DEPTH.world,
-    ...[DEPTH.backdrop, DEPTH.farIslands, DEPTH.cloudSea, DEPTH.mist]
+    ...[DEPTH.backdrop, DEPTH.cloudSea, DEPTH.mist]
       .map((l) => l.asset?.file)
       .filter((f): f is string => !!f),
+    ...farIslandItems().map((i) => i.file),
   ].filter((f, i, a) => a.indexOf(f) === i);
+}
+
+/** L1 实际要画的远岛（配置 items 里 part 有对应切图的才画）。 */
+export function farIslandItems() {
+  const parts = DEPTH.farIslands.asset?.parts ?? [];
+  return DEPTH.farIslands.items
+    .filter((i) => parts[i.part - 1])
+    .map((i) => ({ ...i, ...parts[i.part - 1], x: i.x, y: i.y }));
+}
+
+/** 饱和度倍率作用在一个 0xRRGGBB 颜色上（与纹理处理同一公式）。 */
+export function saturateColor(color: number, s: number) {
+  const r = (color >> 16) & 255,
+    g = (color >> 8) & 255,
+    b = color & 255;
+  const y = 0.299 * r + 0.587 * g + 0.114 * b;
+  const f = (c: number) =>
+    Math.min(255, Math.max(0, Math.round(y + s * (c - y))));
+  return (f(r) << 16) | (f(g) << 8) | f(b);
 }

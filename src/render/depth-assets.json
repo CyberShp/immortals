@@ -8,18 +8,82 @@
   },
   "layers": {
     "backdrop": {
-      "file": "rebuild/depth/backdrop_sky_far_v1.webp",
-      "source": "/Volumes/Media/immortal-qa/art-rebuild/depth/backdrop_sky_far_v1.jpg",
-      "version": 1,
-      "sha256": "971920f583142fae794aed0341b6a094b15dd07581c36b192f4f158463c0faa1",
+      "file": "rebuild/depth/backdrop_sky_far_v2.webp",
+      "source": "/Volumes/Media/immortal-qa/art-rebuild/depth/backdrop_sky_far_v2.jpg",
+      "version": 2,
+      "sha256": "4412f697318f25a8e0c7ad813a326f859598364bb0a88819aa8cd68678340032",
       "width": 1280,
       "height": 720,
-      "topColor": 7781349,
-      "bottomColor": 13023953,
-      "bytes": 26662
+      "topColor": 12307152,
+      "bottomColor": 14538198,
+      "process": "copy",
+      "bytes": 21732
     },
-    "farIslands": null,
-    "cloudSea": null,
+    "farIslands": {
+      "source": "/Volumes/Media/immortal-qa/art-rebuild/depth/far_islands_v1.jpg",
+      "version": 1,
+      "sha256": "33467d1c8c388f8d9855c9ba38c85255b01e214f5788570cd2365b998e70cfe4",
+      "width": 1280,
+      "height": 720,
+      "topColor": 1242387,
+      "bottomColor": 1111571,
+      "process": "chromaSplit",
+      "parts": [
+        {
+          "file": "rebuild/depth/far_islands_v1_1.webp",
+          "x": 56,
+          "y": 220,
+          "width": 203,
+          "height": 263,
+          "bytes": 14632
+        },
+        {
+          "file": "rebuild/depth/far_islands_v1_2.webp",
+          "x": 315,
+          "y": 270,
+          "width": 176,
+          "height": 190,
+          "bytes": 9126
+        },
+        {
+          "file": "rebuild/depth/far_islands_v1_3.webp",
+          "x": 544,
+          "y": 236,
+          "width": 199,
+          "height": 243,
+          "bytes": 14388
+        },
+        {
+          "file": "rebuild/depth/far_islands_v1_4.webp",
+          "x": 799,
+          "y": 275,
+          "width": 170,
+          "height": 184,
+          "bytes": 8642
+        },
+        {
+          "file": "rebuild/depth/far_islands_v1_5.webp",
+          "x": 1023,
+          "y": 231,
+          "width": 197,
+          "height": 255,
+          "bytes": 13350
+        }
+      ],
+      "bytes": 60138
+    },
+    "cloudSea": {
+      "file": "rebuild/depth/cloud_sea_v1.webp",
+      "source": "/Volumes/Media/immortal-qa/art-rebuild/depth/cloud_sea_v1.jpg",
+      "version": 1,
+      "sha256": "e2a01089c4b3b4c82e4cfca144e4b098b5a2c1280d1aff63867b4b3c89f3dd1d",
+      "width": 1280,
+      "height": 720,
+      "topColor": 0,
+      "bottomColor": 9274267,
+      "process": "lumaAlpha",
+      "bytes": 161872
+    },
     "mist": {
       "file": "rebuild/depth/mist_screen_v1.webp",
       "source": "/Volumes/Media/immortal-qa/art-rebuild/depth/mist_screen_v1.jpg",
@@ -29,6 +93,7 @@
       "height": 720,
       "topColor": 0,
       "bottomColor": 7105140,
+      "process": "copy",
       "bytes": 25330
     }
   }

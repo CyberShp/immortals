@@ -6,10 +6,12 @@ import {
   DEPTH,
   coverScale,
   drift,
+  farIslandItems,
   islandShadowEllipses,
   mistMaskAt,
   parallaxPoint,
   parallaxShift,
+  saturateColor,
   type View,
   type Viewport,
 } from './depth-config';
@@ -68,6 +70,41 @@ function screenToAlpha(
   return Texture.from(c);
 }
 
+/** 只做镜像拼接（正式云海已自带 alpha）：mirrorX 横向无缝；mirrorY 让带下方延伸时上下连续。 */
+function mirrored(texture: Texture, mirrorX: boolean, mirrorY: boolean) {
+  const img = sourceOf(texture);
+  const w = img.width,
+    h = img.height;
+  const [c, g] = canvas(w * (mirrorX ? 2 : 1), h * (mirrorY ? 2 : 1));
+  for (let j = 0; j < (mirrorY ? 2 : 1); j++)
+    for (let i = 0; i < (mirrorX ? 2 : 1); i++) {
+      g.save();
+      g.translate(i ? 2 * w : 0, j ? 2 * h : 0);
+      g.scale(i ? -1 : 1, j ? -1 : 1);
+      g.drawImage(img, 0, 0, w, h);
+      g.restore();
+    }
+  return Texture.from(c);
+}
+
+/** 饱和度倍率 s（1 原样）：c' = Y + s·(c − Y)，加载时处理一次。 */
+function saturated(texture: Texture, s: number) {
+  if (s === 1) return texture;
+  const img = sourceOf(texture);
+  const [c, g] = canvas(img.width, img.height);
+  g.drawImage(img, 0, 0);
+  const data = g.getImageData(0, 0, c.width, c.height);
+  const p = data.data;
+  for (let k = 0; k < p.length; k += 4) {
+    const y = 0.299 * p[k] + 0.587 * p[k + 1] + 0.114 * p[k + 2];
+    p[k] = y + s * (p[k] - y);
+    p[k + 1] = y + s * (p[k + 1] - y);
+    p[k + 2] = y + s * (p[k + 2] - y);
+  }
+  g.putImageData(data, 0, 0);
+  return Texture.from(c);
+}
+
 function gradientTexture(
   draw: (g: CanvasRenderingContext2D, size: number) => void,
   size = 256,
@@ -95,12 +132,14 @@ export function createDepthLayers(textures: Map<string, Texture>) {
 
   // L0 天空+远峰+远云海。下面先铺一层“顶色→底色”的竖向渐变兜底（spec：边缘外用天空顶色/云海底色延伸）。
   const bd = DEPTH.backdrop;
-  const bdTex = tex(bd.asset?.file);
+  const bdRaw = tex(bd.asset?.file);
+  const bdTex = bdRaw ? saturated(bdRaw, bd.skySaturation) : undefined;
+  const sat = (c: number) => saturateColor(c, bd.skySaturation);
   const underlay = new Sprite(
     gradientTexture((g, s) => {
       const lg = g.createLinearGradient(0, 0, 0, s);
-      lg.addColorStop(0, rgba(bd.asset?.topColor ?? 0xbfd9ec, 1));
-      lg.addColorStop(1, rgba(bd.asset?.bottomColor ?? 0xd9d2e6, 1));
+      lg.addColorStop(0, rgba(sat(bd.asset?.topColor ?? 0xbfd9ec), 1));
+      lg.addColorStop(1, rgba(sat(bd.asset?.bottomColor ?? 0xd9d2e6), 1));
       g.fillStyle = lg;
       g.fillRect(0, 0, s, s);
     }, 64),
@@ -115,16 +154,18 @@ export function createDepthLayers(textures: Map<string, Texture>) {
     back.addChild(backdrop);
   }
 
-  // L1 远景小浮岛（素材未出时跳过）。
+  // L1 远景小浮岛：每个切图一个 sprite，位置/个体缩放来自 DEPTH.farIslands.items。
   const fi = DEPTH.farIslands;
-  const fiTex = tex(fi.asset?.file);
-  const farIslands = fiTex ? new Sprite(fiTex) : undefined;
-  if (farIslands) {
-    farIslands.anchor.set(0.5);
-    farIslands.alpha = fi.alpha;
-    farIslands.blendMode = fi.blend;
-    back.addChild(farIslands);
-  }
+  const farItems = farIslandItems().flatMap((item) => {
+    const t = tex(item.file);
+    if (!t) return [];
+    const sprite = new Sprite(t);
+    sprite.anchor.set(0.5);
+    sprite.alpha = fi.alpha;
+    sprite.blendMode = fi.blend;
+    back.addChild(sprite);
+    return [{ item, sprite }];
+  });
 
   // L2 云海（岛下）。占位时由 mist 样图转成白色 alpha，横向镜像平铺。
   const cs = DEPTH.cloudSea;
@@ -132,7 +173,7 @@ export function createDepthLayers(textures: Map<string, Texture>) {
   const csTex = csRaw
     ? cs.placeholder
       ? screenToAlpha(csRaw, { mirrorX: true, fadeY: 0.18 })
-      : csRaw
+      : mirrored(csRaw, true, true)
     : undefined;
   const cloudSea = csTex
     ? new TilingSprite({ texture: csTex, width: 1, height: 1 })
@@ -269,19 +310,35 @@ export function createDepthLayers(textures: Map<string, Texture>) {
         bottom: backdrop.y + (bdTex!.height * s) / 2,
       };
     }
-    if (farIslands) {
-      const p = parallaxPoint(1600, 560, cam, view, fi.parallax);
-      farIslands.position.set(p.x, p.y);
-      farIslands.scale.set(fi.scale * (0.5 + 0.5 * cam.zoom));
+    const fiZoom = 1 - fi.zoomFollow + fi.zoomFollow * cam.zoom;
+    for (const { item, sprite } of farItems) {
+      const p = parallaxPoint(item.x, item.y, cam, view, fi.parallax);
+      sprite.position.set(p.x, p.y);
+      sprite.scale.set(fi.scale * item.scale * fiZoom);
     }
+    if (farItems.length)
+      last.farIslands = farItems.map(({ item, sprite }) => ({
+        part: item.part,
+        x: sprite.x,
+        y: sprite.y,
+        width: sprite.width,
+        height: sprite.height,
+      }));
     if (cloudSea && csTex) {
       const top = parallaxPoint(0, cs.top, cam, view, cs.parallax);
       const h = cs.height * cam.zoom;
-      // 只铺一行云海带（纹理上下已淡出），带以下露 L0 的云海底色。
       cloudSea.position.set(0, top.y);
       cloudSea.width = view.width;
-      cloudSea.height = Math.max(1, h);
-      const sy = h / csTex.height;
+      // 占位：只铺一行（纹理上下已淡出）。正式素材：纹理上下镜像过，带向下延伸到屏幕底，
+      // 底边以下接的是镜像的云体，不露硬边（最多延伸到一个周期内，不会重复出上缘消散区）。
+      const period = cs.placeholder ? h : h * 2;
+      cloudSea.height = cs.placeholder
+        ? Math.max(1, h)
+        : Math.max(
+            1,
+            Math.min(period * 0.95, Math.max(h, view.height - top.y)),
+          );
+      const sy = period / csTex.height;
       const sx = (cs.tileWidth * cam.zoom * 2) / csTex.width;
       cloudSea.tileScale.set(sx, sy);
       cloudSea.tilePosition.set(
@@ -325,7 +382,7 @@ export function createDepthLayers(textures: Map<string, Texture>) {
     stats: () => ({
       layers: {
         backdrop: !!backdrop,
-        farIslands: !!farIslands,
+        farIslands: farItems.length,
         cloudSea: !!cloudSea,
         cloudSeaPlaceholder: cs.placeholder,
         islandShadows: shadows.length,
