@@ -37,6 +37,27 @@ export function behaviorPose(behavior: string, moving = false, elapsed = 0) {
     )[behavior] ?? 'walk-pass'
   );
 }
+// Root-element ring is the meditation/work cushion; walking, standing and
+// talking frames show only a contact shadow. Shadow matches the building
+// ellipse shadows (0x3b2a1a, flatness 0.18, centre ~3px down) and leans
+// right-down like the baked/bridge shadows (+x,+y). Sizes scale with height.
+export function discipleGroundMarks(
+  pose: string,
+  height: number,
+  compact: boolean,
+) {
+  if (compact) return { ring: true, shadow: undefined };
+  return {
+    ring: pose === 'meditate' || pose === 'work',
+    shadow: {
+      width: height * (pose === 'meditate' ? 0.45 : 0.3),
+      x: height * 0.035,
+      y: height * 0.05,
+      flatness: 0.18,
+      color: 0x3b2a1a,
+    },
+  };
+}
 export function plotFoot(id: string): [number, number] {
   const p = plots[buildingArt[id]];
   return [(p[0] + p[2]) / 4, p[3] / 2];

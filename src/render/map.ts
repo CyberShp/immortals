@@ -25,6 +25,7 @@ import {
   overheadNameFontSize,
   shortName,
   rootRingColors,
+  discipleGroundMarks,
   buildingArt,
 } from './layout';
 import { attachCamera } from './camera';
@@ -68,7 +69,7 @@ function plotFoot(id: string): Point {
   return [(s.rect[0] + s.rect[2]) / 2, s.rect[3]];
 }
 // Layered translucent ellipses give a soft edge without a raster art generator.
-function groundShadow(width: number, y = 3) {
+function groundShadow(width: number, y = 3, color = 0x3b2a1a) {
   const g = new Graphics();
   for (const [size, alpha] of [
     [1, 0.06],
@@ -77,7 +78,7 @@ function groundShadow(width: number, y = 3) {
     [0.54, 0.08],
   ])
     g.ellipse(0, y, (width * size) / 2, (width * 0.18 * size) / 2).fill({
-      color: 0x3b2a1a,
+      color,
       alpha,
     });
   return g;
@@ -878,9 +879,22 @@ export async function createMap(
           y <= 12,
       };
       const colors = rootRingColors(d.root.elements);
-      if (!compact)
-        group.addChild(groundShadow(pose === 'meditate' ? 26 : 18, 2));
+      const file = discipleArtFile(d.gender, pose);
+      const sprite = compact ? undefined : art(file, height / 96);
+      const groundMarks = discipleGroundMarks(pose, height, compact);
+      if (groundMarks.shadow) {
+        const shadow = groundShadow(
+          groundMarks.shadow.width,
+          0,
+          groundMarks.shadow.color,
+        );
+        shadow.position.set(groundMarks.shadow.x, groundMarks.shadow.y);
+        shadow.label = 'contact-shadow';
+        group.addChild(shadow);
+      }
+      // Missing art keeps the ring: dot + ring is then the only identity mark.
       const ring = new Graphics();
+      ring.label = 'root-ring';
       ring.alpha = compact ? 1 : 0.6;
       colors.forEach((color, i) => {
         const start = (i * Math.PI * 2) / colors.length,
@@ -903,10 +917,10 @@ export async function createMap(
           compact ? marker.diameter / 2 / cam.zoom : 3.5,
         )
         .stroke({ width: 1, color: 0x263f34 });
-      group.addChild(ring);
-      stats.rings++;
-      const file = discipleArtFile(d.gender, pose);
-      const sprite = compact ? undefined : art(file, height / 96);
+      if (groundMarks.ring || !sprite) {
+        group.addChild(ring);
+        stats.rings++;
+      }
       const mask = masks.get(file);
       if (mask && !compact) {
         const facing = flip;

@@ -368,7 +368,11 @@ it.each([false, true])(
     const map = await createMap(host);
     map.draw(createWorld(42, loadData()));
     expect(scene().children.some((n) => n.zIndex === 2500)).toBe(false);
-    expect(window.__mapStats.rings).toBe(6);
+    // 有美术时只给打坐/做工画灵根环；缺图回退时圆点+环仍是唯一标识。
+    const s = window.__mapStats;
+    expect(s.rings).toBe(
+      fail ? 6 : (s.poses.meditate ?? 0) + (s.poses.work ?? 0),
+    );
     expect(window.__mapStats.nameLabels).toBe(
       scene().children.filter((n) => n.zIndex === 3000 && n.alpha > 0).length,
     );
@@ -896,5 +900,54 @@ it('bug3 debug front/back placements survive redraw, stand idle and keep pedesta
       expect(walkable([d.x, d.y])).toBe(true);
       expect(sign < 0 ? d.z < building.z : d.z > building.z).toBe(true);
     }
+  map.destroy();
+});
+
+const marks = (g: Container) => ({
+  ring: g.children.filter(
+    (n) => (n as { label?: string }).label === 'root-ring',
+  ),
+  shadow: g.children.filter(
+    (n) => (n as { label?: string }).label === 'contact-shadow',
+  ),
+});
+it('walking/standing disciples have no root-ring cushion but a right-down contact shadow; meditation keeps the ring', async () => {
+  vi.stubGlobal('location', { search: '?debug=1' });
+  const map = await createMap(host),
+    w = world();
+  map.draw(w);
+  // 修炼静止：打坐帧，保留灵根环
+  expect(window.__mapStats.disciples[0].pose).toBe('meditate');
+  let m = marks(disciple());
+  expect(m.ring).toHaveLength(1);
+  expect(m.shadow).toHaveLength(1);
+  const hook = (
+    window as unknown as {
+      __motionDebug: {
+        route: (id: string, from: number[], to: number[]) => void;
+        place: (id: string, p: number[]) => number[];
+      };
+    }
+  ).__motionDebug;
+  hook.route(w.disciples[0].id, [1530, 1040], [1590, 1040]);
+  for (let i = 0; i < 20; i++) {
+    mock.now += 100;
+    for (const [id, cb] of [...mock.frames]) {
+      mock.frames.delete(id);
+      cb(mock.now);
+    }
+    const d = window.__mapStats.disciples[0];
+    expect(d.pose).toMatch(/^walk-/);
+    m = marks(disciple());
+    expect(m.ring, `walk frame ${i} ${d.pose}`).toHaveLength(0);
+    expect(m.shadow).toHaveLength(1);
+    expect(m.shadow[0].position.x).toBeGreaterThan(0);
+    expect(m.shadow[0].position.y).toBeGreaterThan(0);
+  }
+  hook.place(w.disciples[0].id, [1560, 1040]);
+  map.draw(w);
+  expect(window.__mapStats.disciples[0].pose).toBe('walk-pass');
+  expect(marks(disciple()).ring).toHaveLength(0);
+  expect(window.__mapStats.rings).toBe(0);
   map.destroy();
 });
