@@ -360,3 +360,17 @@ node scripts/e2e.mjs http://127.0.0.1:4173 --clean
 验证：build、27文件327测试、lint通过；从git **368d2d1**只读归档至/tmp，独立运行默认（含npm头）、100轮、100轮idle、100种子×50轮，四组与当前输出逐字diff全相同。首屏**41文件，1,615,749 / 2,500,000 bytes**。未新增npm依赖，未提交、推送、访问stash或修改design。
 
 文件：新增`build-platform.mjs`、`platform-source.json`、`platform-geometry.json`、`platform-preview.mjs`、`platform.test.ts`、平台WebP及`platform-report.json`；修改`bridge-geometry.mjs`（内部端头）、`world-buildings.mjs`（只遍历building map，避开平台）、`e2e.mjs`、`src/render/{world,map}.ts`、world/world-mini/gate-foreground素材、manifest、bridge-build/world-build报告、STATUS及本文。
+
+## 主岛走廊局部收窄（275a8db之上，独立步骤）
+
+选用**现有主殿map精灵alpha>=128/255轮廓**：石台菱形最右x1528.647388，本来就在旧走廊x1555以西26.35px；只用石台footprint不会实际收窄，这次看到的侵入来自土草地面块。`build-corridor.mjs`只读现有WebP，逐世界像素行取侵入旧走廊的实心轮廓最右边，向外取整并留1px余量；同宽行合并，生成`src/render/main-corridor.json`。
+
+仅在旧走廊内增加禁行多边形：世界y827–873（main本地y207–253），左边界最右到world x1575 / main x625；其他纵段继续使用旧左边x1555 / main x605，右边x1650 / main x700不动。删除可走面积454 world px²。最窄75px（旧95px），出现于world y840–845；大于现有`FOOT_SPACING=28`，此处作为保守通行宽度。28px是表现层落点间距，并非sim人体碰撞半径；没有改成声称引擎已有圆形人体碰撞。
+
+`world.ts`在walkable判定及导航边界中同时加入该多边形。data/world.json、src/sim、建筑位置/脚印/入口、桥、图片均不改。北桥南端[1575,735]到广场[1590,1050]仍得到直线路径；测试采样全程可走，同时逐行验证28px宽通行带、全部侵入alpha>=0.5像素均不可走、新走廊与主殿石台无交叠、其它纵段不变。新增3测试，原测试不删不改。
+
+`node scripts/build-corridor.mjs`重建几何；`node scripts/corridor-preview.mjs`生成`/tmp/xianfu-corridor.png`（蓝虚线旧边、绿线新边、红块新增禁行、橙线石台、紫线寻路）。仅合成已有图像与诊断线，不绘制美术像素。
+
+验证：build、28文件330测试、lint通过；四组sim与上一轮从git368d2d1独立归档运行的输出逐字一致（默认含npm头、100轮、100轮idle、100种子×50轮）；首屏**1,617,501 / 2,500,000 bytes**。未跑浏览器，未新增依赖、未提交/推送、未动stash或design。
+
+本步文件：`src/render/world.ts`、新增`src/render/main-corridor.json`、`scripts/build-corridor.mjs`、`scripts/corridor-preview.mjs`、`tests/corridor.test.ts`，以及STATUS/本文。

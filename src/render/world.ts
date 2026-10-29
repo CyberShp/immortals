@@ -1,3 +1,5 @@
+import corridor from './main-corridor.json';
+export const corridorCut = corridor.blockedPolygon as [number, number][];
 import platform from '../../scripts/platform-geometry.json';
 export const platformWalkables = platform.joints.map((j) => ({
   id: j.id,
@@ -121,6 +123,7 @@ function inRect(p: Point, rect: readonly number[]) {
 export function walkable(p: Point) {
   if (p[0] < 0 || p[1] < 0 || p[0] >= 3200 || p[1] >= 1400) return false;
   if (worldMap.slots.some((s) => inFootprint(p, s.footprint))) return false;
+  if (inFootprint(p, { polygon: corridorCut })) return false;
   return (
     platformWalkables.some((b) => inPolygon(p, b.polygon)) ||
     worldMap.bridges.some((b) => inPolygon(p, b.walkable)) ||
@@ -133,6 +136,7 @@ export function walkable(p: Point) {
   );
 }
 const navigationPolygons: Point[][] = [
+  corridorCut,
   ...worldMap.islands.flatMap((i) =>
     [i.walkable, ...i.obstacles].map((poly) =>
       poly.map((p) => [p[0] + i.offset[0], p[1] + i.offset[1]] as Point),
