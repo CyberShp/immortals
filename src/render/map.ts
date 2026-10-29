@@ -85,6 +85,14 @@ type Motion = {
 };
 declare global {
   interface Window {
+    __labels?: () => {
+      id: string;
+      text: string;
+      x: number;
+      y: number;
+      width: number;
+      height: number;
+    }[];
     __mapReady: boolean;
     __mapStats: {
       mode: 'full' | 'compact';
@@ -316,6 +324,16 @@ export async function createMap(
   mini.on('pointerupoutside', () => {
     miniDrag = false;
   });
+  let screenLabels: {
+    id: string;
+    text: string;
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+  }[] = [];
+  const labelRects = () => screenLabels.map((r) => ({ ...r }));
+  if (params.get('debug') === '1') window.__labels = labelRects;
   let lastPaint = 0;
   let lastTap = { id: '', at: 0 };
   let miniDrag = false;
@@ -708,6 +726,26 @@ export async function createMap(
       label.text.position.y -= result.rise;
       label.text.alpha = result.alpha;
     }
+    screenLabels = labels
+      .filter((l) => l.text.visible && l.text.alpha > 0)
+      .map((l) => {
+        const r = l.text.getBounds();
+        return {
+          id: l.id,
+          text: l.text.text,
+          x: bounds.x + r.x,
+          y: bounds.y + r.y,
+          width: r.width,
+          height: r.height,
+        };
+      })
+      .filter(
+        (r) =>
+          r.x < bounds.right &&
+          r.y < bounds.bottom &&
+          r.x + r.width > bounds.left &&
+          r.y + r.height > bounds.top,
+      );
     stats.labelOverlaps = labelOverlaps(labels, occluders);
     placeNames(
       namePoints.map((p) => ({
@@ -846,15 +884,19 @@ export async function createMap(
     draw,
     follow: (id: string) => camera.follow(id),
     reset: () => motions.clear(),
+    labels: labelRects,
     position: (id: string) => {
       const m = motions.get(id);
       if (!m) return;
       const c = camera.get(),
         r = app.canvas.getBoundingClientRect();
       return {
-        x: r.width / 2 + (m.x - c.x) * c.zoom,
-        y: r.height / 2 + (m.y - c.y - DISCIPLE_HEIGHT) * c.zoom,
-        viewport: { width: r.width, height: r.height },
+        x: r.x + r.width / 2 + (m.x - c.x) * c.zoom,
+        y: r.y + r.height / 2 + (m.y - c.y - DISCIPLE_HEIGHT) * c.zoom,
+        viewport: {
+          width: host.ownerDocument.defaultView!.innerWidth,
+          height: host.ownerDocument.defaultView!.innerHeight,
+        },
       };
     },
     walkDormToHall: (id: string) => {
