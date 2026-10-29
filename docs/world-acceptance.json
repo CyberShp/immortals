@@ -1,0 +1,76 @@
+{
+  "areas": [
+    { "id": "main", "netArea": 236624, "ratioToMain": 1 },
+    { "id": "north", "netArea": 90960, "ratioToMain": 0.38440732977212794 },
+    { "id": "west", "netArea": 124352, "ratioToMain": 0.5255257285820543 },
+    { "id": "east", "netArea": 144736, "ratioToMain": 0.6116708364324837 }
+  ],
+  "areaSampling": 4,
+  "totalAreaRatio": 2.521603894786666,
+  "trip": {
+    "from": [1355, 965],
+    "to": [1549.5, 930],
+    "path": [
+      [1355, 965],
+      [1549.5, 930]
+    ],
+    "length": 197.6240116989836,
+    "speed": 164.68667641581968,
+    "seconds": 1.2
+  },
+  "firstLoadUpperBoundBytes": 1237776,
+  "firstLoadUpperBound": [
+    { "file": "dist/index.html", "bytes": 1293 },
+    { "file": "dist/bundles/Cache-fNcOcM1E.js", "bytes": 1100 },
+    { "file": "dist/bundles/CanvasPool-BKClwQdf.js", "bytes": 71190 },
+    { "file": "dist/bundles/Filter-LPvnWTqr.js", "bytes": 41958 },
+    { "file": "dist/bundles/GCManagedHash-BNMlzcZi.js", "bytes": 19313 },
+    { "file": "dist/bundles/GraphicsContext-_4bDhvjE.js", "bytes": 61680 },
+    { "file": "dist/bundles/RenderTargetSystem-DYiq1aca.js", "bytes": 58807 },
+    { "file": "dist/bundles/browserAll-BH8rudzy.js", "bytes": 43507 },
+    { "file": "dist/bundles/canvasUtils-B0HNDru7.js", "bytes": 6011 },
+    { "file": "dist/bundles/getTexelRangeRects-HvxKj03g.js", "bytes": 11358 },
+    {
+      "file": "dist/bundles/getTextureBatchBindGroup-CIH9f4hr.js",
+      "bytes": 344
+    },
+    { "file": "dist/bundles/index-dnJ4zOWo.css", "bytes": 9358 },
+    { "file": "dist/bundles/index-j2bnlVU7.js", "bytes": 464430 },
+    { "file": "dist/bundles/init-CyRoV8BZ.js", "bytes": 14842 },
+    { "file": "dist/bundles/webworkerAll-BLH88IAx.js", "bytes": 55 },
+    { "file": "public/assets/map/world.webp", "bytes": 278678 },
+    { "file": "public/assets/map/world-mini.webp", "bytes": 3772 },
+    { "file": "public/assets/disciple/walk-step-96@2x.webp", "bytes": 2648 },
+    { "file": "public/assets/disciple/walk-pass-96@2x.webp", "bytes": 2296 },
+    { "file": "public/assets/disciple/meditate-96@2x.webp", "bytes": 2174 },
+    { "file": "public/assets/disciple/work-96@2x.webp", "bytes": 2694 },
+    { "file": "public/assets/disciple/talk-96@2x.webp", "bytes": 2528 },
+    { "file": "public/assets/accessory/scroll-48@2x.webp", "bytes": 1270 },
+    { "file": "public/assets/accessory/fan-48@2x.webp", "bytes": 1528 },
+    { "file": "public/assets/accessory/sword-48@2x.webp", "bytes": 992 },
+    { "file": "public/assets/accessory/basket-48@2x.webp", "bytes": 1884 },
+    { "file": "public/assets/accessory/gourd-48@2x.webp", "bytes": 1100 },
+    { "file": "public/assets/accessory/hairpin-48@2x.webp", "bytes": 1444 },
+    { "file": "public/assets/accessory/hat-48@2x.webp", "bytes": 1210 },
+    { "file": "public/assets/accessory/ribbon-48@2x.webp", "bytes": 1860 },
+    { "file": "public/assets/accessory/beads-48@2x.webp", "bytes": 1654 },
+    { "file": "public/assets/accessory/coins-48@2x.webp", "bytes": 1704 },
+    { "file": "public/assets/building/dorm-t1-map@2x.webp", "bytes": 6574 },
+    { "file": "public/assets/building/dorm-t2-map@2x.webp", "bytes": 8202 },
+    {
+      "file": "public/assets/building/meditation-t1-map@2x.webp",
+      "bytes": 7342
+    },
+    {
+      "file": "public/assets/building/meditation-t2-map@2x.webp",
+      "bytes": 8902
+    },
+    { "file": "public/assets/building/garden-t1-map@2x.webp", "bytes": 11902 },
+    { "file": "public/assets/building/garden-t2-map@2x.webp", "bytes": 12388 },
+    { "file": "public/assets/building/alchemy-t1-map@2x.webp", "bytes": 7712 },
+    { "file": "public/assets/building/alchemy-t2-map@2x.webp", "bytes": 9096 },
+    { "file": "public/assets/building/hall-t1-map@2x.webp", "bytes": 22312 },
+    { "file": "public/assets/building/hall-t2-map@2x.webp", "bytes": 28664 }
+  ],
+  "browserVerified": false
+}

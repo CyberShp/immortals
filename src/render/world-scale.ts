@@ -1,0 +1,2 @@
+export const DISCIPLE_SCALE = 1.0;
+export const DISCIPLE_HEIGHT = 93.71 * DISCIPLE_SCALE;

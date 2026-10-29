@@ -11,7 +11,9 @@
     "sim": "node --import tsx scripts/sim.ts",
     "lint": "eslint . && prettier --check .",
     "format": "prettier --write .",
-    "assets": "node scripts/export-assets.mjs"
+    "assets": "node scripts/export-assets.mjs",
+    "world": "node scripts/build-world.mjs",
+    "prebuild": "node scripts/world-buildings.mjs"
   },
   "dependencies": {
     "idb-keyval": "^6.3.0",

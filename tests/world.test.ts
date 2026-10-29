@@ -1,0 +1,162 @@
+import { expect, it } from 'vitest';
+import sharp from 'sharp';
+import { stat } from 'node:fs/promises';
+import {
+  worldSchema,
+  worldMap,
+  walkable,
+  findPath,
+  lineClear,
+  pathLength,
+  WALK_SPEED,
+  walkTimeSeconds,
+  destination,
+} from '../src/render/world';
+import { createWorld, step } from '../src/sim/world';
+import { loadData } from '../src/sim/data';
+import buildings from '../docs/world-buildings.json';
+const points = [
+  ...worldMap.spots.map((s) => {
+    const d = worldMap.islands.find((d) => d.id === s.island)!;
+    return [s.point[0] + d.offset[0], s.point[1] + d.offset[1]] as [
+      number,
+      number,
+    ];
+  }),
+  ...worldMap.slots.map((s) => s.front),
+];
+it('validates world configuration and all landing/front positions', () => {
+  expect(worldSchema.safeParse(worldMap).success).toBe(true);
+  points.forEach((p) => expect(walkable(p), JSON.stringify(p)).toBe(true));
+});
+it('every pair of island spots and building fronts is reachable without crossing obstacles', () => {
+  for (let i = 0; i < points.length; i++)
+    for (let j = i + 1; j < points.length; j++) {
+      const path = findPath(points[i], points[j]);
+      expect(
+        path.length,
+        JSON.stringify([points[i], points[j]]),
+      ).toBeGreaterThan(0);
+      path.slice(1).forEach((p, k) => expect(lineClear(path[k], p)).toBe(true));
+    }
+}, 30000);
+it('render destinations and paths never mutate simulation across 200 steps', () => {
+  const a = createWorld(42, loadData()),
+    b = createWorld(42, loadData());
+  for (let i = 0; i < 200; i++) {
+    step(a);
+    a.disciples.forEach((d, k) => destination(d, a.tick, k));
+    step(b);
+    expect(JSON.stringify(a)).toBe(JSON.stringify(b));
+  }
+});
+it('reports dorm to hall walking duration', () => {
+  const a = worldMap.slots.find((s) => s.id === 'B_DORM')!.front,
+    b = worldMap.slots.find((s) => s.id === 'B_HALL')!.front;
+  const path = findPath(a, b);
+  expect(path.length).toBeGreaterThan(0);
+  console.log({
+    dormHallLength: pathLength(path),
+    speed: WALK_SPEED,
+    seconds: walkTimeSeconds(a, b),
+  });
+});
+it('four source dimensions and world budget', async () => {
+  for (const file of [
+    'map_main_v2.jpg',
+    'map_island_north_v1.jpg',
+    'map_island_west_v1.jpg',
+    'map_island_east_v1.jpg',
+  ]) {
+    const m = await sharp(
+      '/Volumes/Media/immortal-qa/design/art/concept/' + file,
+    ).metadata();
+    expect([m.width, m.height]).toEqual([1280, 720]);
+  }
+  const m = await sharp('public/assets/map/world.webp').metadata();
+  expect([m.width, m.height]).toEqual([3200, 1400]);
+  expect((await stat('public/assets/map/world.webp')).size).toBeLessThanOrEqual(
+    1500000,
+  );
+});
+it('alchemy actual alpha masks avoid meditation and cliff', async () => {
+  for (const b of buildings.filter((b) => b.file.includes('alchemy'))) {
+    const { data, info } = await sharp('public/assets/' + b.file)
+      .ensureAlpha()
+      .raw()
+      .toBuffer({ resolveWithObject: true });
+    const manifest = (await import('../public/assets/manifest.json')).default;
+    const f = manifest.files.find((f) => f.file === b.file)!;
+    const rect = worldMap.slots.find((s) => s.id === 'B_MEDIT')!.rect;
+    for (let y = 0; y < info.height; y++)
+      for (let x = 0; x < info.width; x++) {
+        if (!data[(y * info.width + x) * 4 + 3]) continue;
+        const wx = b.x + (x - f.anchor.x) * b.scale,
+          wy = b.y + (y - f.anchor.y) * b.scale;
+        expect(wy + b.scale).toBeLessThanOrEqual(1090);
+        expect(
+          wx + b.scale > rect[0] &&
+            wx < rect[2] &&
+            wy + b.scale > rect[1] &&
+            wy < rect[3],
+        ).toBe(false);
+      }
+  }
+});
+it('invalid cloud endpoints never produce a fake direct path', () =>
+  expect(findPath([10, 10], points[0])).toEqual([]));
+it('garden footprint is centered, maximally scaled, and excluded from walking', () => {
+  for (const b of buildings.filter((b) => b.file.includes('garden'))) {
+    const c = b.footprintWorld!;
+    const pts = Object.values(c);
+    const xs = pts.map((p) => p[0]),
+      ys = pts.map((p) => p[1]);
+    expect(b.scale).toBe(0.24);
+    expect((Math.min(...xs) + Math.max(...xs)) / 2).toBeCloseTo(2616);
+    expect((Math.min(...ys) + Math.max(...ys)) / 2).toBeCloseTo(926);
+    for (const [x, y] of pts) {
+      expect(x).toBeGreaterThanOrEqual(2532);
+      expect(x).toBeLessThanOrEqual(2700);
+      expect(y).toBeGreaterThanOrEqual(875);
+      expect(y).toBeLessThanOrEqual(977);
+      expect(walkable([x, y])).toBe(false);
+    }
+    // Include the upper ground half that the previous lower-half reservation missed.
+    expect(
+      walkable([
+        (c.left[0] + c.top[0] + c.right[0] + c.bottom[0]) / 4,
+        (c.left[1] + c.top[1] + c.right[1] + c.bottom[1]) / 4,
+      ]),
+    ).toBe(false);
+  }
+});
+
+it('W1c measured doors, tier widths and body alignment agree with source geometry', async () => {
+  const { DISCIPLE_HEIGHT, DISCIPLE_SCALE } =
+    await import('../src/render/world-scale');
+  const manifest = (await import('../public/assets/manifest.json')).default;
+  for (const b of buildings) {
+    expect(b.discipleHeight).toBe(DISCIPLE_HEIGHT);
+    expect(b.discipleScale).toBe(DISCIPLE_SCALE);
+    if (!/dorm|alchemy/.test(b.file)) continue;
+    const f = manifest.files.find((f) => f.file === b.file)!;
+    const src = manifest.files.find((s) => s.file === f.source)!;
+    const m = src.measure!;
+    expect(b.sourceScale).toBeCloseTo(b.scale * f.scale);
+    expect(b.doorRatio).toBeCloseTo(
+      (m.door_leaf_h * b.sourceScale) / DISCIPLE_HEIGHT,
+    );
+    expect(m.door_leaf_y_src[1] - m.door_leaf_y_src[0]).toBe(m.door_leaf_h);
+    expect(b.bodyWidthRatio).toBeLessThanOrEqual(1.15 + 1e-9);
+    expect(b.meetsDoorRule).toBe(b.doorRatio! >= 0.4 - 1e-9);
+    expect(b.bodyBottom).toBe(b.file.includes('dorm') ? 949 : 1055);
+    expect(b.bodyBottomOffsetSource).toBe(src.crop![3] - m.building_y_src[1]);
+  }
+  for (const key of ['dorm', 'alchemy']) {
+    const pair = buildings.filter((b) => b.file.includes(key));
+    expect(
+      Math.max(...pair.map((b) => b.bodyWidth)) /
+        Math.min(...pair.map((b) => b.bodyWidth)),
+    ).toBeLessThanOrEqual(1.1 + 1e-9);
+  }
+});

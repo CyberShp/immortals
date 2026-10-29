@@ -1,17 +1,22 @@
 {
   "passed": true,
-  "firstLoadBytes": 1055146,
+  "firstLoadBytes": 1359385,
   "firstLoadBytesByType": {
     "document": 1293,
-    "script": 783139,
+    "script": 804096,
     "stylesheet": 9358,
-    "image": 261356
+    "image": 544638
   },
   "firstLoadResources": [
     {
       "url": "http://localhost:4173/?debug=1&speed=1",
       "bytes": 1293,
       "type": "document"
+    },
+    {
+      "url": "http://localhost:4173/bundles/index-SL8pJzRK.js",
+      "bytes": 473986,
+      "type": "script"
     },
     {
       "url": "http://localhost:4173/bundles/Filter-LPvnWTqr.js",
@@ -21,11 +26,6 @@
     {
       "url": "http://localhost:4173/bundles/CanvasPool-BKClwQdf.js",
       "bytes": 71190,
-      "type": "script"
-    },
-    {
-      "url": "http://localhost:4173/bundles/index-DC3fU0qO.js",
-      "bytes": 453029,
       "type": "script"
     },
     {
@@ -49,13 +49,18 @@
       "type": "script"
     },
     {
-      "url": "http://localhost:4173/bundles/RenderTargetSystem-DYiq1aca.js",
-      "bytes": 58807,
-      "type": "script"
+      "url": "http://localhost:4173/bundles/index-dnJ4zOWo.css",
+      "bytes": 9358,
+      "type": "stylesheet"
     },
     {
       "url": "http://localhost:4173/bundles/getTexelRangeRects-HvxKj03g.js",
       "bytes": 11358,
+      "type": "script"
+    },
+    {
+      "url": "http://localhost:4173/bundles/RenderTargetSystem-DYiq1aca.js",
+      "bytes": 58807,
       "type": "script"
     },
     {
@@ -64,18 +69,13 @@
       "type": "script"
     },
     {
-      "url": "http://localhost:4173/bundles/index-dnJ4zOWo.css",
-      "bytes": 9358,
-      "type": "stylesheet"
-    },
-    {
-      "url": "http://localhost:4173/bundles/init-Hgrb7ycW.js",
-      "bytes": 14842,
+      "url": "http://localhost:4173/bundles/browserAll-DESggYZi.js",
+      "bytes": 43507,
       "type": "script"
     },
     {
-      "url": "http://localhost:4173/bundles/browserAll-Cdeqzmvi.js",
-      "bytes": 43507,
+      "url": "http://localhost:4173/bundles/init-DB0vquw9.js",
+      "bytes": 14842,
       "type": "script"
     },
     {
@@ -100,12 +100,12 @@
     },
     {
       "url": "http://localhost:4173/assets/building/dorm-t1-map@2x.webp",
-      "bytes": 6574,
+      "bytes": 5732,
       "type": "image"
     },
     {
       "url": "http://localhost:4173/assets/building/dorm-t2-map@2x.webp",
-      "bytes": 8202,
+      "bytes": 6340,
       "type": "image"
     },
     {
@@ -120,22 +120,22 @@
     },
     {
       "url": "http://localhost:4173/assets/building/garden-t1-map@2x.webp",
-      "bytes": 11902,
+      "bytes": 54650,
       "type": "image"
     },
     {
       "url": "http://localhost:4173/assets/building/garden-t2-map@2x.webp",
-      "bytes": 12388,
+      "bytes": 90642,
       "type": "image"
     },
     {
       "url": "http://localhost:4173/assets/building/alchemy-t1-map@2x.webp",
-      "bytes": 7712,
+      "bytes": 4790,
       "type": "image"
     },
     {
       "url": "http://localhost:4173/assets/building/alchemy-t2-map@2x.webp",
-      "bytes": 9096,
+      "bytes": 5828,
       "type": "image"
     },
     {
@@ -149,8 +149,13 @@
       "type": "image"
     },
     {
-      "url": "http://localhost:4173/assets/map/base@2x.webp",
-      "bytes": 111276,
+      "url": "http://localhost:4173/assets/map/world.webp",
+      "bytes": 278678,
+      "type": "image"
+    },
+    {
+      "url": "http://localhost:4173/assets/map/world-mini.webp",
+      "bytes": 3772,
       "type": "image"
     },
     {
@@ -164,13 +169,13 @@
       "type": "image"
     },
     {
-      "url": "http://localhost:4173/assets/accessory/sword-48@2x.webp",
-      "bytes": 992,
+      "url": "http://localhost:4173/assets/accessory/hat-48@2x.webp",
+      "bytes": 1210,
       "type": "image"
     },
     {
-      "url": "http://localhost:4173/assets/accessory/hat-48@2x.webp",
-      "bytes": 1210,
+      "url": "http://localhost:4173/assets/accessory/sword-48@2x.webp",
+      "bytes": 992,
       "type": "image"
     },
     {
@@ -189,27 +194,27 @@
       "type": "image"
     },
     {
-      "url": "http://localhost:4173/assets/accessory/basket-48@2x.webp",
-      "bytes": 1884,
-      "type": "image"
-    },
-    {
-      "url": "http://localhost:4173/assets/accessory/beads-48@2x.webp",
-      "bytes": 1654,
-      "type": "image"
-    },
-    {
       "url": "http://localhost:4173/assets/accessory/fan-48@2x.webp",
       "bytes": 1528,
+      "type": "image"
+    },
+    {
+      "url": "http://localhost:4173/assets/accessory/basket-48@2x.webp",
+      "bytes": 1884,
       "type": "image"
     },
     {
       "url": "http://localhost:4173/assets/accessory/coins-48@2x.webp",
       "bytes": 1704,
       "type": "image"
+    },
+    {
+      "url": "http://localhost:4173/assets/accessory/beads-48@2x.webp",
+      "bytes": 1654,
+      "type": "image"
     }
   ],
-  "distTotalBytes": 1588223,
+  "distTotalBytes": 2183411,
   "screenshotStats": {
     "08-art-main": {
       "tick": 0,
@@ -252,7 +257,7 @@
           "label": "B_DORM",
           "other": "B_HALL",
           "kind": "building",
-          "pixels": 0
+          "pixels": 95
         },
         {
           "label": "B_DORM",
@@ -340,34 +345,193 @@
       },
       "disciples": [
         {
-          "x": 181,
-          "y": 300
+          "x": 706,
+          "y": 897
         },
         {
-          "x": 215,
-          "y": 300
+          "x": 2763,
+          "y": 921
         },
         {
-          "x": 249,
-          "y": 300
+          "x": 702,
+          "y": 746
         },
         {
-          "x": 181,
-          "y": 280
+          "x": 2754.1515753252143,
+          "y": 929.1058855638752
         },
         {
-          "x": 215,
-          "y": 280
+          "x": 2764.4836559797463,
+          "y": 904.0944161611093
         },
         {
-          "x": 249,
-          "y": 280
+          "x": 1446,
+          "y": 377
         }
       ],
       "camera": {
-        "zoom": 1.5,
-        "x": 300,
-        "y": 200
+        "zoom": 0.45,
+        "x": 1500,
+        "y": 900
+      }
+    },
+    "20-world-main": {
+      "tick": 0,
+      "mode": "full",
+      "markers": 0,
+      "markerCssDiameter": 0,
+      "buildingLabels": 5,
+      "labelOverlaps": [
+        {
+          "label": "B_HALL",
+          "other": "B_DORM",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_HALL",
+          "other": "B_DORM",
+          "kind": "label",
+          "pixels": 0
+        },
+        {
+          "label": "B_HALL",
+          "other": "B_GARDEN",
+          "kind": "label",
+          "pixels": 0
+        },
+        {
+          "label": "B_HALL",
+          "other": "B_MEDIT",
+          "kind": "label",
+          "pixels": 0
+        },
+        {
+          "label": "B_HALL",
+          "other": "B_ALCHEMY",
+          "kind": "label",
+          "pixels": 0
+        },
+        {
+          "label": "B_DORM",
+          "other": "B_HALL",
+          "kind": "building",
+          "pixels": 95
+        },
+        {
+          "label": "B_DORM",
+          "other": "B_GARDEN",
+          "kind": "label",
+          "pixels": 0
+        },
+        {
+          "label": "B_DORM",
+          "other": "B_MEDIT",
+          "kind": "label",
+          "pixels": 0
+        },
+        {
+          "label": "B_DORM",
+          "other": "B_ALCHEMY",
+          "kind": "label",
+          "pixels": 0
+        },
+        {
+          "label": "B_GARDEN",
+          "other": "B_HALL",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_GARDEN",
+          "other": "B_DORM",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_GARDEN",
+          "other": "B_MEDIT",
+          "kind": "label",
+          "pixels": 0
+        },
+        {
+          "label": "B_GARDEN",
+          "other": "B_ALCHEMY",
+          "kind": "label",
+          "pixels": 0
+        },
+        {
+          "label": "B_MEDIT",
+          "other": "B_HALL",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_MEDIT",
+          "other": "B_DORM",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_MEDIT",
+          "other": "B_ALCHEMY",
+          "kind": "label",
+          "pixels": 0
+        },
+        {
+          "label": "B_ALCHEMY",
+          "other": "B_HALL",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_ALCHEMY",
+          "other": "B_DORM",
+          "kind": "building",
+          "pixels": 0
+        }
+      ],
+      "rings": 6,
+      "nameLabels": 6,
+      "raisedForVisibility": 0,
+      "minHeadVisibility": 1,
+      "baseLoaded": true,
+      "buildingSprites": 2,
+      "discipleSprites": 6,
+      "fallbacks": 0,
+      "poses": {
+        "meditate": 6
+      },
+      "disciples": [
+        {
+          "x": 706,
+          "y": 897
+        },
+        {
+          "x": 2763,
+          "y": 921
+        },
+        {
+          "x": 702,
+          "y": 746
+        },
+        {
+          "x": 2754.1515753252143,
+          "y": 929.1058855638752
+        },
+        {
+          "x": 2764.4836559797463,
+          "y": 904.0944161611093
+        },
+        {
+          "x": 1446,
+          "y": 377
+        }
+      ],
+      "camera": {
+        "zoom": 0.45,
+        "x": 1500,
+        "y": 900
       }
     },
     "13-art-panorama": {
@@ -411,7 +575,7 @@
           "label": "B_DORM",
           "other": "B_HALL",
           "kind": "building",
-          "pixels": 0
+          "pixels": 95
         },
         {
           "label": "B_DORM",
@@ -499,34 +663,193 @@
       },
       "disciples": [
         {
-          "x": 181,
-          "y": 300
+          "x": 706,
+          "y": 897
         },
         {
-          "x": 215,
-          "y": 300
+          "x": 2763,
+          "y": 921
         },
         {
-          "x": 249,
-          "y": 300
+          "x": 702,
+          "y": 746
         },
         {
-          "x": 181,
-          "y": 280
+          "x": 2754.1515753252143,
+          "y": 929.1058855638752
         },
         {
-          "x": 215,
-          "y": 280
+          "x": 2764.4836559797463,
+          "y": 904.0944161611093
         },
         {
-          "x": 249,
-          "y": 280
+          "x": 1446,
+          "y": 377
         }
       ],
       "camera": {
-        "zoom": 1,
-        "x": 320,
-        "y": 180
+        "zoom": 0.2,
+        "x": 1600,
+        "y": 700
+      }
+    },
+    "21-world-panorama": {
+      "tick": 0,
+      "mode": "full",
+      "markers": 0,
+      "markerCssDiameter": 0,
+      "buildingLabels": 5,
+      "labelOverlaps": [
+        {
+          "label": "B_HALL",
+          "other": "B_DORM",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_HALL",
+          "other": "B_DORM",
+          "kind": "label",
+          "pixels": 0
+        },
+        {
+          "label": "B_HALL",
+          "other": "B_GARDEN",
+          "kind": "label",
+          "pixels": 0
+        },
+        {
+          "label": "B_HALL",
+          "other": "B_MEDIT",
+          "kind": "label",
+          "pixels": 0
+        },
+        {
+          "label": "B_HALL",
+          "other": "B_ALCHEMY",
+          "kind": "label",
+          "pixels": 0
+        },
+        {
+          "label": "B_DORM",
+          "other": "B_HALL",
+          "kind": "building",
+          "pixels": 95
+        },
+        {
+          "label": "B_DORM",
+          "other": "B_GARDEN",
+          "kind": "label",
+          "pixels": 0
+        },
+        {
+          "label": "B_DORM",
+          "other": "B_MEDIT",
+          "kind": "label",
+          "pixels": 0
+        },
+        {
+          "label": "B_DORM",
+          "other": "B_ALCHEMY",
+          "kind": "label",
+          "pixels": 0
+        },
+        {
+          "label": "B_GARDEN",
+          "other": "B_HALL",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_GARDEN",
+          "other": "B_DORM",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_GARDEN",
+          "other": "B_MEDIT",
+          "kind": "label",
+          "pixels": 0
+        },
+        {
+          "label": "B_GARDEN",
+          "other": "B_ALCHEMY",
+          "kind": "label",
+          "pixels": 0
+        },
+        {
+          "label": "B_MEDIT",
+          "other": "B_HALL",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_MEDIT",
+          "other": "B_DORM",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_MEDIT",
+          "other": "B_ALCHEMY",
+          "kind": "label",
+          "pixels": 0
+        },
+        {
+          "label": "B_ALCHEMY",
+          "other": "B_HALL",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_ALCHEMY",
+          "other": "B_DORM",
+          "kind": "building",
+          "pixels": 0
+        }
+      ],
+      "rings": 6,
+      "nameLabels": 6,
+      "raisedForVisibility": 0,
+      "minHeadVisibility": 1,
+      "baseLoaded": true,
+      "buildingSprites": 2,
+      "discipleSprites": 6,
+      "fallbacks": 0,
+      "poses": {
+        "meditate": 6
+      },
+      "disciples": [
+        {
+          "x": 706,
+          "y": 897
+        },
+        {
+          "x": 2763,
+          "y": 921
+        },
+        {
+          "x": 702,
+          "y": 746
+        },
+        {
+          "x": 2754.1515753252143,
+          "y": 929.1058855638752
+        },
+        {
+          "x": 2764.4836559797463,
+          "y": 904.0944161611093
+        },
+        {
+          "x": 1446,
+          "y": 377
+        }
+      ],
+      "camera": {
+        "zoom": 0.2,
+        "x": 1600,
+        "y": 700
       }
     },
     "09-art-compact": {
@@ -549,38 +872,38 @@
       },
       "disciples": [
         {
-          "x": 181,
-          "y": 300
+          "x": 706,
+          "y": 897
         },
         {
-          "x": 215,
-          "y": 300
+          "x": 2763,
+          "y": 921
         },
         {
-          "x": 249,
-          "y": 300
+          "x": 702,
+          "y": 746
         },
         {
-          "x": 181,
-          "y": 280
+          "x": 2754.1515753252143,
+          "y": 929.1058855638752
         },
         {
-          "x": 215,
-          "y": 280
+          "x": 2764.4836559797463,
+          "y": 904.0944161611093
         },
         {
-          "x": 249,
-          "y": 280
+          "x": 1446,
+          "y": 377
         }
       ],
       "camera": {
-        "zoom": 1,
-        "x": 320,
-        "y": 180
+        "zoom": 0.2,
+        "x": 1600,
+        "y": 700
       }
     },
     "10-art-disciples-48": {
-      "tick": 60,
+      "tick": 61,
       "mode": "full",
       "markers": 0,
       "markerCssDiameter": 0,
@@ -606,6 +929,12 @@
         },
         {
           "label": "B_HALL",
+          "other": "B_ALCHEMY",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_HALL",
           "other": "B_DORM",
           "kind": "label",
           "pixels": 0
@@ -632,17 +961,23 @@
           "label": "B_DORM",
           "other": "B_HALL",
           "kind": "building",
-          "pixels": 0
+          "pixels": 95
         },
         {
           "label": "B_DORM",
           "other": "B_GARDEN",
           "kind": "building",
-          "pixels": 135
+          "pixels": 0
         },
         {
           "label": "B_DORM",
           "other": "B_MEDIT",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_DORM",
+          "other": "B_ALCHEMY",
           "kind": "building",
           "pixels": 0
         },
@@ -679,6 +1014,12 @@
         {
           "label": "B_GARDEN",
           "other": "B_MEDIT",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_GARDEN",
+          "other": "B_ALCHEMY",
           "kind": "building",
           "pixels": 0
         },
@@ -709,6 +1050,12 @@
         {
           "label": "B_MEDIT",
           "other": "B_GARDEN",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_MEDIT",
+          "other": "B_ALCHEMY",
           "kind": "building",
           "pixels": 0
         },
@@ -748,49 +1095,48 @@
       "raisedForVisibility": 0,
       "minHeadVisibility": 1,
       "baseLoaded": true,
-      "buildingSprites": 4,
+      "buildingSprites": 5,
       "discipleSprites": 6,
       "fallbacks": 0,
       "poses": {
-        "walk-step": 2,
-        "work": 2,
-        "talk": 1,
-        "meditate": 1
+        "walk-step": 4,
+        "walk-pass": 1,
+        "work": 1
       },
       "disciples": [
         {
-          "x": 447,
-          "y": 148
+          "x": 649.0127776627828,
+          "y": 900.8310737705692
         },
         {
-          "x": 268,
-          "y": 185
+          "x": 2554.1473304826063,
+          "y": 993.1001485991925
         },
         {
-          "x": 385,
-          "y": 66
+          "x": 2237.837666312274,
+          "y": 1027.3176734463873
         },
         {
-          "x": 302,
-          "y": 185
+          "x": 2616,
+          "y": 987
         },
         {
-          "x": 195,
-          "y": 90
+          "x": 1592.5874894572821,
+          "y": 448.70915026812696
         },
         {
-          "x": 215,
-          "y": 300
+          "x": 1468.3790667673572,
+          "y": 432.31743821750524
         }
       ],
       "camera": {
-        "zoom": 1,
-        "x": 320,
-        "y": 180
+        "zoom": 0.2,
+        "x": 1600,
+        "y": 700
       }
     },
     "11-art-zoom": {
-      "tick": 60,
+      "tick": 61,
       "mode": "full",
       "markers": 0,
       "markerCssDiameter": 0,
@@ -816,6 +1162,12 @@
         },
         {
           "label": "B_HALL",
+          "other": "B_ALCHEMY",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_HALL",
           "other": "B_DORM",
           "kind": "label",
           "pixels": 0
@@ -842,17 +1194,23 @@
           "label": "B_DORM",
           "other": "B_HALL",
           "kind": "building",
-          "pixels": 0
+          "pixels": 95
         },
         {
           "label": "B_DORM",
           "other": "B_GARDEN",
           "kind": "building",
-          "pixels": 135
+          "pixels": 0
         },
         {
           "label": "B_DORM",
           "other": "B_MEDIT",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_DORM",
+          "other": "B_ALCHEMY",
           "kind": "building",
           "pixels": 0
         },
@@ -889,6 +1247,12 @@
         {
           "label": "B_GARDEN",
           "other": "B_MEDIT",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_GARDEN",
+          "other": "B_ALCHEMY",
           "kind": "building",
           "pixels": 0
         },
@@ -919,6 +1283,12 @@
         {
           "label": "B_MEDIT",
           "other": "B_GARDEN",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_MEDIT",
+          "other": "B_ALCHEMY",
           "kind": "building",
           "pixels": 0
         },
@@ -958,54 +1328,53 @@
       "raisedForVisibility": 0,
       "minHeadVisibility": 1,
       "baseLoaded": true,
-      "buildingSprites": 4,
+      "buildingSprites": 5,
       "discipleSprites": 6,
       "fallbacks": 0,
       "poses": {
-        "walk-step": 2,
-        "work": 2,
+        "walk-step": 4,
         "talk": 1,
         "meditate": 1
       },
       "disciples": [
         {
-          "x": 442.549367115775,
-          "y": 143.38035574042468
+          "x": 588.4295473274167,
+          "y": 904.9038959779888
         },
         {
-          "x": 268,
-          "y": 185
+          "x": 955.0317624071616,
+          "y": 1005.947425752238
         },
         {
-          "x": 385.95773112698515,
-          "y": 66
+          "x": 2211.246801067141,
+          "y": 1028.5508729939877
         },
         {
-          "x": 302,
-          "y": 185
+          "x": 2608.208058113653,
+          "y": 994.1380603409639
         },
         {
-          "x": 195,
-          "y": 90
+          "x": 537,
+          "y": 982
         },
         {
-          "x": 215,
-          "y": 300
+          "x": 2763,
+          "y": 921
         }
       ],
       "camera": {
-        "zoom": 1.5,
-        "x": 300,
-        "y": 200
+        "zoom": 0.45,
+        "x": 1500,
+        "y": 900
       },
       "region": {
-        "x": 252,
-        "y": 109.5,
-        "count": 2
+        "x": 0,
+        "y": 134.20675319009496,
+        "count": 1
       }
     },
     "14-art-camera-drag": {
-      "tick": 60,
+      "tick": 61,
       "mode": "full",
       "markers": 0,
       "markerCssDiameter": 0,
@@ -1031,6 +1400,12 @@
         },
         {
           "label": "B_HALL",
+          "other": "B_ALCHEMY",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_HALL",
           "other": "B_DORM",
           "kind": "label",
           "pixels": 0
@@ -1057,17 +1432,23 @@
           "label": "B_DORM",
           "other": "B_HALL",
           "kind": "building",
-          "pixels": 0
+          "pixels": 95
         },
         {
           "label": "B_DORM",
           "other": "B_GARDEN",
           "kind": "building",
-          "pixels": 135
+          "pixels": 0
         },
         {
           "label": "B_DORM",
           "other": "B_MEDIT",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_DORM",
+          "other": "B_ALCHEMY",
           "kind": "building",
           "pixels": 0
         },
@@ -1104,6 +1485,12 @@
         {
           "label": "B_GARDEN",
           "other": "B_MEDIT",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_GARDEN",
+          "other": "B_ALCHEMY",
           "kind": "building",
           "pixels": 0
         },
@@ -1134,6 +1521,12 @@
         {
           "label": "B_MEDIT",
           "other": "B_GARDEN",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_MEDIT",
+          "other": "B_ALCHEMY",
           "kind": "building",
           "pixels": 0
         },
@@ -1173,45 +1566,46 @@
       "raisedForVisibility": 0,
       "minHeadVisibility": 1,
       "baseLoaded": true,
-      "buildingSprites": 4,
+      "buildingSprites": 5,
       "discipleSprites": 6,
       "fallbacks": 0,
       "poses": {
         "walk-pass": 2,
-        "work": 2,
+        "walk-step": 1,
+        "work": 1,
         "talk": 1,
         "meditate": 1
       },
       "disciples": [
         {
-          "x": 427.2187763363057,
-          "y": 127.46759062755783
+          "x": 629.837125423579,
+          "y": 902.120193248835
         },
         {
-          "x": 268,
-          "y": 185
+          "x": 915.4198483183252,
+          "y": 993.5687025994766
         },
         {
-          "x": 389.25671901623804,
-          "y": 66
+          "x": 2169.8946784653535,
+          "y": 1028.4688906765687
         },
         {
-          "x": 302,
-          "y": 185
+          "x": 2616,
+          "y": 987
         },
         {
-          "x": 195,
-          "y": 90
+          "x": 537,
+          "y": 982
         },
         {
-          "x": 215,
-          "y": 300
+          "x": 2763,
+          "y": 921
         }
       ],
       "camera": {
-        "zoom": 2,
-        "x": 325,
-        "y": 215
+        "zoom": 0.6,
+        "x": 1583.3333333333333,
+        "y": 950
       }
     },
     "15-art-all-built": {
@@ -1273,13 +1667,13 @@
           "label": "B_DORM",
           "other": "B_HALL",
           "kind": "building",
-          "pixels": 0
+          "pixels": 376
         },
         {
           "label": "B_DORM",
           "other": "B_GARDEN",
           "kind": "building",
-          "pixels": 135
+          "pixels": 0
         },
         {
           "label": "B_DORM",
@@ -1411,38 +1805,39 @@
       "discipleSprites": 6,
       "fallbacks": 0,
       "poses": {
-        "walk-step": 6
+        "walk-step": 3,
+        "walk-pass": 3
       },
       "disciples": [
         {
-          "x": 419.79058234964504,
-          "y": 121.86214458259914
+          "x": 646.252272456111,
+          "y": 901.0166539525303
         },
         {
-          "x": 267.73941666245463,
-          "y": 185.56541667580603
+          "x": 899.7165538030503,
+          "y": 988.6614230634532
         },
         {
-          "x": 389.9050919684743,
-          "y": 67.15050001859665
+          "x": 2153.628134261228,
+          "y": 1026.0042627668527
         },
         {
-          "x": 301.4050833237171,
-          "y": 185.46708334088325
+          "x": 2616,
+          "y": 987
         },
         {
-          "x": 195.09833333492278,
-          "y": 90.93416668176651
+          "x": 537,
+          "y": 982
         },
         {
-          "x": 215.16716666936875,
-          "y": 299.9016666650772
+          "x": 2763,
+          "y": 921
         }
       ],
       "camera": {
-        "zoom": 1,
-        "x": 320,
-        "y": 180
+        "zoom": 0.2,
+        "x": 1600,
+        "y": 700
       }
     },
     "16-art-all-built-zoom": {
@@ -1504,13 +1899,13 @@
           "label": "B_DORM",
           "other": "B_HALL",
           "kind": "building",
-          "pixels": 0
+          "pixels": 376
         },
         {
           "label": "B_DORM",
           "other": "B_GARDEN",
           "kind": "building",
-          "pixels": 135
+          "pixels": 0
         },
         {
           "label": "B_DORM",
@@ -1635,45 +2030,510 @@
       ],
       "rings": 6,
       "nameLabels": 6,
-      "raisedForVisibility": 1,
+      "raisedForVisibility": 0,
       "minHeadVisibility": 1,
       "baseLoaded": true,
       "buildingSprites": 5,
       "discipleSprites": 6,
       "fallbacks": 0,
       "poses": {
-        "walk-step": 6
+        "walk-pass": 4,
+        "walk-step": 2
       },
       "disciples": [
         {
-          "x": 397.3533465028229,
-          "y": 138.60033013379856
+          "x": 694.3803662238189,
+          "y": 897.7811518504996
         },
         {
-          "x": 262.7839166656137,
-          "y": 196.3179166689515
+          "x": 853.6755631621945,
+          "y": 974.2736134881858
         },
         {
-          "x": 376.6653705799414,
-          "y": 89.02950000464917
+          "x": 2105.9357338714412,
+          "y": 1018.7781414956729
         },
         {
-          "x": 290.09158333092927,
-          "y": 194.3495833352208
+          "x": 2663.758282367095,
+          "y": 983.0201431360754
         },
         {
-          "x": 196.9683333337307,
-          "y": 108.69916667044163
+          "x": 584.4306676187056,
+          "y": 975.1425540792233
         },
         {
-          "x": 218.34616666734217,
-          "y": 298.0316666662693
+          "x": 2728.0204782735077,
+          "y": 953.7585997121117
         }
       ],
       "camera": {
-        "zoom": 1.5,
-        "x": 390,
-        "y": 180
+        "zoom": 0.6,
+        "x": 1710,
+        "y": 950
+      }
+    },
+    "25-world-buildings-t1-zoom": {
+      "tick": 0,
+      "mode": "full",
+      "markers": 0,
+      "markerCssDiameter": 0,
+      "buildingLabels": 5,
+      "labelOverlaps": [
+        {
+          "label": "B_HALL",
+          "other": "B_DORM",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_HALL",
+          "other": "B_GARDEN",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_HALL",
+          "other": "B_MEDIT",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_HALL",
+          "other": "B_ALCHEMY",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_HALL",
+          "other": "B_DORM",
+          "kind": "label",
+          "pixels": 0
+        },
+        {
+          "label": "B_HALL",
+          "other": "B_GARDEN",
+          "kind": "label",
+          "pixels": 0
+        },
+        {
+          "label": "B_HALL",
+          "other": "B_MEDIT",
+          "kind": "label",
+          "pixels": 0
+        },
+        {
+          "label": "B_HALL",
+          "other": "B_ALCHEMY",
+          "kind": "label",
+          "pixels": 0
+        },
+        {
+          "label": "B_DORM",
+          "other": "B_HALL",
+          "kind": "building",
+          "pixels": 95
+        },
+        {
+          "label": "B_DORM",
+          "other": "B_GARDEN",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_DORM",
+          "other": "B_MEDIT",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_DORM",
+          "other": "B_ALCHEMY",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_DORM",
+          "other": "B_GARDEN",
+          "kind": "label",
+          "pixels": 0
+        },
+        {
+          "label": "B_DORM",
+          "other": "B_MEDIT",
+          "kind": "label",
+          "pixels": 0
+        },
+        {
+          "label": "B_DORM",
+          "other": "B_ALCHEMY",
+          "kind": "label",
+          "pixels": 0
+        },
+        {
+          "label": "B_GARDEN",
+          "other": "B_HALL",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_GARDEN",
+          "other": "B_DORM",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_GARDEN",
+          "other": "B_MEDIT",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_GARDEN",
+          "other": "B_ALCHEMY",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_GARDEN",
+          "other": "B_MEDIT",
+          "kind": "label",
+          "pixels": 0
+        },
+        {
+          "label": "B_GARDEN",
+          "other": "B_ALCHEMY",
+          "kind": "label",
+          "pixels": 0
+        },
+        {
+          "label": "B_MEDIT",
+          "other": "B_HALL",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_MEDIT",
+          "other": "B_DORM",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_MEDIT",
+          "other": "B_GARDEN",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_MEDIT",
+          "other": "B_ALCHEMY",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_MEDIT",
+          "other": "B_ALCHEMY",
+          "kind": "label",
+          "pixels": 0
+        },
+        {
+          "label": "B_ALCHEMY",
+          "other": "B_HALL",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_ALCHEMY",
+          "other": "B_DORM",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_ALCHEMY",
+          "other": "B_GARDEN",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_ALCHEMY",
+          "other": "B_MEDIT",
+          "kind": "building",
+          "pixels": 0
+        }
+      ],
+      "rings": 6,
+      "nameLabels": 6,
+      "raisedForVisibility": 0,
+      "minHeadVisibility": 1,
+      "baseLoaded": true,
+      "buildingSprites": 5,
+      "discipleSprites": 6,
+      "fallbacks": 0,
+      "poses": {
+        "meditate": 1,
+        "walk-step": 5
+      },
+      "disciples": [
+        {
+          "x": 706,
+          "y": 897
+        },
+        {
+          "x": 836.279245288534,
+          "y": 965.2161725138294
+        },
+        {
+          "x": 2085.7775940223974,
+          "y": 1015.7238778821815
+        },
+        {
+          "x": 2684.0760670835616,
+          "y": 981.3269944097032
+        },
+        {
+          "x": 604.6090753392294,
+          "y": 972.2251939268584
+        },
+        {
+          "x": 2713.13915598346,
+          "y": 967.6950761424737
+        }
+      ],
+      "camera": {
+        "zoom": 1.05,
+        "x": 1535,
+        "y": 900
+      }
+    },
+    "26-world-buildings-t2-zoom": {
+      "tick": 0,
+      "mode": "full",
+      "markers": 0,
+      "markerCssDiameter": 0,
+      "buildingLabels": 5,
+      "labelOverlaps": [
+        {
+          "label": "B_HALL",
+          "other": "B_DORM",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_HALL",
+          "other": "B_GARDEN",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_HALL",
+          "other": "B_MEDIT",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_HALL",
+          "other": "B_ALCHEMY",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_HALL",
+          "other": "B_DORM",
+          "kind": "label",
+          "pixels": 0
+        },
+        {
+          "label": "B_HALL",
+          "other": "B_GARDEN",
+          "kind": "label",
+          "pixels": 0
+        },
+        {
+          "label": "B_HALL",
+          "other": "B_MEDIT",
+          "kind": "label",
+          "pixels": 0
+        },
+        {
+          "label": "B_HALL",
+          "other": "B_ALCHEMY",
+          "kind": "label",
+          "pixels": 0
+        },
+        {
+          "label": "B_DORM",
+          "other": "B_HALL",
+          "kind": "building",
+          "pixels": 376
+        },
+        {
+          "label": "B_DORM",
+          "other": "B_GARDEN",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_DORM",
+          "other": "B_MEDIT",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_DORM",
+          "other": "B_ALCHEMY",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_DORM",
+          "other": "B_GARDEN",
+          "kind": "label",
+          "pixels": 0
+        },
+        {
+          "label": "B_DORM",
+          "other": "B_MEDIT",
+          "kind": "label",
+          "pixels": 0
+        },
+        {
+          "label": "B_DORM",
+          "other": "B_ALCHEMY",
+          "kind": "label",
+          "pixels": 0
+        },
+        {
+          "label": "B_GARDEN",
+          "other": "B_HALL",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_GARDEN",
+          "other": "B_DORM",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_GARDEN",
+          "other": "B_MEDIT",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_GARDEN",
+          "other": "B_ALCHEMY",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_GARDEN",
+          "other": "B_MEDIT",
+          "kind": "label",
+          "pixels": 0
+        },
+        {
+          "label": "B_GARDEN",
+          "other": "B_ALCHEMY",
+          "kind": "label",
+          "pixels": 0
+        },
+        {
+          "label": "B_MEDIT",
+          "other": "B_HALL",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_MEDIT",
+          "other": "B_DORM",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_MEDIT",
+          "other": "B_GARDEN",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_MEDIT",
+          "other": "B_ALCHEMY",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_MEDIT",
+          "other": "B_ALCHEMY",
+          "kind": "label",
+          "pixels": 0
+        },
+        {
+          "label": "B_ALCHEMY",
+          "other": "B_HALL",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_ALCHEMY",
+          "other": "B_DORM",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_ALCHEMY",
+          "other": "B_GARDEN",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_ALCHEMY",
+          "other": "B_MEDIT",
+          "kind": "building",
+          "pixels": 0
+        }
+      ],
+      "rings": 6,
+      "nameLabels": 6,
+      "raisedForVisibility": 0,
+      "minHeadVisibility": 1,
+      "baseLoaded": true,
+      "buildingSprites": 5,
+      "discipleSprites": 6,
+      "fallbacks": 0,
+      "poses": {
+        "meditate": 1,
+        "walk-pass": 5
+      },
+      "disciples": [
+        {
+          "x": 706,
+          "y": 897
+        },
+        {
+          "x": 822.7914595450624,
+          "y": 947.8747337007944
+        },
+        {
+          "x": 2064.0563027628345,
+          "y": 1012.432773145884
+        },
+        {
+          "x": 2704.3648701394236,
+          "y": 975.8976964374439
+        },
+        {
+          "x": 626.4182525045163,
+          "y": 970
+        },
+        {
+          "x": 2696.0503628126085,
+          "y": 980.37977280648
+        }
+      ],
+      "camera": {
+        "zoom": 1.05,
+        "x": 1535,
+        "y": 900
       }
     },
     "12-art-disciples-24": {
@@ -1729,13 +2589,13 @@
           "label": "B_DORM",
           "other": "B_HALL",
           "kind": "building",
-          "pixels": 0
+          "pixels": 95
         },
         {
           "label": "B_DORM",
           "other": "B_GARDEN",
           "kind": "building",
-          "pixels": 135
+          "pixels": 0
         },
         {
           "label": "B_DORM",
@@ -1856,38 +2716,38 @@
       },
       "disciples": [
         {
-          "x": 447,
-          "y": 148
+          "x": 643,
+          "y": 863
         },
         {
-          "x": 268,
-          "y": 185
+          "x": 2616,
+          "y": 987
         },
         {
-          "x": 385,
-          "y": 66
+          "x": 2174.030559219169,
+          "y": 1028.1632489905135
         },
         {
-          "x": 302,
-          "y": 185
+          "x": 2607.1515753252143,
+          "y": 995.1058855638752
         },
         {
-          "x": 195,
-          "y": 90
+          "x": 1600,
+          "y": 387
         },
         {
-          "x": 215,
-          "y": 300
+          "x": 1446,
+          "y": 377
         }
       ],
       "camera": {
-        "zoom": 1,
-        "x": 320,
-        "y": 180
+        "zoom": 0.2,
+        "x": 1600,
+        "y": 700
       }
     },
     "01-main": {
-      "tick": 0,
+      "tick": 1,
       "mode": "full",
       "markers": 0,
       "markerCssDiameter": 0,
@@ -1901,6 +2761,12 @@
         },
         {
           "label": "B_HALL",
+          "other": "B_GARDEN",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_HALL",
           "other": "B_DORM",
           "kind": "label",
           "pixels": 0
@@ -1927,6 +2793,12 @@
           "label": "B_DORM",
           "other": "B_HALL",
           "kind": "building",
+          "pixels": 95
+        },
+        {
+          "label": "B_DORM",
+          "other": "B_GARDEN",
+          "kind": "building",
           "pixels": 0
         },
         {
@@ -1985,6 +2857,12 @@
         },
         {
           "label": "B_MEDIT",
+          "other": "B_GARDEN",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_MEDIT",
           "other": "B_ALCHEMY",
           "kind": "label",
           "pixels": 0
@@ -1998,6 +2876,12 @@
         {
           "label": "B_ALCHEMY",
           "other": "B_DORM",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_ALCHEMY",
+          "other": "B_GARDEN",
           "kind": "building",
           "pixels": 0
         }
@@ -2007,46 +2891,48 @@
       "raisedForVisibility": 0,
       "minHeadVisibility": 1,
       "baseLoaded": true,
-      "buildingSprites": 2,
+      "buildingSprites": 3,
       "discipleSprites": 6,
       "fallbacks": 0,
       "poses": {
-        "meditate": 6
+        "meditate": 3,
+        "walk-step": 2,
+        "walk-pass": 1
       },
       "disciples": [
         {
-          "x": 181,
-          "y": 300
+          "x": 643,
+          "y": 863
         },
         {
-          "x": 215,
-          "y": 300
+          "x": 702,
+          "y": 746
         },
         {
-          "x": 249,
-          "y": 300
+          "x": 2291.77640840429,
+          "y": 1019.2522684226644
         },
         {
-          "x": 181,
-          "y": 280
+          "x": 1927.0658331073466,
+          "y": 991.676641379901
         },
         {
-          "x": 215,
-          "y": 280
+          "x": 2639.145508794554,
+          "y": 985.851393385139
         },
         {
-          "x": 249,
-          "y": 280
+          "x": 1446,
+          "y": 377
         }
       ],
       "camera": {
-        "zoom": 1.5,
-        "x": 300,
-        "y": 200
+        "zoom": 0.45,
+        "x": 1500,
+        "y": 900
       }
     },
     "02-boss-key": {
-      "tick": 0,
+      "tick": 1,
       "mode": "full",
       "markers": 0,
       "markerCssDiameter": 0,
@@ -2060,6 +2946,12 @@
         },
         {
           "label": "B_HALL",
+          "other": "B_GARDEN",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_HALL",
           "other": "B_DORM",
           "kind": "label",
           "pixels": 0
@@ -2086,6 +2978,12 @@
           "label": "B_DORM",
           "other": "B_HALL",
           "kind": "building",
+          "pixels": 95
+        },
+        {
+          "label": "B_DORM",
+          "other": "B_GARDEN",
+          "kind": "building",
           "pixels": 0
         },
         {
@@ -2144,6 +3042,12 @@
         },
         {
           "label": "B_MEDIT",
+          "other": "B_GARDEN",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_MEDIT",
           "other": "B_ALCHEMY",
           "kind": "label",
           "pixels": 0
@@ -2157,6 +3061,12 @@
         {
           "label": "B_ALCHEMY",
           "other": "B_DORM",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_ALCHEMY",
+          "other": "B_GARDEN",
           "kind": "building",
           "pixels": 0
         }
@@ -2166,46 +3076,48 @@
       "raisedForVisibility": 0,
       "minHeadVisibility": 1,
       "baseLoaded": true,
-      "buildingSprites": 2,
+      "buildingSprites": 3,
       "discipleSprites": 6,
       "fallbacks": 0,
       "poses": {
-        "meditate": 6
+        "meditate": 3,
+        "walk-pass": 2,
+        "walk-step": 1
       },
       "disciples": [
         {
-          "x": 181,
-          "y": 300
+          "x": 643,
+          "y": 863
         },
         {
-          "x": 215,
-          "y": 300
+          "x": 702,
+          "y": 746
         },
         {
-          "x": 249,
-          "y": 300
+          "x": 2308.759619033175,
+          "y": 1017.6192674006562
         },
         {
-          "x": 181,
-          "y": 280
+          "x": 1910.1968243185968,
+          "y": 989.1207309573631
         },
         {
-          "x": 215,
-          "y": 280
+          "x": 2656.1287194234396,
+          "y": 984.2183923631308
         },
         {
-          "x": 249,
-          "y": 280
+          "x": 1446,
+          "y": 377
         }
       ],
       "camera": {
-        "zoom": 1.5,
-        "x": 300,
-        "y": 200
+        "zoom": 0.45,
+        "x": 1500,
+        "y": 900
       }
     },
     "03-offline": {
-      "tick": 2640,
+      "tick": 2641,
       "mode": "full",
       "markers": 0,
       "markerCssDiameter": 0,
@@ -2219,6 +3131,12 @@
         },
         {
           "label": "B_HALL",
+          "other": "B_GARDEN",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_HALL",
           "other": "B_DORM",
           "kind": "label",
           "pixels": 0
@@ -2245,6 +3163,12 @@
           "label": "B_DORM",
           "other": "B_HALL",
           "kind": "building",
+          "pixels": 95
+        },
+        {
+          "label": "B_DORM",
+          "other": "B_GARDEN",
+          "kind": "building",
           "pixels": 0
         },
         {
@@ -2303,6 +3227,12 @@
         },
         {
           "label": "B_MEDIT",
+          "other": "B_GARDEN",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_MEDIT",
           "other": "B_ALCHEMY",
           "kind": "label",
           "pixels": 0
@@ -2316,52 +3246,63 @@
         {
           "label": "B_ALCHEMY",
           "other": "B_DORM",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_ALCHEMY",
+          "other": "B_GARDEN",
           "kind": "building",
           "pixels": 0
         }
       ],
-      "rings": 5,
-      "nameLabels": 5,
+      "rings": 6,
+      "nameLabels": 6,
       "raisedForVisibility": 0,
       "minHeadVisibility": 1,
       "baseLoaded": true,
-      "buildingSprites": 2,
-      "discipleSprites": 5,
+      "buildingSprites": 3,
+      "discipleSprites": 6,
       "fallbacks": 0,
       "poses": {
-        "meditate": 2,
-        "work": 3
+        "walk-pass": 1,
+        "work": 3,
+        "meditate": 2
       },
       "disciples": [
         {
-          "x": 198,
-          "y": 300
+          "x": 587,
+          "y": 905
         },
         {
-          "x": 368,
-          "y": 72
+          "x": 2616,
+          "y": 987
         },
         {
-          "x": 232,
-          "y": 300
+          "x": 537,
+          "y": 982
         },
         {
-          "x": 402,
-          "y": 72
+          "x": 2607.1515753252143,
+          "y": 995.1058855638752
         },
         {
-          "x": 385,
-          "y": 60
+          "x": 2763,
+          "y": 921
+        },
+        {
+          "x": 2754.1515753252143,
+          "y": 929.1058855638752
         }
       ],
       "camera": {
-        "zoom": 1.5,
-        "x": 300,
-        "y": 200
+        "zoom": 0.45,
+        "x": 1500,
+        "y": 900
       }
     },
     "04-export-import": {
-      "tick": 2640,
+      "tick": 2641,
       "mode": "full",
       "markers": 0,
       "markerCssDiameter": 0,
@@ -2375,6 +3316,12 @@
         },
         {
           "label": "B_HALL",
+          "other": "B_GARDEN",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_HALL",
           "other": "B_DORM",
           "kind": "label",
           "pixels": 0
@@ -2401,6 +3348,12 @@
           "label": "B_DORM",
           "other": "B_HALL",
           "kind": "building",
+          "pixels": 95
+        },
+        {
+          "label": "B_DORM",
+          "other": "B_GARDEN",
+          "kind": "building",
           "pixels": 0
         },
         {
@@ -2459,6 +3412,12 @@
         },
         {
           "label": "B_MEDIT",
+          "other": "B_GARDEN",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_MEDIT",
           "other": "B_ALCHEMY",
           "kind": "label",
           "pixels": 0
@@ -2472,48 +3431,59 @@
         {
           "label": "B_ALCHEMY",
           "other": "B_DORM",
+          "kind": "building",
+          "pixels": 0
+        },
+        {
+          "label": "B_ALCHEMY",
+          "other": "B_GARDEN",
           "kind": "building",
           "pixels": 0
         }
       ],
-      "rings": 5,
-      "nameLabels": 5,
+      "rings": 6,
+      "nameLabels": 6,
       "raisedForVisibility": 0,
       "minHeadVisibility": 1,
       "baseLoaded": true,
-      "buildingSprites": 2,
-      "discipleSprites": 5,
+      "buildingSprites": 3,
+      "discipleSprites": 6,
       "fallbacks": 0,
       "poses": {
-        "meditate": 2,
-        "work": 3
+        "walk-pass": 1,
+        "work": 3,
+        "meditate": 2
       },
       "disciples": [
         {
-          "x": 198,
-          "y": 300
+          "x": 587,
+          "y": 905
         },
         {
-          "x": 368,
-          "y": 72
+          "x": 2616,
+          "y": 987
         },
         {
-          "x": 232,
-          "y": 300
+          "x": 537,
+          "y": 982
         },
         {
-          "x": 402,
-          "y": 72
+          "x": 2607.1515753252143,
+          "y": 995.1058855638752
         },
         {
-          "x": 385,
-          "y": 60
+          "x": 2763,
+          "y": 921
+        },
+        {
+          "x": 2754.1515753252143,
+          "y": 929.1058855638752
         }
       ],
       "camera": {
-        "zoom": 1.5,
-        "x": 300,
-        "y": 200
+        "zoom": 0.45,
+        "x": 1500,
+        "y": 900
       }
     },
     "05-event": {
@@ -2563,13 +3533,13 @@
           "label": "B_DORM",
           "other": "B_HALL",
           "kind": "building",
-          "pixels": 0
+          "pixels": 95
         },
         {
           "label": "B_DORM",
           "other": "B_GARDEN",
           "kind": "building",
-          "pixels": 135
+          "pixels": 0
         },
         {
           "label": "B_DORM",
@@ -2665,38 +3635,39 @@
       "discipleSprites": 6,
       "fallbacks": 0,
       "poses": {
-        "walk-step": 6
+        "work": 1,
+        "walk-step": 5
       },
       "disciples": [
         {
-          "x": 186.91499999791384,
-          "y": 295.4370000016093
+          "x": 706,
+          "y": 897
         },
         {
-          "x": 202.90099999827146,
-          "y": 293.5216666689515
+          "x": 2735.9859399578104,
+          "y": 946.2988816268124
         },
         {
-          "x": 368,
-          "y": 71.6620000001192
+          "x": 613.5487469080804,
+          "y": 872.5120953314729
         },
         {
-          "x": 241.57666666328907,
-          "y": 286.81800000464915
+          "x": 2728.800947925257,
+          "y": 952.9315586707522
         },
         {
-          "x": 390.5080000040531,
-          "y": 84.84399999547006
+          "x": 2705.422024386069,
+          "y": 974.9222311305066
         },
         {
-          "x": 376.38100000303984,
-          "y": 73.51999999523164
+          "x": 2640.9925437621805,
+          "y": 985.6737938690211
         }
       ],
       "camera": {
-        "zoom": 1.5,
-        "x": 300,
-        "y": 200
+        "zoom": 0.45,
+        "x": 1500,
+        "y": 900
       }
     },
     "06-compact": {
@@ -2715,79 +3686,135 @@
       "discipleSprites": 0,
       "fallbacks": 0,
       "poses": {
-        "walk-pass": 6
+        "work": 4,
+        "walk-step": 1,
+        "walk-pass": 1
       },
       "disciples": [
         {
-          "x": 270.4862499937415,
-          "y": 230.96775000482796
+          "x": 706,
+          "y": 897
         },
         {
-          "x": 272.1457499948144,
-          "y": 201.99125000685453
+          "x": 2763,
+          "y": 921
         },
         {
-          "x": 368,
-          "y": 66.88650000035763
+          "x": 702,
+          "y": 746
         },
         {
-          "x": 376.88249998986726,
-          "y": 100.57350001394747
+          "x": 2754.1515753252143,
+          "y": 929.1058855638752
         },
         {
-          "x": 228.14100001215934,
-          "y": 266.31299998641015
+          "x": 2490.3010608749105,
+          "y": 1000.1633595312586
         },
         {
-          "x": 254.6057500091195,
-          "y": 264.53999998569486
+          "x": 2423.8992439808467,
+          "y": 1006.5481496172263
         }
       ],
       "camera": {
-        "zoom": 1,
-        "x": 320,
-        "y": 180
+        "zoom": 0.45,
+        "x": 1500,
+        "y": 900
       }
     }
   },
   "buildingScales": [
     {
       "file": "building/dorm-t1-map@2x.webp",
-      "size": [138, 131],
+      "size": [138, 116],
       "anchor": {
         "x": 69,
-        "y": 129
+        "y": 115
       },
-      "scale": 0.4023323615160349,
-      "widthScale": 0.3498542274052478,
+      "scale": 0.24999999999999997,
+      "widthScale": 0.21739130434782608,
       "relativeScale": 1.15,
       "needed": 0.6046082949308756,
-      "doorHeight": 12.472303206997083,
-      "doorRatio": 0.26617720258835237,
+      "doorHeight": 7.749999999999999,
+      "doorRatio": 0.16539634146341461,
       "meetsDoorRule": false,
       "downshift": 0,
       "overlapPixels": 0,
-      "cropTop": 0,
-      "source": "building/dorm-t1@2x.webp"
+      "measure": {
+        "door_leaf_y_src": [357, 486],
+        "door_leaf_h": 129,
+        "door_frame_h": 151,
+        "building_y_src": [119, 567],
+        "building_h": 448,
+        "sprite_h": 448,
+        "door_ratio_leaf": 0.288,
+        "door_ratio_frame": 0.337,
+        "door_ratio_leaf_sprite": 0.288,
+        "footprint_body_w_src": 496,
+        "old_body_w_src": 302,
+        "width_change": 1.64,
+        "note": "门扇双开"
+      },
+      "crop": [69, 119, 604, 567],
+      "sha256": "18492ea430f1716102f10f62f75836fec9658237bb6273fb0514aa6e883499b8",
+      "source": "building/dorm-t1@2x.webp",
+      "worldScale": 1.1129032258064517,
+      "worldAnchor": {
+        "x": 1355,
+        "y": 949
+      },
+      "worldSourceScale": 0.2782258064516129,
+      "worldBodyWidthRatio": 1.15,
+      "worldMeetsDoorRule": false,
+      "worldBodyBottom": 949,
+      "worldDoorRule": ">=0.4H",
+      "worldDoorRatio": 0.38300212391695726
     },
     {
       "file": "building/dorm-t2-map@2x.webp",
-      "size": [138, 131],
+      "size": [138, 116],
       "anchor": {
         "x": 69,
-        "y": 129
+        "y": 115
       },
-      "scale": 0.4023323615160349,
-      "widthScale": 0.3498542274052478,
+      "scale": 0.24999999999999997,
+      "widthScale": 0.21739130434782608,
       "relativeScale": 1.15,
       "needed": 0.6046082949308756,
-      "doorHeight": 12.472303206997083,
-      "doorRatio": 0.26617720258835237,
+      "doorHeight": 7.749999999999999,
+      "doorRatio": 0.16539634146341461,
       "meetsDoorRule": false,
       "downshift": 0,
       "overlapPixels": 0,
-      "cropTop": 0,
-      "source": "building/dorm-t2@2x.webp"
+      "measure": {
+        "door_leaf_y_src": [376, 504],
+        "door_leaf_h": 128,
+        "door_frame_h": 152,
+        "building_y_src": [126, 583],
+        "building_h": 457,
+        "sprite_h": 457,
+        "door_ratio_leaf": 0.28,
+        "door_ratio_frame": 0.333,
+        "door_ratio_leaf_sprite": 0.28,
+        "footprint_body_w_src": 487,
+        "old_body_w_src": 290,
+        "width_change": 1.68,
+        "note": "门扇双开；灯笼不计入宽度"
+      },
+      "crop": [674, 126, 1218, 583],
+      "sha256": "4c97c2bdeaa627fc96590b9ea9e8f22ea53025380beae56a045f7ac04890d663",
+      "source": "building/dorm-t2@2x.webp",
+      "worldScale": 1.13347022587269,
+      "worldAnchor": {
+        "x": 1355,
+        "y": 949
+      },
+      "worldSourceScale": 0.28336755646817247,
+      "worldBodyWidthRatio": 1.15,
+      "worldMeetsDoorRule": false,
+      "worldBodyBottom": 949,
+      "worldDoorRule": ">=0.4H",
+      "worldDoorRatio": 0.38705631445871386
     },
     {
       "file": "building/meditation-t1-map@2x.webp",
@@ -2805,8 +3832,18 @@
       "meetsDoorRule": true,
       "downshift": 0,
       "overlapPixels": 0,
-      "cropTop": 0,
-      "source": "building/meditation-t1@2x.webp"
+      "source": "building/meditation-t1@2x.webp",
+      "worldScale": 1,
+      "worldAnchor": {
+        "x": 1734.5,
+        "y": 936
+      },
+      "worldSourceScale": 0.515695067264574,
+      "worldBodyWidthRatio": 1.0000000000000002,
+      "worldMeetsDoorRule": true,
+      "worldBodyBottom": 936,
+      "worldDoorRule": ">=0.4H",
+      "worldDoorRatio": 0.4292414389780896
     },
     {
       "file": "building/meditation-t2-map@2x.webp",
@@ -2824,96 +3861,214 @@
       "meetsDoorRule": true,
       "downshift": 0,
       "overlapPixels": 0,
-      "cropTop": 0,
-      "source": "building/meditation-t2@2x.webp"
+      "source": "building/meditation-t2@2x.webp",
+      "worldScale": 1,
+      "worldAnchor": {
+        "x": 1734.5,
+        "y": 936
+      },
+      "worldSourceScale": 0.515695067264574,
+      "worldBodyWidthRatio": 1.0000000000000002,
+      "worldMeetsDoorRule": true,
+      "worldBodyBottom": 936,
+      "worldDoorRule": ">=0.4H",
+      "worldDoorRatio": 0.4292414389780896
     },
     {
       "file": "building/garden-t1-map@2x.webp",
-      "size": [218, 113],
+      "size": [624, 489],
       "anchor": {
-        "x": 109,
-        "y": 109
+        "x": 312,
+        "y": 484
       },
-      "scale": 0.7985347985347986,
-      "widthScale": 0.7985347985347986,
-      "relativeScale": 1,
-      "needed": 0.7985347985347986,
+      "scale": 1,
+      "widthScale": 0.34935897435897434,
+      "relativeScale": 2.8623853211009176,
+      "needed": 0.34935897435897434,
       "doorHeight": null,
       "doorRatio": null,
       "meetsDoorRule": null,
       "downshift": 0,
       "overlapPixels": 0,
-      "cropTop": 150,
-      "source": "building/garden-t1@2x.webp"
+      "footprint": {
+        "corners_canvas": {
+          "left": [26, 347],
+          "right": [595, 252],
+          "bottom": [423, 483],
+          "top": [198, 116]
+        },
+        "bbox_wh_src": [569, 367],
+        "ratio": 1.55,
+        "note": "地面平行四边形四角（目测/按 alpha 极值测，±5px；top=left+right-bottom 推算）。不是 2:1 菱形，底角偏右（约外接框 69% 处）"
+      },
+      "source": "building/garden-t1@2x.webp",
+      "worldScale": 0.24,
+      "worldAnchor": {
+        "x": 2616.36,
+        "y": 970.28
+      },
+      "worldSourceScale": 0.24,
+      "worldBodyWidthRatio": 0.96,
+      "worldMeetsDoorRule": null,
+      "worldBodyBottom": 970.28,
+      "worldDoorRule": null,
+      "worldDoorRatio": null,
+      "footprintWorld": {
+        "left": [2547.7200000000003, 937.4],
+        "right": [2684.28, 914.6],
+        "bottom": [2643, 970.04],
+        "top": [2589, 881.96]
+      }
     },
     {
       "file": "building/garden-t2-map@2x.webp",
-      "size": [218, 113],
+      "size": [624, 489],
       "anchor": {
-        "x": 109,
-        "y": 109
+        "x": 312,
+        "y": 484
       },
-      "scale": 0.7985347985347986,
-      "widthScale": 0.7985347985347986,
-      "relativeScale": 1,
-      "needed": 0.7985347985347986,
+      "scale": 1,
+      "widthScale": 0.34935897435897434,
+      "relativeScale": 2.8623853211009176,
+      "needed": 0.34935897435897434,
       "doorHeight": null,
       "doorRatio": null,
       "meetsDoorRule": null,
       "downshift": 0,
       "overlapPixels": 0,
-      "cropTop": 150,
-      "source": "building/garden-t2@2x.webp"
+      "footprint": {
+        "corners_canvas": {
+          "left": [8, 334],
+          "right": [614, 225],
+          "bottom": [435, 484],
+          "top": [187, 75]
+        },
+        "bbox_wh_src": [606, 409],
+        "ratio": 1.48,
+        "note": "地面平行四边形四角（目测/按 alpha 极值测，±5px；top=left+right-bottom 推算）。不是 2:1 菱形，底角偏右（约外接框 69% 处）"
+      },
+      "source": "building/garden-t2@2x.webp",
+      "worldScale": 0.24,
+      "worldAnchor": {
+        "x": 2616.24,
+        "y": 975.08
+      },
+      "worldSourceScale": 0.24,
+      "worldBodyWidthRatio": 0.96,
+      "worldMeetsDoorRule": null,
+      "worldBodyBottom": 975.08,
+      "worldDoorRule": null,
+      "worldDoorRatio": null,
+      "footprintWorld": {
+        "left": [2543.2799999999997, 939.08],
+        "right": [2688.72, 912.9200000000001],
+        "bottom": [2645.7599999999998, 975.08],
+        "top": [2586.24, 876.9200000000001]
+      }
     },
     {
       "file": "building/alchemy-t1-map@2x.webp",
-      "size": [114, 199],
+      "size": [114, 128],
       "anchor": {
         "x": 57,
-        "y": 197
+        "y": 127
       },
-      "scale": 0.5302325581395348,
-      "widthScale": 0.5581395348837209,
+      "scale": 0.24,
+      "widthScale": 0.25263157894736843,
       "relativeScale": 0.95,
       "needed": 0.6693877551020408,
-      "doorHeight": 14.846511627906976,
-      "doorRatio": 0.3168462847419172,
+      "doorHeight": 6.72,
+      "doorRatio": 0.14341463414634148,
       "meetsDoorRule": false,
-      "downshift": 24,
-      "overlapPixels": 33,
-      "plotOverlapPixels": 33,
+      "downshift": 3,
+      "overlapPixels": 0,
+      "plotOverlapPixels": 0,
       "labelOverlapPixels": 0,
-      "plotOverlapBounds": [394, 154.5, 407, 157.5],
-      "opaqueBottom": 242,
+      "plotOverlapBounds": null,
+      "opaqueBottom": 221,
       "cliffThreshold": 235,
-      "extendsOntoCliff": true,
-      "cropTop": 0,
-      "source": "building/alchemy-t1@2x.webp"
+      "extendsOntoCliff": false,
+      "measure": {
+        "door_leaf_y_src": [359, 489],
+        "door_leaf_h": 130,
+        "door_frame_h": 169,
+        "building_y_src": [168, 567],
+        "building_h": 399,
+        "sprite_h": 516,
+        "door_ratio_leaf": 0.326,
+        "door_ratio_frame": 0.424,
+        "door_ratio_leaf_sprite": 0.252,
+        "footprint_body_w_src": 318,
+        "old_body_w_src": 175,
+        "width_change": 1.82,
+        "note": "单扇门，门楣斜；building 顶取烟囱顶 y168（不含烟），sprite 含烟到 y51；丹炉不计入宽度"
+      },
+      "crop": [178, 51, 585, 567],
+      "sha256": "8606b5315020104bfadc936d33d904413052d0d6f8e2a842ef73b0155935d4bb",
+      "source": "building/alchemy-t1@2x.webp",
+      "worldScale": 0.9596774193544054,
+      "worldAnchor": {
+        "x": 1712,
+        "y": 1055
+      },
+      "worldSourceScale": 0.23032258064505728,
+      "worldBodyWidthRatio": 0.6103548387094018,
+      "worldMeetsDoorRule": false,
+      "worldBodyBottom": 1055,
+      "worldDoorRule": ">=0.4H",
+      "worldDoorRatio": 0.31951697240270466
     },
     {
       "file": "building/alchemy-t2-map@2x.webp",
-      "size": [114, 199],
+      "size": [114, 128],
       "anchor": {
         "x": 57,
-        "y": 197
+        "y": 127
       },
-      "scale": 0.5302325581395348,
-      "widthScale": 0.5581395348837209,
+      "scale": 0.24,
+      "widthScale": 0.25263157894736843,
       "relativeScale": 0.95,
       "needed": 0.6693877551020408,
-      "doorHeight": 14.846511627906976,
-      "doorRatio": 0.3168462847419172,
+      "doorHeight": 6.72,
+      "doorRatio": 0.14341463414634148,
       "meetsDoorRule": false,
-      "downshift": 24,
-      "overlapPixels": 214,
-      "plotOverlapPixels": 214,
+      "downshift": 4,
+      "overlapPixels": 0,
+      "plotOverlapPixels": 0,
       "labelOverlapPixels": 0,
-      "plotOverlapBounds": [389, 144.5, 408, 157.5],
-      "opaqueBottom": 242,
+      "plotOverlapBounds": null,
+      "opaqueBottom": 222,
       "cliffThreshold": 235,
-      "extendsOntoCliff": true,
-      "cropTop": 0,
-      "source": "building/alchemy-t2@2x.webp"
+      "extendsOntoCliff": false,
+      "measure": {
+        "door_leaf_y_src": [354, 484],
+        "door_leaf_h": 130,
+        "door_frame_h": 157,
+        "building_y_src": [75, 577],
+        "building_h": 502,
+        "sprite_h": 525,
+        "door_ratio_leaf": 0.259,
+        "door_ratio_frame": 0.313,
+        "door_ratio_leaf_sprite": 0.248,
+        "footprint_body_w_src": 363,
+        "old_body_w_src": 173,
+        "width_change": 2.1,
+        "note": "双开门；building 不含右下盆栽（底到 y600）与左侧丹炉；顶为屋脊卷饰"
+      },
+      "crop": [669, 75, 1136, 600],
+      "sha256": "d39de8d8c9e1079e1c068302545eb5f522569b19cccbcfa839603b8dca1e3bf3",
+      "source": "building/alchemy-t2@2x.webp",
+      "worldScale": 0.9247800586487586,
+      "worldAnchor": {
+        "x": 1712,
+        "y": 1060.1047859237412
+      },
+      "worldSourceScale": 0.22194721407570206,
+      "worldBodyWidthRatio": 0.6713903225789987,
+      "worldMeetsDoorRule": false,
+      "worldBodyBottom": 1055,
+      "worldDoorRule": ">=0.4H",
+      "worldDoorRatio": 0.3078981734056266
     },
     {
       "file": "building/hall-t1-map@2x.webp",
@@ -2931,8 +4086,18 @@
       "meetsDoorRule": true,
       "downshift": 0,
       "overlapPixels": 0,
-      "cropTop": 0,
-      "source": "building/hall-t1@2x.webp"
+      "source": "building/hall-t1@2x.webp",
+      "worldScale": 0.999954268292683,
+      "worldAnchor": {
+        "x": 1549.5,
+        "y": 914
+      },
+      "worldSourceScale": 0.7809166666666666,
+      "worldBodyWidthRatio": 1.10417984496124,
+      "worldMeetsDoorRule": true,
+      "worldBodyBottom": 914,
+      "worldDoorRule": ">=0.6H",
+      "worldDoorRatio": 0.6
     },
     {
       "file": "building/hall-t2-map@2x.webp",
@@ -2950,8 +4115,18 @@
       "meetsDoorRule": true,
       "downshift": 0,
       "overlapPixels": 0,
-      "cropTop": 0,
-      "source": "building/hall-t2@2x.webp"
+      "source": "building/hall-t2@2x.webp",
+      "worldScale": 0.999954268292683,
+      "worldAnchor": {
+        "x": 1549.5,
+        "y": 914
+      },
+      "worldSourceScale": 0.7809166666666666,
+      "worldBodyWidthRatio": 1.10417984496124,
+      "worldMeetsDoorRule": true,
+      "worldBodyBottom": 914,
+      "worldDoorRule": ">=0.6H",
+      "worldDoorRatio": 0.6
     }
   ],
   "mapStats": {
@@ -2994,7 +4169,7 @@
         "label": "B_DORM",
         "other": "B_HALL",
         "kind": "building",
-        "pixels": 0
+        "pixels": 95
       },
       {
         "label": "B_DORM",
@@ -3082,28 +4257,28 @@
     },
     "disciples": [
       {
-        "x": 181,
-        "y": 300
+        "x": 706,
+        "y": 897
       },
       {
-        "x": 215,
-        "y": 300
+        "x": 2763,
+        "y": 921
       },
       {
-        "x": 249,
-        "y": 300
+        "x": 702,
+        "y": 746
       },
       {
-        "x": 181,
-        "y": 280
+        "x": 2754.1515753252143,
+        "y": 929.1058855638752
       },
       {
-        "x": 215,
-        "y": 280
+        "x": 2764.4836559797463,
+        "y": 904.0944161611093
       },
       {
-        "x": 249,
-        "y": 280
+        "x": 1446,
+        "y": 377
       }
     ]
   },
@@ -3187,28 +4362,28 @@
     },
     "disciples": [
       {
-        "x": 181,
-        "y": 300
+        "x": 706,
+        "y": 897
       },
       {
-        "x": 215,
-        "y": 300
+        "x": 2763,
+        "y": 921
       },
       {
-        "x": 249,
-        "y": 300
+        "x": 702,
+        "y": 746
       },
       {
-        "x": 181,
-        "y": 280
+        "x": 2754.1515753252143,
+        "y": 929.1058855638752
       },
       {
-        "x": 215,
-        "y": 280
+        "x": 2764.4836559797463,
+        "y": 904.0944161611093
       },
       {
-        "x": 249,
-        "y": 280
+        "x": 1446,
+        "y": 377
       }
     ]
   },

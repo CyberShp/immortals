@@ -88,12 +88,15 @@ it('camera clamps zoom and every edge without blank space', () => {
     for (const x of [-999, 300, 999])
       for (const y of [-999, 200, 999]) {
         const c = clampCamera({ zoom, x, y });
-        expect(c.zoom).toBeGreaterThanOrEqual(1);
-        expect(c.zoom).toBeLessThanOrEqual(3);
+        expect(c.zoom).toBeGreaterThanOrEqual(0.2);
+        expect(c.zoom).toBeLessThanOrEqual(1.5);
         expect(c.x - 320 / c.zoom).toBeGreaterThanOrEqual(0);
-        expect(c.y - 180 / c.zoom).toBeGreaterThanOrEqual(0);
-        expect(c.x + 320 / c.zoom).toBeLessThanOrEqual(640);
-        expect(c.y + 180 / c.zoom).toBeLessThanOrEqual(360);
+        if (c.zoom >= 360 / 1400)
+          expect(c.y - 180 / c.zoom).toBeGreaterThanOrEqual(0);
+        else expect(c.y).toBe(700);
+        expect(c.x + 320 / c.zoom).toBeLessThanOrEqual(3200);
+        if (c.zoom >= 360 / 1400)
+          expect(c.y + 180 / c.zoom).toBeLessThanOrEqual(1400);
       }
 });
 it('actual t1 alpha masks protect heads throughout every region and pose', async () => {
@@ -158,12 +161,12 @@ it('alchemy final alpha overlap matches manifest at the permitted shift cap', as
       ).toBeGreaterThan(0);
   }
 });
-it('garden crops at y150 with bottom anchor and no roof in top five rows', async () => {
+it('garden retains full canvas and has no roof in top five rows', async () => {
   for (const f of manifest.files.filter(
     (f) => f.file.includes('garden-') && f.file.includes('-map'),
   )) {
-    expect(f.size).toEqual([218, 113]);
-    expect(f.anchor.y).toBe(Math.round(137 * f.scale));
+    expect(f.size).toEqual([624, 489]);
+    expect(f.anchor.y).toBe(Math.round(484 * f.scale));
     const { data, info } = await sharp(
       await readFile(new URL('../public/assets/' + f.file, import.meta.url)),
     )

@@ -490,11 +490,11 @@ export async function start() {
   if (new URLSearchParams(location.search).get('debug') === '1') {
     const hook = {
       world: () => structuredClone(world),
-      artAllBuilt: () => {
+      artAllBuilt: (tier?: 1 | 2) => {
         world.buildings = buildingDefinitions.map((def) => ({
           id: def.id,
           name: def.name,
-          level: def.maxLevel >= 2 ? 2 : 1,
+          level: tier ?? (def.maxLevel >= 2 ? 2 : 1),
           progress: 0,
           targetLevel: 0,
           builtTick: world.tick,

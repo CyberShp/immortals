@@ -12,19 +12,12 @@ import { buildingDefinitions } from '../sim/catalog';
 import {
   behaviorPose,
   compactMetrics,
-  compactSlot,
   buildingDepth,
-  buildingLabelBox,
   type NamePoint,
-  discipleSlot,
   placeNames,
   shortName,
   rootRingColors,
-  locationRegion,
-  buildingLabelPosition,
   buildingArt,
-  plotFoot,
-  plots,
 } from './layout';
 import { attachCamera } from './camera';
 import {
@@ -35,6 +28,38 @@ import {
   type Occluder,
 } from './visibility';
 import manifest from '../../public/assets/manifest.json';
+import worldBuildings from '../../docs/world-buildings.json';
+import {
+  worldMap,
+  DISCIPLE_SCALE,
+  WALK_SPEED,
+  findPath,
+  pathLength,
+  alongPath,
+  destination,
+  type Point,
+} from './world';
+function plotFoot(id: string): Point {
+  const s = worldMap.slots.find((s) => s.id === id)!;
+  return [(s.rect[0] + s.rect[2]) / 2, s.rect[3]];
+}
+function buildingLabelPosition(id: string): Point {
+  const s = worldMap.slots.find((s) => s.id === id)!;
+  return id === 'B_ALCHEMY'
+    ? [(s.rect[0] + s.rect[2]) / 2, s.rect[3] + 34]
+    : id === 'B_MEDIT'
+      ? [s.rect[2] + 70, s.rect[1] + 10]
+      : [(s.rect[0] + s.rect[2]) / 2, s.rect[1] - 50];
+}
+function buildingLabelBox(id: string, text: string) {
+  const [x, y] = buildingLabelPosition(id);
+  return {
+    x: x - text.length * 11,
+    y: y - 2,
+    width: text.length * 22 + 8,
+    height: 34,
+  };
+}
 
 type Motion = {
   x: number;
@@ -46,6 +71,8 @@ type Motion = {
   start: number;
   facing: number;
   row: number;
+  path: Point[];
+  duration: number;
 };
 declare global {
   interface Window {
@@ -89,19 +116,22 @@ export async function createMap(host: HTMLElement) {
   );
   const height = requestedHeight
     ? Math.min(96, Math.max(16, requestedHeight))
-    : 48;
+    : 96 * DISCIPLE_SCALE;
   const textures = new Map<string, Texture>();
   const entries = new Map(manifest.files.map((f) => [f.file, f]));
   let warned = false;
   const needed = manifest.files.filter(
-    (f) =>
-      f.file === 'map/base@2x.webp' ||
-      f.file.includes('-map@') ||
-      f.file.includes('-96@'),
+    (f) => false || f.file.includes('-map@') || f.file.includes('-96@'),
   );
+  const mapEntries = [
+    { file: 'map/world.webp', size: [3200, 1400], anchor: { x: 0, y: 0 } },
+    { file: 'map/world-mini.webp', size: [320, 140], anchor: { x: 0, y: 0 } },
+  ];
+  for (const entry of mapEntries)
+    entries.set(entry.file, entry as (typeof manifest.files)[number]);
   Assets.setPreferences({ preferWorkers: false });
   await Promise.all(
-    needed.map(async ({ file }) => {
+    [...needed, ...mapEntries].map(async ({ file }) => {
       try {
         textures.set(
           file,
@@ -128,7 +158,9 @@ export async function createMap(host: HTMLElement) {
   for (const [file, texture] of textures) {
     if (!file.includes('-map@') && !file.includes('-96@')) continue;
     const entry = entries.get(file)!;
-    const scale = file.startsWith('disciple/') ? height / 96 : 0.5;
+    const scale = file.startsWith('disciple/')
+      ? height / 96
+      : (worldBuildings.find((b) => b.file === file)?.scale ?? 1);
     const resource = texture.source?.resource;
     if (!resource) continue;
     const canvas = document.createElement('canvas');
@@ -164,7 +196,7 @@ export async function createMap(host: HTMLElement) {
       text,
       style: {
         fontSize: size,
-        lineHeight: 13,
+        lineHeight: size * 1.25,
         fill: white ? 0xffffff : 0x263f34,
         fontFamily: 'serif',
         ...(white ? { stroke: { color: 0x263f34, width: 2 } } : {}),
@@ -198,13 +230,6 @@ export async function createMap(host: HTMLElement) {
     scene.position.set(320 - cam.x * cam.zoom, 180 - cam.y * cam.zoom);
     const bounds = app.canvas.getBoundingClientRect();
     const marker = compactMetrics(bounds.width, bounds.height);
-    const compactCounts = new Map<ReturnType<typeof locationRegion>, number>();
-    const compactIndices = new Map<ReturnType<typeof locationRegion>, number>();
-    for (const d of world.disciples)
-      if (motions.has(d.id)) {
-        const r = locationRegion(d.state.location);
-        compactCounts.set(r, (compactCounts.get(r) ?? 0) + 1);
-      }
     const occluders: Occluder[] = [];
     const labels: { id: string; box: ReturnType<typeof buildingLabelBox> }[] =
       [];
@@ -218,7 +243,7 @@ export async function createMap(host: HTMLElement) {
       nameLabels: 0,
       raisedForVisibility: 0,
       minHeadVisibility: 1,
-      baseLoaded: textures.has('map/base@2x.webp'),
+      baseLoaded: textures.has('map/world.webp'),
       buildingSprites: 0,
       discipleSprites: 0,
       fallbacks: 0,
@@ -226,7 +251,7 @@ export async function createMap(host: HTMLElement) {
       disciples: [] as { x: number; y: number }[],
     };
     const ground =
-      art('map/base@2x.webp', 0.5) ??
+      art('map/world.webp', 1) ??
       new Graphics()
         .ellipse(320, 200, 280, 130)
         .fill(0xd1dac3)
@@ -237,10 +262,12 @@ export async function createMap(host: HTMLElement) {
     if (!stats.baseLoaded) stats.fallbacks++;
     ground.zIndex = -1000;
     scene.addChild(ground);
+    let breathingGlow = false;
     for (const def of buildingDefinitions) {
-      const p = plots[buildingArt[def.id]],
+      const p = worldMap.slots.find((s) => s.id === def.id)!.rect,
         [x, baseY] = plotFoot(def.id);
-      let y = baseY;
+      let drawX = x,
+        y = baseY;
       const b = world.buildings.find((b) => b.id === def.id);
       const group = new Container();
       group.position.set(x, y);
@@ -248,40 +275,52 @@ export async function createMap(host: HTMLElement) {
       if (!b) {
         group.addChild(
           new Graphics()
-            .rect(
-              p[0] / 2 - x,
-              p[1] / 2 - y,
-              (p[2] - p[0]) / 2,
-              (p[3] - p[1]) / 2,
-            )
+            .rect(p[0] - x, p[1] - y, p[2] - p[0], p[3] - p[1])
             .fill({ color: 0xf5eddc, alpha: 0.25 })
             .stroke({ color: 0x8a8578, alpha: 0.5, width: 1 }),
         );
       } else {
-        const tier = Math.min(b.level, def.maxLevel) >= 2 ? 2 : 1;
+        const tier =
+          (def.id === 'B_GARDEN' ? b.level : Math.min(b.level, def.maxLevel)) >=
+          2
+            ? 2
+            : 1;
         const file = `building/${buildingArt[b.id]}-t${tier}-map@2x.webp`;
-        const entry = entries.get(file)!;
-        y += 'downshift' in entry ? (entry.downshift ?? 0) : 0;
-        group.position.set(x, y);
+        const placement = worldBuildings.find((b) => b.file === file);
+        drawX = placement?.x ?? x;
+        y = placement?.y ?? baseY;
+        group.position.set(drawX, y);
         group.zIndex = buildingDepth(def.id, y);
-        const sprite = art(file, 0.5);
+        const sprite = art(
+          file,
+          worldBuildings.find((b) => b.file === file)?.scale ?? 1,
+        );
         const mask = masks.get(file);
         if (mask)
           occluders.push({
             key: def.id,
             mask,
-            x,
+            x: drawX,
             y,
             z: buildingDepth(def.id, y),
           });
         if (sprite) {
           sprite.alpha = b.level === 0 ? 0.45 : 1;
           group.addChild(sprite);
+          if (def.id === 'B_GARDEN' && tier === 2) {
+            const glow = art(file, placement?.scale ?? 1);
+            if (glow) {
+              breathingGlow = true;
+              glow.blendMode = 'add';
+              glow.alpha = 0.2 + 0.05 * Math.sin((now * Math.PI) / 2500);
+              group.addChild(glow);
+            }
+          }
           stats.buildingSprites++;
         } else {
           group.addChild(
             new Graphics()
-              .rect(-(p[2] - p[0]) / 4, -32, (p[2] - p[0]) / 2, 32)
+              .rect(-(p[2] - p[0]) / 4, -32, p[2] - p[0], 32)
               .fill(b.level === 0 ? 0xc4b596 : 0x758878)
               .poly([-30, -32, 0, -50, 30, -32])
               .fill(0x364e43),
@@ -293,11 +332,11 @@ export async function createMap(host: HTMLElement) {
         const text = b
           ? `${b.name} Lv${b.level}${b.targetLevel && b.targetLevel > b.level ? ' ⚒' : ''}`
           : `${def.name}预留位`;
-        const t = label(text, 11, true);
+        const t = label(text, 22, true);
         labels.push({ id: def.id, box: buildingLabelBox(def.id, text) });
         stats.buildingLabels++;
         t.alpha = b ? 1 : 0.8;
-        t.anchor.set(def.id === 'B_MEDIT' ? 0 : 0.5, 0);
+        t.anchor.set(0.5, 0);
         t.position.set(...buildingLabelPosition(def.id));
         t.zIndex = 2000;
         scene.addChild(t);
@@ -310,22 +349,15 @@ export async function createMap(host: HTMLElement) {
     for (const d of world.disciples) {
       const m = motions.get(d.id);
       if (!m) continue;
-      const progress = paused ? 1 : Math.min(1, (now - m.start) / 1200);
-      const moving = progress < 1 && (m.fromX !== m.toX || m.fromY !== m.toY);
+      const elapsed = Math.max(0, now - m.start);
+      const moving = elapsed < m.duration;
       active ||= moving;
-      m.x = m.fromX + (m.toX - m.fromX) * progress;
-      m.y = m.fromY + (m.toY - m.fromY) * progress;
-      if (progress === 1) {
-        m.fromX = m.toX;
-        m.fromY = m.toY;
-      }
+      const positionOnPath = alongPath(m.path, (elapsed / 1000) * WALK_SPEED);
+      if (positionOnPath[0] !== m.x)
+        m.facing = positionOnPath[0] > m.x ? 1 : -1;
+      [m.x, m.y] = positionOnPath;
       const group = new Container();
-      const region = locationRegion(d.state.location);
-      const index = compactIndices.get(region) ?? 0;
-      compactIndices.set(region, index + 1);
-      const position = compact
-        ? compactSlot(region, index, compactCounts.get(region)!, marker.spacing)
-        : m;
+      const position = m;
       group.position.set(position.x, position.y);
       group.zIndex = m.y;
       const pose = behaviorPose(d.state.behavior, moving, now - m.start);
@@ -340,8 +372,8 @@ export async function createMap(host: HTMLElement) {
         for (let j = 0; j <= 24; j++) {
           const angle = start + ((end - start) * j) / 24;
           points.push(
-            Math.cos(angle) * (compact ? marker.diameter / 2 : 13),
-            Math.sin(angle) * (compact ? marker.diameter / 2 : 4),
+            Math.cos(angle) * (compact ? marker.diameter / 2 / cam.zoom : 26),
+            Math.sin(angle) * (compact ? marker.diameter / 2 / cam.zoom : 8),
           );
         }
         ring.poly(points).fill(color);
@@ -350,8 +382,8 @@ export async function createMap(host: HTMLElement) {
         .ellipse(
           0,
           0,
-          compact ? marker.diameter / 2 : 13,
-          compact ? marker.diameter / 2 : 4,
+          compact ? marker.diameter / 2 / cam.zoom : 26,
+          compact ? marker.diameter / 2 / cam.zoom : 8,
         )
         .stroke({ width: 1, color: 0x263f34 });
       group.addChild(ring);
@@ -401,8 +433,12 @@ export async function createMap(host: HTMLElement) {
       }
       if (d.state.injuredUntil > world.tick) group.alpha = 0.55;
       if (compact) {
-        const initial = label(d.name.slice(0, 1), marker.fontSize, true);
-        initial.style.lineHeight = marker.fontSize;
+        const initial = label(
+          d.name.slice(0, 1),
+          marker.fontSize / cam.zoom,
+          true,
+        );
+        initial.style.lineHeight = marker.fontSize / cam.zoom;
         initial.style.stroke = { color: 0x263f34, width: 2 / marker.scale };
         initial.anchor.set(0.5);
         group.addChild(initial);
@@ -418,12 +454,22 @@ export async function createMap(host: HTMLElement) {
       scene.addChild(group);
     }
     placeNames(
-      namePoints,
-      labels.map((l) => l.box),
+      namePoints.map((p) => ({
+        ...p,
+        x: p.x / 2,
+        y: p.y / 2,
+        height: (p.height ?? 96) / 2,
+      })),
+      labels.map(({ box: b }) => ({
+        x: b.x / 2,
+        y: b.y / 2,
+        width: b.width / 2,
+        height: b.height / 2,
+      })),
     ).forEach((box, i) => {
-      const t = label(namePoints[i].name, 10.5, true);
+      const t = label(namePoints[i].name, 21, true);
       t.anchor.set(0.5, 0);
-      t.position.set(box.x + box.width / 2, box.y + 2);
+      t.position.set(box.x * 2 + box.width, box.y * 2 + 4);
       t.zIndex = 3000;
       scene.addChild(t);
       stats.nameLabels++;
@@ -437,40 +483,41 @@ export async function createMap(host: HTMLElement) {
         .fill({ color: 0xf1e8d4, alpha: 0.9 })
         .stroke({ width: 1, color: 0x8a8578 }),
     );
-    for (const b of world.buildings) {
-      const [x, y] = plotFoot(b.id);
-      mini.addChild(
-        new Graphics().rect(x * 0.175, y * 0.175, 4, 3).fill(0x4a5a66),
-      );
-    }
+    const miniArt = art('map/world-mini.webp', 115 / 320);
+    if (miniArt) mini.addChild(miniArt);
+    const miniScale = 115 / 3200;
     for (const m of motions.values())
       mini.addChild(
-        new Graphics().circle(m.x * 0.175, m.y * 0.175, 2).fill(0x4f8a8b),
+        new Graphics()
+          .circle(m.x * miniScale, m.y * miniScale, 2)
+          .fill(0x4f8a8b),
       );
     mini.addChild(
       new Graphics()
         .rect(
-          (cam.x - 320 / cam.zoom) * 0.175,
-          (cam.y - 180 / cam.zoom) * 0.175,
-          (640 / cam.zoom) * 0.175,
-          (360 / cam.zoom) * 0.175,
+          Math.max(0, cam.x - 320 / cam.zoom) * miniScale,
+          Math.max(0, cam.y - 180 / cam.zoom) * miniScale,
+          Math.min(3200, 640 / cam.zoom) * miniScale,
+          Math.min(1400, 360 / cam.zoom) * miniScale,
         )
         .stroke({ width: 1, color: 0xffffff }),
     );
+    mini.eventMode = 'static';
+    mini.cursor = 'pointer';
+    mini.on('pointertap', (e) => {
+      const p = e.getLocalPosition(mini);
+      camera.set({
+        zoom: Math.max(cam.zoom, 0.45),
+        x: p.x / miniScale,
+        y: p.y / miniScale,
+      });
+    });
     overlay.addChild(mini);
-    const rest = world.disciples.filter(
-      (d) => d.state.behavior === '休息' && d.remainingSeasons > 0,
-    ).length;
-    if (rest) {
-      const t = label(`Zzz ×${rest}`, 12);
-      t.position.set(190, 178);
-      t.zIndex = 1000;
-      scene.addChild(t);
-    }
     window.__mapStats = stats;
     app.render();
     window.__mapReady = true;
-    if (active && !paused) frame = requestAnimationFrame(paint);
+    if ((active || breathingGlow) && !paused)
+      frame = requestAnimationFrame(paint);
     else frame = 0;
   }
   function draw(w: World) {
@@ -483,23 +530,15 @@ export async function createMap(host: HTMLElement) {
       visible = new Set<string>();
     const visibleDisciples = w.disciples.filter(
       (d) =>
-        d.stage !== '坐化' &&
-        !d.state.awayUntil &&
-        d.state.behavior !== '休息' &&
-        d.state.behavior !== '历练',
+        d.stage !== '坐化' && !d.state.awayUntil && d.state.behavior !== '历练',
     );
-    const counts = new Map<ReturnType<typeof locationRegion>, number>();
-    for (const d of visibleDisciples) {
-      const region = locationRegion(d.state.location);
-      counts.set(region, (counts.get(region) ?? 0) + 1);
-    }
     for (const d of visibleDisciples) {
       visible.add(d.id);
-      const region = locationRegion(d.state.location);
-      const key = region.rect.join(',');
+      const key = destination(d, w.tick).join(',');
       const i = occupants.get(key) ?? 0;
       occupants.set(key, i + 1);
-      const { x, y, row } = discipleSlot(region, i, counts.get(region)!);
+      const [x, y] = destination(d, w.tick, i);
+      const row = i > 2 ? 1 : 0;
       const m = motions.get(d.id);
       if (!m)
         motions.set(d.id, {
@@ -512,10 +551,17 @@ export async function createMap(host: HTMLElement) {
           start: now,
           facing: 1,
           row,
+          path: [[x, y]],
+          duration: 0,
         });
       else {
         m.row = row;
         if (m.toX !== x || m.toY !== y) {
+          if (now - m.start < m.duration) continue;
+          const path = findPath([m.x, m.y], [x, y]);
+          if (!path.length) continue;
+          m.path = path;
+          m.duration = (pathLength(path) / WALK_SPEED) * 1000;
           m.row = row;
           m.fromX = m.x;
           m.fromY = m.y;

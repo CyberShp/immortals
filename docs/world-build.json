@@ -1,0 +1,35 @@
+{
+  "mode": "whole",
+  "bytes": 278678,
+  "quality": 86,
+  "calibration": [
+    { "id": "main", "before": [244, 236, 220], "after": [241, 232, 212] },
+    { "id": "north", "before": [245, 236, 221], "after": [241, 232, 212] },
+    { "id": "west", "before": [244, 235, 220], "after": [241, 232, 212] },
+    { "id": "east", "before": [245, 236, 221], "after": [241, 232, 212] }
+  ],
+  "bridges": "cropped north bridge deck, rotated and tiled",
+  "areas": [
+    { "id": "main", "area": 272567.5, "vertices": 39 },
+    { "id": "north", "area": 88525, "vertices": 39 },
+    { "id": "west", "area": 102522.5, "vertices": 39 },
+    { "id": "east", "area": 148076.5, "vertices": 40 }
+  ],
+  "moves": [
+    { "id": "west-sword-0", "pixels": 0 },
+    { "id": "west-sword-1", "pixels": 0 },
+    { "id": "west-sword-2", "pixels": 0 },
+    { "id": "west-meditate-3", "pixels": 2.23606797749979 },
+    { "id": "west-social-4", "pixels": 0 },
+    { "id": "east-meditate-5", "pixels": 0 },
+    { "id": "east-social-6", "pixels": 0 },
+    { "id": "east-social-7", "pixels": 0 },
+    { "id": "north-meditate-8", "pixels": 4.47213595499958 },
+    { "id": "north-social-9", "pixels": 0 },
+    { "id": "north-social-10", "pixels": 0 },
+    { "id": "main-social-11", "pixels": 0 },
+    { "id": "main-social-12", "pixels": 0 },
+    { "id": "main-social-13", "pixels": 0 }
+  ],
+  "areaRatio": 2.2441835508635477
+}

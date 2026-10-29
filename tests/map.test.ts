@@ -1,6 +1,13 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { advance, createWorld } from '../src/sim/world';
 import { loadData } from '../src/sim/data';
+import {
+  destination,
+  findPath,
+  alongPath,
+  WALK_SPEED,
+  walkable,
+} from '../src/render/world';
 import manifest from '../public/assets/manifest.json';
 
 const mock = vi.hoisted(() => ({
@@ -32,6 +39,9 @@ vi.mock('pixi.js', () => {
     }
     removeChildren() {
       return this.children.splice(0);
+    }
+    on() {
+      return this;
     }
     destroy() {}
   }
@@ -198,28 +208,35 @@ describe('map orchestration without browser/GPU', () => {
       sprite.scale.y *
         manifest.files.find((f) => f.file === 'disciple/meditate-96@2x.webp')!
           .size[1],
-    ).toBe(48);
+    ).toBe(96);
     expect(sprite.anchor.x).toBe(40 / 80);
     expect(sprite.anchor.y).toBe(94 / 96);
     map.destroy();
   });
-  it('interpolates movement, pauses at destination and cancels animation', async () => {
+  it('follows the walkable path at fixed speed and cancels animation on pause', async () => {
     const map = await createMap(host),
       w = world();
     map.draw(w);
-    const start = disciple().position.x;
-    w.disciples[0].state.location = '采石点';
+    const from = destination(w.disciples[0], w.tick);
+    w.disciples[0].state.behavior = '做工';
+    w.disciples[0].state.location = '主殿';
+    const to = destination(w.disciples[0], w.tick),
+      path = findPath(from, to);
     map.draw(w);
     expect(mock.frames.size).toBe(1);
     const [id, callback] = [...mock.frames][0];
     mock.frames.delete(id);
     mock.now = 600;
     callback(600);
-    expect(disciple().position.x).toBe((start + 385) / 2);
+    const expected = alongPath(path, WALK_SPEED * 0.6);
+    expect(disciple().position.x).toBeCloseTo(expected[0]);
+    expect(disciple().position.y).toBeCloseTo(expected[1]);
+    expect(walkable(expected)).toBe(true);
     map.pause();
-    expect(disciple().position.x).toBe(385);
     expect(mock.frames.size).toBe(0);
+    mock.now = 60000;
     map.draw(w);
+    expect(disciple().position.x).toBeCloseTo(to[0]);
     expect(mock.frames.size).toBe(0);
     map.destroy();
   });
@@ -243,13 +260,13 @@ describe('map orchestration without browser/GPU', () => {
     const name = scene().children.find((n) => n.zIndex === 3000)!;
     expect(name).toMatchObject({
       alpha: 1,
-      options: { style: { fontSize: 10.5 } },
+      options: { style: { fontSize: 21 } },
     });
     for (const label of scene().children.filter((n) => n.zIndex === 2000)) {
       expect(label).toMatchObject({
         options: {
           style: {
-            fontSize: 11,
+            fontSize: 22,
             fill: 0xffffff,
             stroke: { color: 0x263f34, width: 2 },
           },
@@ -257,10 +274,12 @@ describe('map orchestration without browser/GPU', () => {
       });
     }
     vi.stubGlobal('document', { hidden: true });
-    w.disciples[0].state.location = '采石点';
+    const before = disciple().position.x;
+    w.disciples[0].state.behavior = '做工';
+    w.disciples[0].state.location = '主殿';
     map.draw(w);
     expect(mock.frames.size).toBe(0);
-    expect(disciple().position.x).toBe(385);
+    expect(disciple().position.x).toBe(before);
     map.destroy();
   });
 });
@@ -278,21 +297,32 @@ it('draws names above disciples and building labels above buildings', async () =
   map.destroy();
 });
 
-it('exposes meditation, work, socializing and walking at the art capture step', async () => {
-  const map = await createMap(host);
-  const w = createWorld(42, loadData());
-  map.draw(w);
+it('exposes behavior poses at rest and walking on the next transition', async () => {
+  const map = await createMap(host),
+    w = createWorld(42, loadData());
   advance(w, 59);
-  map.draw(w);
-  map.pause();
-  advance(w, 1);
   map.draw(w);
   expect(window.__mapStats.poses.meditate).toBeGreaterThan(0);
   expect(window.__mapStats.poses.work).toBeGreaterThan(0);
   expect(window.__mapStats.poses.talk).toBeGreaterThan(0);
+  advance(w, 1);
+  map.draw(w);
   expect(window.__mapStats.poses['walk-step']).toBeGreaterThan(0);
   map.destroy();
 });
+it('attached renderer preserves the exact simulation JSON through 200 steps', async () => {
+  const map = await createMap(host),
+    a = createWorld(42, loadData()),
+    b = createWorld(42, loadData());
+  for (let i = 0; i < 200; i++) {
+    advance(a, 1);
+    advance(b, 1);
+    mock.now = i * 10000;
+    map.draw(a);
+    expect(JSON.stringify(a)).toBe(JSON.stringify(b));
+  }
+  map.destroy();
+}, 30000);
 
 it.each([false, true])(
   'shares building depth layer (fallback=%s)',
@@ -339,7 +369,7 @@ it.each([false, true])(
     w.buildings.push({
       id: 'B_GARDEN',
       name: '药圃',
-      level: 1,
+      level: 2,
       progress: 0,
       targetLevel: 0,
       builtTick: 0,
@@ -348,7 +378,20 @@ it.each([false, true])(
     });
     w.disciples[0].state.location = '药圃';
     map.draw(w);
-    expect(scene().children.filter((n) => n.zIndex === -500)).toHaveLength(1);
+    expect(
+      scene().children.filter((n) => n.zIndex > -500 && n.zIndex < -499),
+    ).toHaveLength(1);
+    const garden = scene().children.find(
+      (n) => n.zIndex > -500 && n.zIndex < -499,
+    ) as Container;
+    if (!fail) {
+      expect(garden.position.x).toBeCloseTo(2616.24);
+      expect(garden.position.y).toBeCloseTo(975.08);
+      const glow = garden.children.find((n) => n.blendMode === 'add');
+      expect(glow).toBeDefined();
+      expect(glow!.alpha).toBeGreaterThanOrEqual(0.15);
+      expect(glow!.alpha).toBeLessThanOrEqual(0.25);
+    }
     map.destroy();
   },
 );

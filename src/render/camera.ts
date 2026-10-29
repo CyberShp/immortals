@@ -1,10 +1,13 @@
 export type Camera = { zoom: number; x: number; y: number };
 export function clampCamera(c: Camera): Camera {
-  const zoom = Math.max(1, Math.min(3, c.zoom));
+  const zoom = Math.max(0.2, Math.min(1.5, c.zoom));
   return {
     zoom,
-    x: Math.max(320 / zoom, Math.min(640 - 320 / zoom, c.x)),
-    y: Math.max(180 / zoom, Math.min(360 - 180 / zoom, c.y)),
+    x: Math.max(320 / zoom, Math.min(3200 - 320 / zoom, c.x)),
+    y:
+      zoom < 360 / 1400
+        ? 700
+        : Math.max(180 / zoom, Math.min(1400 - 180 / zoom, c.y)),
   };
 }
 export function attachCamera(
@@ -12,23 +15,25 @@ export function attachCamera(
   canvas: HTMLCanvasElement,
   repaint: () => void,
 ) {
-  let current = clampCamera({ zoom: 1.5, x: 300, y: 200 });
+  let current = clampCamera({ zoom: 0.45, x: 1500, y: 900 });
+  let compactCurrent: Camera = { zoom: 0.2, x: 1600, y: 700 };
   const media = window.matchMedia('(max-width: 480px)');
-  const get = () =>
-    media.matches ? { zoom: 1, x: 320, y: 180 } : { ...current };
+  const get = () => (media.matches ? { ...compactCurrent } : { ...current });
   const set = (patch: Partial<Camera>) => {
-    current = clampCamera({ ...current, ...patch });
+    if (media.matches)
+      compactCurrent = clampCamera({ ...compactCurrent, ...patch });
+    else current = clampCamera({ ...current, ...patch });
     repaint();
   };
-  const panorama = () => set({ zoom: 1, x: 320, y: 180 });
+  const panorama = () => set({ zoom: 0.2, x: 1600, y: 700 });
   const controller = { get, set, panorama };
   if (new URLSearchParams(location.search).get('debug') === '1')
     window.__camera = controller;
   const controls = document.createElement('div');
   controls.className = 'camera-controls';
   for (const [text, aria, action] of [
-    ['＋', '放大地图', () => set({ zoom: current.zoom + 0.25 })],
-    ['－', '缩小地图', () => set({ zoom: current.zoom - 0.25 })],
+    ['＋', '放大地图', () => set({ zoom: current.zoom + 0.1 })],
+    ['－', '缩小地图', () => set({ zoom: current.zoom - 0.1 })],
     ['全景', '地图全景', panorama],
   ] as const) {
     const b = document.createElement('button');
@@ -62,7 +67,7 @@ export function attachCamera(
     const r = canvas.getBoundingClientRect(),
       px = ((e.clientX - r.left) * 640) / r.width - 320,
       py = ((e.clientY - r.top) * 360) / r.height - 180;
-    const zoom = Math.max(1, Math.min(3, current.zoom - e.deltaY * 0.001));
+    const zoom = Math.max(0.2, Math.min(1.5, current.zoom - e.deltaY * 0.0003));
     set({
       zoom,
       x: current.x + px / current.zoom - px / zoom,

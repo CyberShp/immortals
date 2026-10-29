@@ -8,6 +8,7 @@ import {
 } from 'node:fs/promises';
 import path from 'node:path';
 import sharp from 'sharp';
+import { createHash } from 'node:crypto';
 import { format } from 'prettier';
 import { tsImport } from 'tsx/esm/api';
 const { plots, buildingScale, meditationProtected } = await tsImport(
@@ -33,7 +34,10 @@ for (const item of input.files.filter(
           f.name,
         ))),
 )) {
-  const src = path.join(source, item.file);
+  const src =
+    item.name.startsWith('garden-') && process.env.GARDEN_SOURCE_DIR
+      ? path.join(process.env.GARDEN_SOURCE_DIR, path.basename(item.file))
+      : path.join(source, item.file);
   await mkdir(new URL(`${item.category}/`, output), { recursive: true });
   await copyFile(src, new URL(item.file, output));
   files.push({
@@ -41,6 +45,23 @@ for (const item of input.files.filter(
     size: item.size,
     anchor: { x: item.anchor.x, y: item.anchor.y },
     scale: 1,
+    ...(item.footprint
+      ? {
+          footprint: item.footprint,
+          sha256: createHash('sha256')
+            .update(await readFile(src))
+            .digest('hex'),
+        }
+      : {}),
+    ...(item.measure
+      ? {
+          measure: item.measure,
+          crop: item.crop,
+          sha256: createHash('sha256')
+            .update(await readFile(src))
+            .digest('hex'),
+        }
+      : {}),
     source: item.file,
   });
   if (item.category === 'map') continue;
@@ -55,9 +76,8 @@ for (const item of input.files.filter(
   const key = item.name.split('-')[0];
   let downshift = 0,
     overlap = 0;
-  const cropTop = item.category === 'building' && key === 'garden' ? 150 : 0;
   if (item.category === 'building') {
-    scale = buildingScale(key, item.size[0]).scale;
+    scale = key === 'garden' ? 1 : buildingScale(key, item.size[0]).scale;
     if (key === 'alchemy') {
       const collisionMasks = new Map();
       async function collision(s, dy) {
@@ -107,16 +127,9 @@ for (const item of input.files.filter(
   const file = `${item.category}/${item.name}-${suffix}@2x.webp`;
   const size = [
     Math.round(item.size[0] * scale),
-    Math.round((item.size[1] - cropTop) * scale),
+    Math.round(item.size[1] * scale),
   ];
   const pipeline = sharp(src);
-  if (cropTop)
-    pipeline.extract({
-      left: 0,
-      top: cropTop,
-      width: item.size[0],
-      height: item.size[1] - cropTop,
-    });
   await pipeline
     .resize(...size, { kernel: 'lanczos3' })
     .webp({ quality: 90, alphaQuality: 100, effort: 6 })
@@ -183,7 +196,7 @@ for (const item of input.files.filter(
       y:
         item.category === 'accessory'
           ? size[1] / 2
-          : Math.round((item.anchor.y - cropTop) * scale),
+          : Math.round(item.anchor.y * scale),
     },
     ...(item.category === 'building'
       ? {
@@ -191,9 +204,18 @@ for (const item of input.files.filter(
           downshift,
           overlapPixels: overlap,
           ...collisionDetails,
-          cropTop,
+          ...(item.footprint ? { footprint: item.footprint } : {}),
         }
       : { scale }),
+    ...(item.measure
+      ? {
+          measure: item.measure,
+          crop: item.crop,
+          sha256: createHash('sha256')
+            .update(await readFile(new URL(file, output)))
+            .digest('hex'),
+        }
+      : {}),
     source: item.file,
   });
 }
@@ -222,3 +244,5 @@ await writeFile(new URL('manifest.json', output), json);
 console.log(
   `${files.length} files; public/assets total ${manifest.totalBytes} bytes`,
 );
+
+await import('./world-buildings.mjs');

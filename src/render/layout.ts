@@ -211,7 +211,7 @@ export function buildingLabelBox(id: string, text: string): Box {
   };
 }
 export const buildingDepth = (id: string, y: number) =>
-  id === 'B_GARDEN' ? -500 : y;
+  id === 'B_GARDEN' ? -500 + y / 10000 : y;
 export const meditationProtected: Box[] = [
   { x: 363, y: 114, width: 58, height: 44 },
   buildingLabelBox('B_MEDIT', '静修室预留位'),
