@@ -333,6 +333,15 @@ it('exposes behavior poses at rest and walking on the next transition', async ()
   expect(window.__mapStats.poses.talk).toBeGreaterThan(0);
   advance(w, 1);
   map.draw(w);
+  // No displacement at t=0: idle first, then walk on the first advancing frame.
+  expect(
+    window.__mapStats.disciples.every((d) => d.vx === 0 && d.vy === 0),
+  ).toBe(true);
+  mock.now += 100;
+  for (const [id, cb] of [...mock.frames]) {
+    mock.frames.delete(id);
+    cb(mock.now);
+  }
   expect(window.__mapStats.poses['walk-step']).toBeGreaterThan(0);
   map.destroy();
 });
@@ -757,6 +766,65 @@ it('garden entrance trips across three seeds stop outside the fence and fade out
   expect(hiddenAtGate).toBeGreaterThan(0);
 }, 60000);
 
+it('bug1 renderer flips left-facing walk art from measured velocity in both directions', async () => {
+  vi.stubGlobal('location', { search: '?debug=1' });
+  const map = await createMap(host),
+    w = world();
+  map.draw(w);
+  const hook = (
+    window as unknown as {
+      __motionDebug: {
+        route: (id: string, from: number[], to: number[]) => void;
+      };
+    }
+  ).__motionDebug;
+  for (const [from, to, flip] of [
+    [[1530, 1040], [1590, 1040], -1],
+    [[1590, 1040], [1530, 1040], 1],
+  ] as [number[], number[], number][]) {
+    hook.route(w.disciples[0].id, from, to);
+    mock.now += 100;
+    for (const [id, cb] of [...mock.frames]) {
+      mock.frames.delete(id);
+      cb(mock.now);
+    }
+    const d = window.__mapStats.disciples[0];
+    expect(d.facing).toBe(Math.sign(to[0] - from[0]));
+    const sprite = disciple().children.find(
+      (n) => n instanceof Sprite,
+    ) as Sprite;
+    expect(Math.sign(sprite.scale.x)).toBe(flip);
+    expect(d.flip).toBe(flip);
+  }
+  map.destroy();
+});
+it('bug2 renderer idles at zero displacement and advances exactly by observed path distance', async () => {
+  vi.stubGlobal('location', { search: '?debug=1' });
+  const map = await createMap(host),
+    w = world();
+  map.draw(w);
+  const hook = (
+    window as unknown as {
+      __motionDebug: {
+        route: (id: string, from: number[], to: number[]) => void;
+      };
+    }
+  ).__motionDebug;
+  hook.route(w.disciples[0].id, [1530, 1040], [1590, 1040]);
+  const first = window.__mapStats.disciples[0];
+  expect(first.pose).toBe('walk-pass');
+  mock.now += 500;
+  for (const [id, cb] of [...mock.frames]) {
+    mock.frames.delete(id);
+    cb(mock.now);
+  }
+  const next = window.__mapStats.disciples[0];
+  expect(next.cycles - first.cycles).toBeCloseTo(
+    Math.hypot(next.x - first.x, next.y - first.y) / next.stride,
+  );
+  map.destroy();
+});
+
 it('baseline bug1: rightward movement must visually face right for left-facing walk source', async () => {
   const map = await createMap(host),
     w = world();
@@ -770,5 +838,14 @@ it('baseline bug1: rightward movement must visually face right for left-facing w
   const sprite = disciple().children.find((n) => n instanceof Sprite) as Sprite;
   // Both shipped walking poses face left in their unflipped pixels.
   expect(Math.sign(sprite.scale.x) * -1).toBe(1);
+  map.destroy();
+});
+it('baseline bug2: a trip scheduled with zero elapsed displacement must remain idle', async () => {
+  const map = await createMap(host),
+    w = world();
+  map.draw(w);
+  map.walkDormToHall(w.disciples[0].id);
+  expect(window.__mapStats.poses['walk-step'] ?? 0).toBe(0);
+  expect(window.__mapStats.poses['walk-pass']).toBe(1);
   map.destroy();
 });

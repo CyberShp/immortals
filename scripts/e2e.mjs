@@ -1,3 +1,4 @@
+import { verifyWalk, verifyWalkDirections } from './e2e-walk.mjs';
 import { chromium } from 'playwright-core';
 import { mkdir, readFile, writeFile, readdir, stat } from 'node:fs/promises';
 import assert from 'node:assert/strict';
@@ -760,9 +761,16 @@ try {
   browser = await chromium.launch({
     executablePath:
       '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',
-    headless: true,
+    headless: !process.argv.includes('--headed'),
     args: ['--enable-unsafe-swiftshader'],
   });
+  if (process.argv.includes('--walk')) {
+    if (process.argv.includes('--walk-dirs'))
+      await verifyWalkDirections(browser, base, cleanScreenshot);
+    else await verifyWalk(browser, base, cleanScreenshot);
+    await browser.close();
+    process.exit(0);
+  }
   if (process.argv.includes('--platform')) {
     await verifyPlatforms(browser);
     await browser.close();

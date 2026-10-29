@@ -1,4 +1,5 @@
 import { horizontalFacing, spriteFlip } from './disciple-facing';
+import { advanceGait, strideLength } from './disciple-gait';
 import platform from '../../scripts/platform-geometry.json';
 import { groundedLayer, insideGroundedBody } from './grounded-layers';
 import { discipleArtFile } from './world-scale';
@@ -92,7 +93,12 @@ type Motion = {
   row: number;
   path: Point[];
   duration: number;
+  debugControlled?: boolean;
+  debugPose?: string;
   directionAt?: number;
+  lastPaint?: number;
+  pendingDistance?: number;
+  cycles?: number;
 };
 declare global {
   interface Window {
@@ -134,6 +140,11 @@ declare global {
         vy: number;
         facing: number;
         flip: number;
+        phase: number;
+        cycles: number;
+        pose: string;
+        stride: number;
+        locomotion: string;
       }[];
       buildings: {
         id: string;
@@ -670,6 +681,8 @@ export async function createMap(
             toX: to[0],
             toY: to[1],
             path,
+            pendingDistance: 0,
+            lastPaint: performance.now(),
             start: performance.now(),
             duration:
               (pathLength(path) / (routeSpeed(path) * walkScale)) * 1000,
@@ -677,6 +690,33 @@ export async function createMap(
           cancelFrame();
           frame = requestFrame(paint);
           return { from, to, duration: m.duration };
+        },
+        __motionDebug: {
+          route: (id: string, from: Point, to: Point) => {
+            const m = motions.get(id);
+            if (!m) throw Error('Unknown disciple');
+            if (!walkable(from) || !walkable(to))
+              throw Error('Debug route endpoint blocked');
+            const path = findPath(from, to);
+            if (!path.length) throw Error('Debug route unreachable');
+            Object.assign(m, {
+              debugControlled: true,
+              debugPose: 'walk-pass',
+              x: from[0],
+              y: from[1],
+              toX: to[0],
+              toY: to[1],
+              path,
+              start: performance.now(),
+              duration:
+                (pathLength(path) / routeSpeed(path) / walkScale) * 1000,
+              pendingDistance: 0,
+              lastPaint: performance.now(),
+            });
+            cancelFrame();
+            paint(performance.now());
+            return { from, to, path, duration: m.duration };
+          },
         },
         __worldMotions: () =>
           [...motions.entries()].map(([id, m]) => ({
@@ -699,20 +739,27 @@ export async function createMap(
         m.path,
         (elapsed / 1000) * routeSpeed(m.path) * walkScale,
       );
+      const dt = Math.max(0, (now - (m.lastPaint ?? now)) / 1000);
       const directionDt = Math.max(0, (now - (m.directionAt ?? now)) / 1000);
       const vx = directionDt > 0 ? (positionOnPath[0] - m.x) / directionDt : 0,
         vy = directionDt > 0 ? (positionOnPath[1] - m.y) / directionDt : 0;
       m.directionAt = now;
       m.facing = horizontalFacing(vx, m.facing);
+      // Accumulate observed foot displacement, not commanded route speed/time.
+      const travelled =
+        Math.hypot(positionOnPath[0] - m.x, positionOnPath[1] - m.y) +
+        (m.pendingDistance ?? 0);
+      const gait = advanceGait(m.cycles ?? 0, travelled, dt, moving, height);
+      m.cycles = gait.cycles;
+      m.pendingDistance = 0;
+      m.lastPaint = now;
       [m.x, m.y] = positionOnPath;
       const group = new Container();
       group.position.set(m.x, m.y);
       group.zIndex = m.y;
-      const pose = behaviorPose(
-        d.state.behavior,
-        moving,
-        (((now - m.start) * routeSpeed(m.path)) / WALK_SPEED) * walkScale,
-      );
+      const pose = moving
+        ? gait.pose
+        : (m.debugPose ?? behaviorPose(d.state.behavior, false));
       const renderedFile = discipleArtFile(d.gender, pose);
       const flip = spriteFlip(renderedFile, m.facing);
       stats.poses[pose] = (stats.poses[pose] ?? 0) + 1;
@@ -739,6 +786,11 @@ export async function createMap(
         vy,
         facing: m.facing,
         flip,
+        phase: gait.phase,
+        cycles: gait.cycles,
+        pose,
+        stride: strideLength(height),
+        locomotion: gait.moving ? 'walk' : 'idle',
       });
       if (alpha === 0) continue;
       if (
@@ -1012,6 +1064,7 @@ export async function createMap(
       const [x, y] = destinations[i];
       const row = i > 2 ? 1 : 0;
       const m = motions.get(d.id);
+      if (m?.debugControlled) continue;
       if (!m)
         motions.set(d.id, {
           x,
@@ -1029,12 +1082,16 @@ export async function createMap(
       else {
         m.row = row;
         if (m.toX !== x || m.toY !== y) {
+          const previousFoot: [number, number] = [m.x, m.y];
           [m.x, m.y] = alongPath(
             m.path,
             (Math.max(0, now - m.start) / 1000) *
               routeSpeed(m.path) *
               walkScale,
           );
+          m.pendingDistance =
+            (m.pendingDistance ?? 0) +
+            Math.hypot(m.x - previousFoot[0], m.y - previousFoot[1]);
           const path = findPath([m.x, m.y], [x, y]);
           if (!path.length) continue;
           m.path = path;
@@ -1097,6 +1154,8 @@ export async function createMap(
         toX: to[0],
         toY: to[1],
         path,
+        pendingDistance: 0,
+        lastPaint: performance.now(),
         start: performance.now(),
         duration: (pathLength(path) / (routeSpeed(path) * walkScale)) * 1000,
       });
