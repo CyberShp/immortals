@@ -1,3 +1,4 @@
+import { buildingSortY, pedestalGeometry } from '../src/render/pedestal';
 import buildingPlacements from '../docs/world-buildings.json';
 import gardenGeometry from '../scripts/garden-geometry.json';
 import { buildingDefinitions } from '../src/sim/catalog';
@@ -418,12 +419,20 @@ it.each([false, true])(
     expect(
       scene().children.filter(
         (n) =>
-          n.zIndex === worldMap.slots.find((s) => s.id === 'B_GARDEN')!.rect[3],
+          n.zIndex ===
+          buildingSortY(
+            'B_GARDEN',
+            worldMap.slots.find((s) => s.id === 'B_GARDEN')!.rect[3],
+          ),
       ),
     ).toHaveLength(1);
     const garden = scene().children.find(
       (n) =>
-        n.zIndex === worldMap.slots.find((s) => s.id === 'B_GARDEN')!.rect[3],
+        n.zIndex ===
+        buildingSortY(
+          'B_GARDEN',
+          worldMap.slots.find((s) => s.id === 'B_GARDEN')!.rect[3],
+        ),
     ) as Container;
     if (!fail) {
       expect(garden.position.x).toBeCloseTo(gardenGeometry.position[0]);
@@ -666,7 +675,7 @@ it('gate motion traverses the portal with foot sorting behind and in front of th
           'gate-foreground',
         ),
     )!;
-    expect(gate.zIndex).toBe(1190);
+    expect(gate.zIndex).toBe(buildingSortY('B_GATE', 1190));
     expect(disciple().zIndex).toBe(d.y);
     for (const label of scene().children.filter(
       (n) => n.zIndex === 3000 && n.alpha > 0,
@@ -686,11 +695,11 @@ it('gate motion traverses the portal with foot sorting behind and in front of th
       expect(box.y + box.height).toBeCloseTo(d.y - 96 * 0.7 - 8);
     }
 
-    if (d.y < 1190) {
+    if (d.y < gate.zIndex) {
       expect(disciple().zIndex).toBeLessThan(gate.zIndex);
       behind++;
     }
-    if (d.y > 1190) {
+    if (d.y > gate.zIndex) {
       expect(disciple().zIndex).toBeGreaterThan(gate.zIndex);
       front++;
     }
@@ -720,7 +729,7 @@ it('grounded art uses baked contact shadows; all five use ground layers without 
   for (const id of ['B_HALL', 'B_DORM', 'B_MEDIT', 'B_ALCHEMY']) {
     const slot = worldMap.slots.find((s) => s.id === id)!;
     const b = window.__mapStats.buildings.find((b) => b.id === id)!;
-    expect(b.z).toBe(slot.rect[3]);
+    expect(b.z).toBe(buildingSortY(id, slot.rect[3]));
   }
   expect(window.__mapStats.buildingSprites).toBe(5);
   map.destroy();
@@ -847,5 +856,45 @@ it('baseline bug2: a trip scheduled with zero elapsed displacement must remain i
   map.walkDormToHall(w.disciples[0].id);
   expect(window.__mapStats.poses['walk-step'] ?? 0).toBe(0);
   expect(window.__mapStats.poses['walk-pass']).toBe(1);
+  map.destroy();
+});
+
+it('bug3 debug front/back placements survive redraw, stand idle and keep pedestal depth order', async () => {
+  vi.stubGlobal('location', { search: '?debug=1' });
+  const map = await createMap(host),
+    w = world();
+  w.buildings = buildingDefinitions.map((def) => ({
+    id: def.id,
+    name: def.name,
+    level: 1,
+    progress: 0,
+    targetLevel: 0,
+    builtTick: 0,
+    x: 0,
+    y: 0,
+  }));
+  map.draw(w);
+  const hook = (
+    window as unknown as {
+      __motionDebug: { place: (id: string, p: number[]) => number[] };
+    }
+  ).__motionDebug;
+  for (const b of pedestalGeometry.buildings.filter((b) => b.step))
+    for (const sign of [-1, 1]) {
+      const edge = b.surface!.reduce((a, p) =>
+        (sign < 0 ? p[1] < a[1] : p[1] > a[1]) ? p : a,
+      );
+      const placed = hook.place(w.disciples[0].id, [
+        edge[0],
+        edge[1] + sign * 20,
+      ]);
+      map.draw(w);
+      const d = window.__mapStats.disciples[0],
+        building = window.__mapStats.buildings.find((s) => s.id === b.id)!;
+      expect([d.x, d.y]).toEqual(placed);
+      expect(d.pose).toBe('walk-pass');
+      expect(walkable([d.x, d.y])).toBe(true);
+      expect(sign < 0 ? d.z < building.z : d.z > building.z).toBe(true);
+    }
   map.destroy();
 });

@@ -1,3 +1,4 @@
+import measured from '../src/render/pedestal-geometry.json';
 import { expect, it } from 'vitest';
 import sharp from 'sharp';
 import { readFile } from 'node:fs/promises';
@@ -137,7 +138,9 @@ it('garden edge RGB and beige rejection survive both tiers and map scale', async
 });
 it('garden polygon/entrance and layer split preserve other world bytes', async () => {
   const slot = worldMap.slots.find((s) => s.id === 'B_GARDEN')!;
-  expect(slot.footprint).toEqual({ polygon: g.footprint });
+  expect(slot.footprint).toEqual(
+    measured.buildings.find((b) => b.id === g.id)!.footprint,
+  );
   expect(walkable(slot.entrance)).toBe(true);
   expect(inFootprint(slot.entrance, slot.footprint)).toBe(false);
   expect(findPath([1590, 1050], slot.entrance).at(-1)).toEqual(slot.entrance);

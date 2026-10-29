@@ -1,3 +1,4 @@
+import { pedestalGeometry } from './pedestal';
 import corridor from './main-corridor.json';
 export const corridorCut = corridor.blockedPolygon as [number, number][];
 import platform from '../../scripts/platform-geometry.json';
@@ -54,7 +55,22 @@ export const worldSchema = z.object({
     }),
   ),
 });
-export const worldMap = worldSchema.parse(raw);
+export const sourceWorldMap = worldSchema.parse(raw);
+// Presentation-only overrides. Raw data and simulation remain byte-for-byte untouched.
+export const worldMap = worldSchema.parse({
+  ...raw,
+  slots: raw.slots.map((slot) => {
+    const measured = pedestalGeometry.buildings.find((b) => b.id === slot.id);
+    return measured
+      ? {
+          ...slot,
+          footprint: measured.footprint,
+          entrance: measured.entrance,
+          front: measured.entrance,
+        }
+      : slot;
+  }),
+});
 export type Point = [number, number];
 export { DISCIPLE_SCALE, DISCIPLE_HEIGHT } from './world-scale';
 // Legacy renderer interpolated every trip over 1.2s, not at a constant speed.

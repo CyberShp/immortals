@@ -1,5 +1,6 @@
 import { horizontalFacing, spriteFlip } from './disciple-facing';
 import { advanceGait, strideLength } from './disciple-gait';
+import { buildingSortY, pedestalGeometry } from './pedestal';
 import platform from '../../scripts/platform-geometry.json';
 import { groundedLayer, insideGroundedBody } from './grounded-layers';
 import { discipleArtFile } from './world-scale';
@@ -46,6 +47,7 @@ export { buildingLabelPosition } from './building-labels';
 import {
   worldMap,
   inPolygon,
+  nearestWalkable,
   walkable,
   inFootprint,
   islandOf,
@@ -193,6 +195,24 @@ export async function createMap(
             .filter((j) => inPolygon([x, y], j.polygon as Point[]))
             .map((j) => j.id),
         slots: worldMap.slots,
+        pedestals: pedestalGeometry.buildings,
+        nearestWalkable: (p: Point) => nearestWalkable(p),
+        buildingLayerAt: (id: string, x: number, y: number) => {
+          const b = pedestalGeometry.buildings.find((b) => b.id === id)!;
+          const split = groundedLayer(`building/${b.key}-t1-map@2x.webp`);
+          return {
+            body:
+              !!split &&
+              insideGroundedBody(
+                x - b.position[0],
+                y - b.position[1],
+                split.points,
+                split.extraPolygons,
+              ),
+            groundZ: -900,
+            bodyZ: buildingSortY(id, b.position[1]),
+          };
+        },
         inFootprint: (x: number, y: number, id: string) =>
           inFootprint(
             [x, y],
@@ -334,6 +354,7 @@ export async function createMap(
               px - entry.anchor.x * scale,
               py - entry.anchor.y * scale,
               split.points,
+              split.extraPolygons,
             )
           )
             rgba[(py * canvas.width + px) * 4 + 3] = 0;
@@ -506,7 +527,7 @@ export async function createMap(
     const gate = art(gateArt.file, 1);
     if (gate) {
       gate.position.set(gateArt.crop[0], gateArt.crop[1]);
-      gate.zIndex = gateArt.footY;
+      gate.zIndex = buildingSortY('B_GATE', gateArt.footY);
       scene.addChild(gate);
       const mask = masks.get(gateArt.file);
       if (mask)
@@ -536,7 +557,7 @@ export async function createMap(
       const b = world.buildings.find((b) => b.id === def.id);
       const group = new Container();
       group.position.set(x, y);
-      group.zIndex = baseY;
+      group.zIndex = buildingSortY(def.id, baseY);
       // Empty sites keep their label/click target, without painting fictional stone plots.
       if (b) {
         const tier =
@@ -549,7 +570,7 @@ export async function createMap(
         drawX = placement?.x ?? x;
         y = placement?.y ?? baseY;
         group.position.set(drawX, y);
-        group.zIndex = baseY;
+        group.zIndex = buildingSortY(def.id, baseY);
         const sprite = art(
           file,
           worldBuildings.find((b) => b.file === file)?.scale ?? 1,
@@ -561,7 +582,7 @@ export async function createMap(
             mask,
             x: drawX,
             y,
-            z: baseY,
+            z: group.zIndex,
           });
         if (sprite) {
           if (!('grounded' in entries.get(file)!)) {
@@ -594,6 +615,8 @@ export async function createMap(
             const bodyMask = new Graphics()
               .poly(split.points.flat())
               .fill(0xffffff);
+            for (const poly of split.extraPolygons ?? [])
+              bodyMask.poly(poly.flat()).fill(0xffffff);
             group.addChild(bodyMask);
             sprite.mask = bodyMask;
             const groundGroup = new Container();
@@ -607,6 +630,8 @@ export async function createMap(
               .fill(0xffffff)
               .poly(split.points.flat())
               .cut();
+            for (const poly of split.extraPolygons ?? [])
+              groundMask.poly(poly.flat()).cut();
             groundGroup.addChild(groundSprite, groundMask);
             groundSprite.mask = groundMask;
             scene.addChild(groundGroup);
@@ -692,6 +717,27 @@ export async function createMap(
           return { from, to, duration: m.duration };
         },
         __motionDebug: {
+          place: (id: string, requested: Point) => {
+            const m = motions.get(id);
+            if (!m) throw Error('Unknown disciple');
+            const point = nearestWalkable(requested);
+            Object.assign(m, {
+              debugControlled: true,
+              debugPose: 'walk-pass',
+              x: point[0],
+              y: point[1],
+              toX: point[0],
+              toY: point[1],
+              path: [point],
+              duration: 0,
+              start: performance.now(),
+              pendingDistance: 0,
+              lastPaint: performance.now(),
+            });
+            cancelFrame();
+            paint(performance.now());
+            return point;
+          },
           route: (id: string, from: Point, to: Point) => {
             const m = motions.get(id);
             if (!m) throw Error('Unknown disciple');

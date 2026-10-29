@@ -368,3 +368,7 @@ v1 原稿自带的旧桥由 v2 原像素替换。原管线无旧桥专用遮盖/
 删除：`public/assets/bridge/platform-map@2x.webp`、`scripts/build-platform.mjs`、`scripts/platform-source.json`、`scripts/platform-preview.mjs`、`docs/platform-report.json`。共享`platform-geometry.json`与`platform.test.ts`更新为圆形规格。新增build-round-platform/round-preview脚本、round-platform-source、platform-round.webp及round-platform-report。
 
 验证：build、29文件332测试、lint、四组sim逐字比对368d2d1基线；首屏 **40文件1,587,411 / 2,500,000 bytes**。边缘18/18389样本距米色<35（**0.098%**，低于1%门限）；接头外相对b3e89b6解码MAE **0.11656**。未改design、src/sim、数值数据、stash，未新增依赖、提交或推送。世界重新编码后山门前景随底图裁出，保持像素对齐，山门几何不变。
+
+## e704264 人物与台基回归修复
+
+本轮不改图片、建筑位置或sim。行走源图默认朝左，按资源朝向翻转；步频改为实际脚点位移累计，stride=0.7×渲染身高（默认47.04px）；台基/栏杆/台阶像素测量后加18px鞋尖安全半径，以render覆盖表替代旧四点菱形。建筑排序改用台基前沿，按Iris补充，台基/台阶/静修室地板都在地面层，主体只保留屋身/屋顶及前立柱。完整失败证据、方向列表、世界坐标几何与入口、分步提交边界、--walk/--pedestal命令见 `docs/RENDER-BUGFIXES.md`。本机Chrome已真实运行--pedestal（8张2x截图）与四向录帧。

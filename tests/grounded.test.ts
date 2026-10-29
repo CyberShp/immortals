@@ -1,3 +1,4 @@
+import measured from '../src/render/pedestal-geometry.json';
 import { expect, it } from 'vitest';
 import sharp from 'sharp';
 import { readFile } from 'node:fs/promises';
@@ -94,7 +95,9 @@ it('grounded tiers share pixels, preserve world anchors and match old t1 body wi
 it('closed diamond collisions retain diagonal free space, legal reachable entrances, and fixed non-slot bytes', async () => {
   for (const g of geometry) {
     const slot = worldMap.slots.find((s) => s.id === g.id)!;
-    expect(footprintPolygons(slot.footprint)).toEqual([g.footprint]);
+    expect(slot.footprint).toEqual(
+      measured.buildings.find((b) => b.id === g.id)!.footprint,
+    );
     for (const p of g.footprint)
       expect(inFootprint(p as Point, slot.footprint)).toBe(true);
     const center = g.footprint.reduce(
@@ -103,8 +106,8 @@ it('closed diamond collisions retain diagonal free space, legal reachable entran
     ) as Point;
     expect(inFootprint(center, slot.footprint)).toBe(true);
     const corner: Point = [
-      Math.min(...g.footprint.map((p) => p[0])),
-      Math.min(...g.footprint.map((p) => p[1])),
+      Math.min(...footprintPolygons(slot.footprint)[0].map((p) => p[0])),
+      Math.min(...footprintPolygons(slot.footprint)[0].map((p) => p[1])),
     ];
     expect(inFootprint(corner, slot.footprint)).toBe(false);
     expect(walkable(slot.entrance)).toBe(true);
