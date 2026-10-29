@@ -22,6 +22,7 @@ export const worldSchema = z.object({
       id: z.string(),
       points: z.array(point).min(2),
       width: z.number().positive(),
+      walkable: polygon,
     }),
   ),
   slots: z
@@ -121,11 +122,7 @@ export function walkable(p: Point) {
   )
     return false;
   return (
-    worldMap.bridges.some((b) =>
-      b.points
-        .slice(1)
-        .some((q, i) => segmentDistance(p, b.points[i], q) <= b.width / 2),
-    ) ||
+    worldMap.bridges.some((b) => inPolygon(p, b.walkable)) ||
     worldMap.islands.some((d) => {
       const q: Point = [p[0] - d.offset[0], p[1] - d.offset[1]];
       return (

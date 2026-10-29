@@ -3,7 +3,9 @@ import { mkdir, readFile, writeFile, readdir, stat } from 'node:fs/promises';
 import assert from 'node:assert/strict';
 const base = process.argv.find((a) => /^https?:/.test(a));
 if (!base)
-  throw new Error('用法：node scripts/e2e.mjs http://localhost:4173 [--soak]');
+  throw new Error(
+    '用法：node scripts/e2e.mjs http://localhost:4173 [--soak | --bridges]',
+  );
 const soak = process.argv.includes('--soak');
 await mkdir('docs/screenshots', { recursive: true });
 async function directoryBytes(path) {
@@ -24,6 +26,9 @@ const screenshotStats = {};
 let walkDormToHallMs;
 const islandVisits = { main: 0, north: 0, west: 0, east: 0 };
 const bridgeCrossings = {};
+const bridgeScreenshots = {};
+const bridgeOutput =
+  process.env.BRIDGE_SCREENSHOT_DIR ?? '/Volumes/Media/GrokBot/workspace';
 const offWalkableSamples = [];
 let islandSampleCount = 0;
 async function verifyIslandWalking(context, base) {
@@ -45,6 +50,7 @@ async function verifyIslandWalking(context, base) {
     window.__world.bridges.map((b) => b.id),
   );
   ids.forEach((id) => (bridgeCrossings[id] = 0));
+  await page.screenshot({ path: `${bridgeOutput}/xianfu-bridge-panorama.png` });
   let panorama = false,
     female = false;
   // Preserve sim cadence: one tick per ~1.3s at walkScale=8; sample each 100ms.
@@ -64,6 +70,34 @@ async function verifyIslandWalking(context, base) {
         }));
       });
       islandSampleCount++;
+      for (const bridge of ids.filter((id) => !bridgeScreenshots[id])) {
+        const candidate = data.find(
+          (d) => d.bridges.includes(bridge) && !d.island,
+        );
+        if (!candidate) continue;
+        await page.evaluate((d) => {
+          window.__camera.set({ x: d.x, y: d.y, zoom: 1.5 });
+          window.__camera.follow(d.id);
+        }, candidate);
+        await page.waitForTimeout(30);
+        const path = `${bridgeOutput}/xianfu-bridge-cross-${bridge}.png`;
+        await page.screenshot({ path });
+        // The screenshot must straddle two real on-bridge motion samples.
+        const after = await page.evaluate(
+          ({ id, bridge }) => {
+            const m = window.__worldMotions().find((m) => m.id === id);
+            return m &&
+              window.__world.bridgeAt(m.x, m.y).includes(bridge) &&
+              !window.__world.islandOf(m.x, m.y)
+              ? m
+              : null;
+          },
+          { id: candidate.id, bridge },
+        );
+        if (after)
+          bridgeScreenshots[bridge] = { path, before: candidate, after };
+        await page.evaluate(() => window.__camera.panorama());
+      }
       for (const d of data) {
         if (!d.walkable) offWalkableSamples.push({ stint, sample, ...d });
         if (d.arrived && d.island) islandVisits[d.island]++;
@@ -93,7 +127,7 @@ async function verifyIslandWalking(context, base) {
     if (
       panorama &&
       ['north', 'west', 'east'].every((id) => islandVisits[id] > 0) &&
-      ids.every((id) => bridgeCrossings[id] > 0)
+      ids.every((id) => bridgeCrossings[id] > 0 && bridgeScreenshots[id])
     )
       break;
   }
@@ -101,6 +135,8 @@ async function verifyIslandWalking(context, base) {
     assert.ok(islandVisits[id] > 0, `no arrival on ${id}`);
   for (const id of ids)
     assert.ok(bridgeCrossings[id] > 0, `no crossing on ${id}`);
+  for (const id of ids)
+    assert.ok(bridgeScreenshots[id], `no verified bridge screenshot on ${id}`);
   assert.ok(panorama, 'no simultaneous multi-island distribution');
   // Follow a woman during actual walking, so the female walk sprite is exercised.
   for (let n = 0; n < 12 && !female; n++) {
@@ -169,6 +205,31 @@ try {
     viewport: { width: 1280, height: 900 },
     acceptDownloads: true,
   });
+  if (process.argv.includes('--bridges')) {
+    await mkdir(bridgeOutput, { recursive: true });
+    await verifyIslandWalking(context, base);
+    assert.deepEqual(errors, []);
+    await writeFile(
+      `${bridgeOutput}/xianfu-bridge-report.json`,
+      JSON.stringify(
+        {
+          bridgeCrossings,
+          bridgeScreenshots,
+          islandVisits,
+          offWalkableSamples,
+          errors,
+        },
+        null,
+        2,
+      ),
+    );
+    await browser.close();
+    console.log(
+      'Bridge crossings and screenshots verified:',
+      bridgeScreenshots,
+    );
+    process.exit(0);
+  }
   const page = await context.newPage();
   const byteReads = [];
   const firstLoadBytesByType = {};
@@ -783,6 +844,7 @@ try {
           walkDormToHallMs,
           islandVisits,
           bridgeCrossings,
+          bridgeScreenshots,
           offWalkableSamples,
           islandSampleCount,
           smallWindowCoverage: [
@@ -819,6 +881,7 @@ try {
           errors: [...errors, String(error)],
           islandVisits,
           bridgeCrossings,
+          bridgeScreenshots,
           offWalkableSamples,
           islandSampleCount,
           screenshotStats,

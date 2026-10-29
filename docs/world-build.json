@@ -1,6 +1,6 @@
 {
   "mode": "whole",
-  "bytes": 278678,
+  "bytes": 280714,
   "quality": 86,
   "calibration": [
     { "id": "main", "before": [244, 236, 220], "after": [241, 232, 212] },
@@ -8,7 +8,7 @@
     { "id": "west", "before": [244, 235, 220], "after": [241, 232, 212] },
     { "id": "east", "before": [245, 236, 221], "after": [241, 232, 212] }
   ],
-  "bridges": "cropped north bridge deck, rotated and tiled",
+  "bridges": "Iris bridge_v1; keyed, axial middle repeats, uniform scale, miter crop, alpha-derived shadow; see bridge-build.json",
   "areas": [
     { "id": "main", "area": 272567.5, "vertices": 39 },
     { "id": "north", "area": 88525, "vertices": 39 },
@@ -31,5 +31,7 @@
     { "id": "main-social-12", "pixels": 0 },
     { "id": "main-social-13", "pixels": 0 }
   ],
-  "areaRatio": 2.2441835508635477
+  "areaRatio": 2.2441835508635477,
+  "encoding": "whole source-island canvas + new bridge layers; lossy WebP, HEAD quality fallback",
+  "miniQuality": 75
 }

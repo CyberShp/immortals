@@ -1,0 +1,151 @@
+{
+  "baselineCommit": "a2b79f6381cf1ae006fed537686651e296433c39",
+  "regions": [
+    { "id": "north", "left": 1510, "top": 475, "width": 140, "height": 300 },
+    { "id": "west", "left": 825, "top": 935, "width": 390, "height": 155 },
+    { "id": "east", "left": 1970, "top": 950, "width": 475, "height": 155 }
+  ],
+  "miniRegions": [
+    { "left": 149, "top": 45, "width": 19, "height": 35 },
+    { "left": 80, "top": 91, "width": 44, "height": 21 },
+    { "left": 195, "top": 93, "width": 53, "height": 21 }
+  ],
+  "placements": [
+    {
+      "bridge": "north",
+      "index": 0,
+      "source": "map/bridge-h@2x.webp",
+      "mirror": false,
+      "degrees": 90,
+      "scale": 0.39215686274509803,
+      "a": [1575, 515],
+      "b": [1575, 745],
+      "physicalAxialMin": -10,
+      "physicalAxialMax": 219
+    },
+    {
+      "bridge": "west",
+      "index": 0,
+      "source": "map/bridge-d@2x.webp",
+      "mirror": false,
+      "degrees": 17.744671625056935,
+      "scale": 0.45454545454545453,
+      "a": [865.4757585280067, 991.9522427289621],
+      "b": [1015.2387863551892, 1039.8764116336606],
+      "physicalAxialMin": -10.819538312184324,
+      "physicalAxialMax": 145.33992486261687
+    },
+    {
+      "bridge": "west",
+      "index": 1,
+      "source": "map/bridge-d@2x.webp",
+      "mirror": true,
+      "degrees": -24.443954780416536,
+      "scale": 0.45454545454545453,
+      "a": [985.4341363605984, 1041.620847108819],
+      "b": [1174.103664774626, 955.8619705569881],
+      "physicalAxialMin": -12.248567151315047,
+      "physicalAxialMax": 190.59763614512536
+    },
+    {
+      "bridge": "east",
+      "index": 0,
+      "source": "map/bridge-d@2x.webp",
+      "mirror": false,
+      "degrees": 18.434948822922014,
+      "scale": 0.45454545454545453,
+      "a": [2005.5131670194949, 991.8377223398317],
+      "b": [2195.1789327688084, 1055.0596442562694],
+      "physicalAxialMin": -11.384199576606166,
+      "physicalAxialMax": 180.88228216163128
+    },
+    {
+      "bridge": "east",
+      "index": 1,
+      "source": "map/bridge-h@2x.webp",
+      "mirror": false,
+      "degrees": -5.710593137499643,
+      "scale": 0.39215686274509803,
+      "a": [2164.0794049566402, 1051.592059504336],
+      "b": [2359.9503719021, 1032.00496280979],
+      "physicalAxialMin": -6.169230579301933,
+      "physicalAxialMax": 181.09676861821805
+    }
+  ],
+  "northRail": {
+    "fromY": 630,
+    "toY": 743,
+    "xRange": [1599, 1612],
+    "alphaThreshold": 128,
+    "missingRows": []
+  },
+  "landingSamples": [
+    {
+      "bridge": "north",
+      "anchor": [1575, 525],
+      "samples": [
+        { "distance": 8, "point": [1575, 517], "rgb": [185, 141, 91] },
+        { "distance": 9, "point": [1575, 516], "rgb": [175, 127, 74] },
+        { "distance": 10, "point": [1575, 515], "rgb": [172, 123, 70] },
+        { "distance": 11, "point": [1575, 514], "rgb": [179, 131, 80] },
+        { "distance": 12, "point": [1575, 513], "rgb": [182, 140, 91] }
+      ]
+    },
+    {
+      "bridge": "north",
+      "anchor": [1575, 735],
+      "samples": [
+        { "distance": 8, "point": [1575, 743], "rgb": [200, 184, 107] },
+        { "distance": 9, "point": [1575, 744], "rgb": [202, 184, 108] },
+        { "distance": 10, "point": [1575, 745], "rgb": [202, 184, 108] },
+        { "distance": 11, "point": [1575, 746], "rgb": [202, 184, 108] },
+        { "distance": 12, "point": [1575, 747], "rgb": [202, 184, 108] }
+      ]
+    },
+    {
+      "bridge": "west",
+      "anchor": [875, 995],
+      "samples": [
+        { "distance": 8, "point": [867, 993], "rgb": [207, 163, 114] },
+        { "distance": 9, "point": [866, 992], "rgb": [178, 133, 83] },
+        { "distance": 10, "point": [865, 992], "rgb": [170, 128, 77] },
+        { "distance": 11, "point": [865, 992], "rgb": [170, 128, 77] },
+        { "distance": 12, "point": [864, 991], "rgb": [198, 153, 102] }
+      ]
+    },
+    {
+      "bridge": "west",
+      "anchor": [1165, 960],
+      "samples": [
+        { "distance": 8, "point": [1172, 957], "rgb": [196, 187, 117] },
+        { "distance": 9, "point": [1173, 956], "rgb": [185, 177, 100] },
+        { "distance": 10, "point": [1174, 956], "rgb": [184, 176, 101] },
+        { "distance": 11, "point": [1175, 955], "rgb": [186, 178, 103] },
+        { "distance": 12, "point": [1176, 955], "rgb": [188, 180, 105] }
+      ]
+    },
+    {
+      "bridge": "east",
+      "anchor": [2015, 995],
+      "samples": [
+        { "distance": 8, "point": [2007, 992], "rgb": [193, 178, 103] },
+        { "distance": 9, "point": [2006, 992], "rgb": [193, 178, 103] },
+        { "distance": 10, "point": [2006, 992], "rgb": [193, 178, 103] },
+        { "distance": 11, "point": [2005, 992], "rgb": [192, 177, 100] },
+        { "distance": 12, "point": [2004, 991], "rgb": [188, 175, 100] }
+      ]
+    },
+    {
+      "bridge": "east",
+      "anchor": [2350, 1033],
+      "samples": [
+        { "distance": 8, "point": [2358, 1032], "rgb": [188, 147, 97] },
+        { "distance": 9, "point": [2359, 1032], "rgb": [189, 147, 103] },
+        { "distance": 10, "point": [2360, 1032], "rgb": [134, 90, 45] },
+        { "distance": 11, "point": [2361, 1032], "rgb": [137, 91, 42] },
+        { "distance": 12, "point": [2362, 1032], "rgb": [191, 147, 98] }
+      ]
+    }
+  ],
+  "sourceIslandCount": 4
+}

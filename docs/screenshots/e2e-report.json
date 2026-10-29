@@ -1,16 +1,87 @@
 {
   "passed": true,
-  "walkDormToHallMs": 9887.900000095367,
+  "walkDormToHallMs": 9890.300000071526,
   "islandVisits": {
     "main": 36,
-    "north": 79,
-    "west": 37,
-    "east": 59
+    "north": 86,
+    "west": 45,
+    "east": 68
   },
   "bridgeCrossings": {
-    "north": 21,
-    "west": 93,
-    "east": 153
+    "north": 17,
+    "west": 76,
+    "east": 149
+  },
+  "bridgeScreenshots": {
+    "west": {
+      "path": "/Volumes/Media/GrokBot/workspace/xianfu-bridge-cross-west.png",
+      "before": {
+        "id": "d0",
+        "x": 1143.5227298475434,
+        "y": 985.7167830847413,
+        "toX": 706,
+        "toY": 897,
+        "walkable": true,
+        "island": null,
+        "bridges": [
+          "west"
+        ],
+        "arrived": false
+      },
+      "after": {
+        "id": "d0",
+        "x": 1111.5647246162923,
+        "y": 987.3556551478824,
+        "toX": 706,
+        "toY": 897
+      }
+    },
+    "north": {
+      "path": "/Volumes/Media/GrokBot/workspace/xianfu-bridge-cross-north.png",
+      "before": {
+        "id": "d5",
+        "x": 1560,
+        "y": 696.665003990893,
+        "toX": 1446,
+        "toY": 377,
+        "walkable": true,
+        "island": null,
+        "bridges": [
+          "north"
+        ],
+        "arrived": false
+      },
+      "after": {
+        "id": "d5",
+        "x": 1560,
+        "y": 664.649003990893,
+        "toX": 1446,
+        "toY": 377
+      }
+    },
+    "east": {
+      "path": "/Volumes/Media/GrokBot/workspace/xianfu-bridge-cross-east.png",
+      "before": {
+        "id": "d3",
+        "x": 2031.680959821492,
+        "y": 1006.4759650787457,
+        "toX": 2735,
+        "toY": 893,
+        "walkable": true,
+        "island": null,
+        "bridges": [
+          "east"
+        ],
+        "arrived": false
+      },
+      "after": {
+        "id": "d3",
+        "x": 2063.2859124539154,
+        "y": 1011.4886459086305,
+        "toX": 2735,
+        "toY": 893
+      }
+    }
   },
   "offWalkableSamples": [],
   "islandSampleCount": 156,
@@ -20,256 +91,256 @@
     "PiP rejection fallback"
   ],
   "nativePipVerified": false,
-  "firstLoadBytes": 1400507,
+  "firstLoadBytes": 1404724,
   "firstLoadBytesByType": {
     "document": 1293,
-    "script": 825646,
+    "script": 827807,
     "stylesheet": 7200,
-    "image": 566368
+    "image": 568424
   },
   "firstLoadResources": [
     {
-      "url": "http://localhost:4173/?debug=1&speed=1",
+      "url": "http://127.0.0.1:4173/?debug=1&speed=1",
       "bytes": 1293,
       "type": "document"
     },
     {
-      "url": "http://localhost:4173/bundles/index-BOjk39iu.js",
-      "bytes": 495536,
+      "url": "http://127.0.0.1:4173/bundles/index-BTTTCfpU.js",
+      "bytes": 497697,
       "type": "script"
     },
     {
-      "url": "http://localhost:4173/bundles/Filter-LPvnWTqr.js",
+      "url": "http://127.0.0.1:4173/bundles/Filter-LPvnWTqr.js",
       "bytes": 41958,
       "type": "script"
     },
     {
-      "url": "http://localhost:4173/bundles/canvasUtils-B0HNDru7.js",
-      "bytes": 6011,
-      "type": "script"
-    },
-    {
-      "url": "http://localhost:4173/bundles/Cache-fNcOcM1E.js",
-      "bytes": 1100,
-      "type": "script"
-    },
-    {
-      "url": "http://localhost:4173/bundles/CanvasPool-BKClwQdf.js",
+      "url": "http://127.0.0.1:4173/bundles/CanvasPool-BKClwQdf.js",
       "bytes": 71190,
       "type": "script"
     },
     {
-      "url": "http://localhost:4173/bundles/GCManagedHash-BNMlzcZi.js",
+      "url": "http://127.0.0.1:4173/bundles/canvasUtils-B0HNDru7.js",
+      "bytes": 6011,
+      "type": "script"
+    },
+    {
+      "url": "http://127.0.0.1:4173/bundles/Cache-fNcOcM1E.js",
+      "bytes": 1100,
+      "type": "script"
+    },
+    {
+      "url": "http://127.0.0.1:4173/bundles/GCManagedHash-BNMlzcZi.js",
       "bytes": 19313,
       "type": "script"
     },
     {
-      "url": "http://localhost:4173/bundles/getTextureBatchBindGroup-CIH9f4hr.js",
-      "bytes": 344,
-      "type": "script"
-    },
-    {
-      "url": "http://localhost:4173/bundles/index-BuuZh93T.css",
-      "bytes": 7200,
-      "type": "stylesheet"
-    },
-    {
-      "url": "http://localhost:4173/bundles/getTexelRangeRects-HvxKj03g.js",
-      "bytes": 11358,
-      "type": "script"
-    },
-    {
-      "url": "http://localhost:4173/bundles/RenderTargetSystem-DYiq1aca.js",
+      "url": "http://127.0.0.1:4173/bundles/RenderTargetSystem-DYiq1aca.js",
       "bytes": 58807,
       "type": "script"
     },
     {
-      "url": "http://localhost:4173/bundles/GraphicsContext-_4bDhvjE.js",
+      "url": "http://127.0.0.1:4173/bundles/index-BuuZh93T.css",
+      "bytes": 7200,
+      "type": "stylesheet"
+    },
+    {
+      "url": "http://127.0.0.1:4173/bundles/getTextureBatchBindGroup-CIH9f4hr.js",
+      "bytes": 344,
+      "type": "script"
+    },
+    {
+      "url": "http://127.0.0.1:4173/bundles/getTexelRangeRects-HvxKj03g.js",
+      "bytes": 11358,
+      "type": "script"
+    },
+    {
+      "url": "http://127.0.0.1:4173/bundles/GraphicsContext-_4bDhvjE.js",
       "bytes": 61680,
       "type": "script"
     },
     {
-      "url": "http://localhost:4173/bundles/browserAll-C9hNZ2hQ.js",
-      "bytes": 43507,
-      "type": "script"
-    },
-    {
-      "url": "http://localhost:4173/bundles/init-BTjMkyv-.js",
+      "url": "http://127.0.0.1:4173/bundles/init-Dt0ynoyU.js",
       "bytes": 14842,
       "type": "script"
     },
     {
-      "url": "http://localhost:4173/assets/disciple/walk-pass-96@2x.webp",
+      "url": "http://127.0.0.1:4173/bundles/browserAll-NF8xK75e.js",
+      "bytes": 43507,
+      "type": "script"
+    },
+    {
+      "url": "http://127.0.0.1:4173/assets/disciple/walk-pass-96@2x.webp",
       "bytes": 2296,
       "type": "image"
     },
     {
-      "url": "http://localhost:4173/assets/disciple/meditate-96@2x.webp",
+      "url": "http://127.0.0.1:4173/assets/disciple/meditate-96@2x.webp",
       "bytes": 2174,
       "type": "image"
     },
     {
-      "url": "http://localhost:4173/assets/disciple/work-96@2x.webp",
+      "url": "http://127.0.0.1:4173/assets/disciple/work-96@2x.webp",
       "bytes": 2694,
       "type": "image"
     },
     {
-      "url": "http://localhost:4173/assets/disciple/talk-96@2x.webp",
+      "url": "http://127.0.0.1:4173/assets/disciple/talk-96@2x.webp",
       "bytes": 2528,
       "type": "image"
     },
     {
-      "url": "http://localhost:4173/assets/building/dorm-t1-map@2x.webp",
-      "bytes": 5732,
-      "type": "image"
-    },
-    {
-      "url": "http://localhost:4173/assets/building/dorm-t2-map@2x.webp",
+      "url": "http://127.0.0.1:4173/assets/building/dorm-t2-map@2x.webp",
       "bytes": 6340,
       "type": "image"
     },
     {
-      "url": "http://localhost:4173/assets/building/meditation-t2-map@2x.webp",
-      "bytes": 8902,
+      "url": "http://127.0.0.1:4173/assets/building/dorm-t1-map@2x.webp",
+      "bytes": 5732,
       "type": "image"
     },
     {
-      "url": "http://localhost:4173/assets/building/meditation-t1-map@2x.webp",
+      "url": "http://127.0.0.1:4173/assets/building/meditation-t1-map@2x.webp",
       "bytes": 7342,
       "type": "image"
     },
     {
-      "url": "http://localhost:4173/assets/building/garden-t1-map@2x.webp",
+      "url": "http://127.0.0.1:4173/assets/building/meditation-t2-map@2x.webp",
+      "bytes": 8902,
+      "type": "image"
+    },
+    {
+      "url": "http://127.0.0.1:4173/assets/building/garden-t1-map@2x.webp",
       "bytes": 54650,
       "type": "image"
     },
     {
-      "url": "http://localhost:4173/assets/building/alchemy-t1-map@2x.webp",
+      "url": "http://127.0.0.1:4173/assets/building/alchemy-t1-map@2x.webp",
       "bytes": 4790,
       "type": "image"
     },
     {
-      "url": "http://localhost:4173/assets/building/garden-t2-map@2x.webp",
-      "bytes": 90642,
-      "type": "image"
-    },
-    {
-      "url": "http://localhost:4173/assets/building/alchemy-t2-map@2x.webp",
+      "url": "http://127.0.0.1:4173/assets/building/alchemy-t2-map@2x.webp",
       "bytes": 5828,
       "type": "image"
     },
     {
-      "url": "http://localhost:4173/assets/building/hall-t1-map@2x.webp",
+      "url": "http://127.0.0.1:4173/assets/building/garden-t2-map@2x.webp",
+      "bytes": 90642,
+      "type": "image"
+    },
+    {
+      "url": "http://127.0.0.1:4173/assets/building/hall-t1-map@2x.webp",
       "bytes": 22312,
       "type": "image"
     },
     {
-      "url": "http://localhost:4173/assets/building/hall-t2-map@2x.webp",
+      "url": "http://127.0.0.1:4173/assets/building/hall-t2-map@2x.webp",
       "bytes": 28664,
       "type": "image"
     },
     {
-      "url": "http://localhost:4173/assets/disciple/f-walk-pass-96@2x.webp",
-      "bytes": 3758,
-      "type": "image"
-    },
-    {
-      "url": "http://localhost:4173/assets/disciple/f-walk-step-96@2x.webp",
+      "url": "http://127.0.0.1:4173/assets/disciple/f-walk-step-96@2x.webp",
       "bytes": 4126,
       "type": "image"
     },
     {
-      "url": "http://localhost:4173/assets/disciple/f-meditate-96@2x.webp",
+      "url": "http://127.0.0.1:4173/assets/disciple/f-walk-pass-96@2x.webp",
+      "bytes": 3758,
+      "type": "image"
+    },
+    {
+      "url": "http://127.0.0.1:4173/assets/disciple/f-meditate-96@2x.webp",
       "bytes": 3194,
       "type": "image"
     },
     {
-      "url": "http://localhost:4173/assets/map/world.webp",
-      "bytes": 278678,
+      "url": "http://127.0.0.1:4173/assets/map/world-mini.webp",
+      "bytes": 3792,
       "type": "image"
     },
     {
-      "url": "http://localhost:4173/assets/map/world-mini.webp",
-      "bytes": 3772,
+      "url": "http://127.0.0.1:4173/assets/map/world.webp",
+      "bytes": 280714,
       "type": "image"
     },
     {
-      "url": "http://localhost:4173/assets/disciple/walk-step-96@2x.webp",
+      "url": "http://127.0.0.1:4173/assets/disciple/walk-step-96@2x.webp",
       "bytes": 2648,
       "type": "image"
     },
     {
-      "url": "http://localhost:4173/assets/icon/resource-stone-32@2x.webp",
+      "url": "http://127.0.0.1:4173/assets/icon/resource-stone-32@2x.webp",
       "bytes": 2404,
       "type": "image"
     },
     {
-      "url": "http://localhost:4173/assets/icon/resource-herb-32@2x.webp",
+      "url": "http://127.0.0.1:4173/assets/icon/resource-herb-32@2x.webp",
       "bytes": 3444,
       "type": "image"
     },
     {
-      "url": "http://localhost:4173/assets/icon/resource-pill-32@2x.webp",
+      "url": "http://127.0.0.1:4173/assets/icon/resource-pill-32@2x.webp",
       "bytes": 2334,
       "type": "image"
     },
     {
-      "url": "http://localhost:4173/assets/icon/resource-fame-32@2x.webp",
+      "url": "http://127.0.0.1:4173/assets/icon/resource-fame-32@2x.webp",
       "bytes": 2470,
       "type": "image"
     },
     {
-      "url": "http://localhost:4173/assets/accessory/sword-48@2x.webp",
-      "bytes": 992,
-      "type": "image"
-    },
-    {
-      "url": "http://localhost:4173/assets/accessory/ribbon-48@2x.webp",
+      "url": "http://127.0.0.1:4173/assets/accessory/ribbon-48@2x.webp",
       "bytes": 1860,
       "type": "image"
     },
     {
-      "url": "http://localhost:4173/assets/accessory/hat-48@2x.webp",
+      "url": "http://127.0.0.1:4173/assets/accessory/sword-48@2x.webp",
+      "bytes": 992,
+      "type": "image"
+    },
+    {
+      "url": "http://127.0.0.1:4173/assets/accessory/hat-48@2x.webp",
       "bytes": 1210,
       "type": "image"
     },
     {
-      "url": "http://localhost:4173/assets/accessory/scroll-48@2x.webp",
+      "url": "http://127.0.0.1:4173/assets/accessory/scroll-48@2x.webp",
       "bytes": 1270,
       "type": "image"
     },
     {
-      "url": "http://localhost:4173/assets/accessory/hairpin-48@2x.webp",
-      "bytes": 1444,
-      "type": "image"
-    },
-    {
-      "url": "http://localhost:4173/assets/accessory/gourd-48@2x.webp",
+      "url": "http://127.0.0.1:4173/assets/accessory/gourd-48@2x.webp",
       "bytes": 1100,
       "type": "image"
     },
     {
-      "url": "http://localhost:4173/assets/accessory/basket-48@2x.webp",
-      "bytes": 1884,
-      "type": "image"
-    },
-    {
-      "url": "http://localhost:4173/assets/accessory/beads-48@2x.webp",
+      "url": "http://127.0.0.1:4173/assets/accessory/beads-48@2x.webp",
       "bytes": 1654,
       "type": "image"
     },
     {
-      "url": "http://localhost:4173/assets/accessory/fan-48@2x.webp",
+      "url": "http://127.0.0.1:4173/assets/accessory/hairpin-48@2x.webp",
+      "bytes": 1444,
+      "type": "image"
+    },
+    {
+      "url": "http://127.0.0.1:4173/assets/accessory/basket-48@2x.webp",
+      "bytes": 1884,
+      "type": "image"
+    },
+    {
+      "url": "http://127.0.0.1:4173/assets/accessory/fan-48@2x.webp",
       "bytes": 1528,
       "type": "image"
     },
     {
-      "url": "http://localhost:4173/assets/accessory/coins-48@2x.webp",
+      "url": "http://127.0.0.1:4173/assets/accessory/coins-48@2x.webp",
       "bytes": 1704,
       "type": "image"
     }
   ],
-  "distTotalBytes": 2552308,
+  "distTotalBytes": 2763676,
   "screenshotStats": {
     "08-art-main": {
       "tick": 0,
@@ -944,33 +1015,33 @@
       "disciples": [
         {
           "id": "d0",
-          "x": 1454.893297192977,
-          "y": 970.082937240559
+          "x": 1456.5770553596103,
+          "y": 970.1114755145696
         },
         {
           "id": "d1",
-          "x": 1524.885036622989,
-          "y": 999.7039371743643
+          "x": 1526.565952370364,
+          "y": 999.6020634927052
         },
         {
           "id": "d2",
-          "x": 1593.9824116084737,
-          "y": 967.1554202796616
+          "x": 1595.35273877321,
+          "y": 966.1766151619929
         },
         {
           "id": "d3",
-          "x": 1554.3740817232406,
-          "y": 929.558906631381
+          "x": 1556.0512279464708,
+          "y": 929.4071286926271
         },
         {
           "id": "d4",
-          "x": 1447.4061851873716,
-          "y": 937.8498962997948
+          "x": 1446.5136669729118,
+          "y": 936.4218671566589
         },
         {
           "id": "d5",
-          "x": 1496.893478585602,
-          "y": 972.0714376435855
+          "x": 1498.5772991684962,
+          "y": 972.0960189659635
         }
       ],
       "discipleScale": 0.7,
@@ -1642,8 +1713,8 @@
       "disciples": [
         {
           "id": "d0",
-          "x": 707.3943753814463,
-          "y": 897.7515140042859
+          "x": 707.3158420492393,
+          "y": 897.7032948883866
         },
         {
           "id": "d1",
@@ -1652,7 +1723,7 @@
         },
         {
           "id": "d2",
-          "x": 1708.4159999990463,
+          "x": 1708.5080000004768,
           "y": 760
         },
         {
@@ -1866,8 +1937,8 @@
       "disciples": [
         {
           "id": "d0",
-          "x": 706.1338036985588,
-          "y": 897.072114980392
+          "x": 706.1569838366032,
+          "y": 897.0839051540465
         },
         {
           "id": "d1",
@@ -1876,7 +1947,7 @@
         },
         {
           "id": "d2",
-          "x": 1709.8479999995232,
+          "x": 1709.822000000477,
           "y": 760
         },
         {
@@ -1909,7 +1980,7 @@
         "y": 700
       },
       "region": {
-        "x": 297.76021166435146,
+        "x": 297.77064272647146,
         "y": 220,
         "count": 0
       }
@@ -2095,8 +2166,8 @@
       "disciples": [
         {
           "id": "d0",
-          "x": 710.45777583842,
-          "y": 899.4025674973303
+          "x": 710.7359730599322,
+          "y": 899.5312959458258
         },
         {
           "id": "d1",
@@ -2105,7 +2176,7 @@
         },
         {
           "id": "d2",
-          "x": 1704.9359999995231,
+          "x": 1704.6300000009537,
           "y": 760
         },
         {
@@ -3299,8 +3370,8 @@
       "disciples": [
         {
           "id": "d0",
-          "x": 707.4700801045539,
-          "y": 897.7923159005063
+          "x": 707.5768938223255,
+          "y": 897.8428225602084
         },
         {
           "id": "d1",
@@ -3309,7 +3380,7 @@
         },
         {
           "id": "d2",
-          "x": 1708.33,
+          "x": 1708.2120000014306,
           "y": 760
         },
         {
@@ -3704,41 +3775,40 @@
       "discipleSprites": 6,
       "fallbacks": 0,
       "poses": {
-        "talk": 2,
-        "meditate": 1,
-        "walk-pass": 1,
-        "work": 2
+        "work": 2,
+        "talk": 1,
+        "meditate": 3
       },
       "disciples": [
         {
           "id": "d0",
-          "x": 706,
-          "y": 897
-        },
-        {
-          "id": "d1",
-          "x": 2763,
-          "y": 921
-        },
-        {
-          "id": "d2",
-          "x": 2735,
-          "y": 893
-        },
-        {
-          "id": "d3",
           "x": 1710,
           "y": 760
         },
         {
-          "id": "d4",
+          "id": "d1",
           "x": 1682,
           "y": 760
         },
         {
+          "id": "d2",
+          "x": 2525,
+          "y": 1014
+        },
+        {
+          "id": "d3",
+          "x": 2763,
+          "y": 921
+        },
+        {
+          "id": "d4",
+          "x": 702,
+          "y": 746
+        },
+        {
           "id": "d5",
-          "x": 1725,
-          "y": 375
+          "x": 2735,
+          "y": 893
         }
       ],
       "discipleScale": 0.7,
@@ -3880,41 +3950,40 @@
       "discipleSprites": 6,
       "fallbacks": 0,
       "poses": {
-        "talk": 2,
-        "meditate": 1,
-        "walk-pass": 1,
-        "work": 2
+        "work": 2,
+        "talk": 1,
+        "meditate": 3
       },
       "disciples": [
         {
           "id": "d0",
-          "x": 706,
-          "y": 897
-        },
-        {
-          "id": "d1",
-          "x": 2763,
-          "y": 921
-        },
-        {
-          "id": "d2",
-          "x": 2735,
-          "y": 893
-        },
-        {
-          "id": "d3",
           "x": 1710,
           "y": 760
         },
         {
-          "id": "d4",
+          "id": "d1",
           "x": 1682,
           "y": 760
         },
         {
+          "id": "d2",
+          "x": 2525,
+          "y": 1014
+        },
+        {
+          "id": "d3",
+          "x": 2763,
+          "y": 921
+        },
+        {
+          "id": "d4",
+          "x": 702,
+          "y": 746
+        },
+        {
           "id": "d5",
-          "x": 1725,
-          "y": 375
+          "x": 2735,
+          "y": 893
         }
       ],
       "discipleScale": 0.7,
@@ -4085,33 +4154,33 @@
       "disciples": [
         {
           "id": "d0",
-          "x": 1455.6851834580211,
-          "y": 970.0963590416613
+          "x": 1457.0109930331994,
+          "y": 970.1188303903932
         },
         {
           "id": "d1",
-          "x": 1525.6755860732728,
-          "y": 999.6560250864683
+          "x": 1526.999157496474,
+          "y": 999.5758086365773
         },
         {
           "id": "d2",
-          "x": 1594.6268885184456,
-          "y": 966.6950796296818
+          "x": 1595.7058990985495,
+          "y": 965.9243577867503
         },
         {
           "id": "d3",
-          "x": 1555.1628583331872,
-          "y": 929.4875241327433
+          "x": 1556.4834615918953,
+          "y": 929.3680125256203
         },
         {
           "id": "d4",
-          "x": 1446.9864260263837,
-          "y": 937.178281642214
+          "x": 1446.2836474337087,
+          "y": 936.0538358939338
         },
         {
           "id": "d5",
-          "x": 1497.6853942055625,
-          "y": 972.0829984555556
+          "x": 1499.0112529279863,
+          "y": 972.1023540573428
         }
       ],
       "discipleScale": 0.7,
@@ -4149,33 +4218,33 @@
       "disciples": [
         {
           "id": "d0",
-          "x": 1474.8744273731818,
-          "y": 970.4216004639522
+          "x": 1475.8202915186196,
+          "y": 970.4376320596376
         },
         {
           "id": "d1",
-          "x": 1544.8324358610946,
-          "y": 998.4950038872064
+          "x": 1545.776703255576,
+          "y": 998.4377755602682
         },
         {
           "id": "d2",
-          "x": 1610.2440612982332,
-          "y": 955.5399562155477
+          "x": 1611.0138531592786,
+          "y": 954.9901048862296
         },
         {
           "id": "d3",
-          "x": 1574.2767480809687,
-          "y": 927.7577603546634
+          "x": 1575.2188979161683,
+          "y": 927.6724979261386
         },
         {
           "id": "d4",
-          "x": 1436.81468636959,
-          "y": 920.9034981913439
+          "x": 1436.313307374116,
+          "y": 920.1012917985856
         },
         {
           "id": "d5",
-          "x": 1516.8753494585371,
-          "y": 972.3631437877159
+          "x": 1517.821248666791,
+          "y": 972.3769525352816
         }
       ],
       "discipleScale": 0.7,
@@ -4193,7 +4262,7 @@
       }
     },
     "27-world-islands": {
-      "tick": 6,
+      "tick": 5,
       "mode": "full",
       "markers": 0,
       "markerCssDiameter": 0,
@@ -4342,8 +4411,7 @@
       "fallbacks": 0,
       "poses": {
         "meditate": 3,
-        "walk-pass": 2,
-        "walk-step": 1
+        "walk-step": 3
       },
       "disciples": [
         {
@@ -4353,23 +4421,23 @@
         },
         {
           "id": "d1",
-          "x": 2477.731359581826,
-          "y": 1000.2602680072425
+          "x": 2763,
+          "y": 921
         },
         {
           "id": "d2",
-          "x": 1184.2756905878507,
-          "y": 980
+          "x": 891.7303110046931,
+          "y": 989.8188967069866
         },
         {
           "id": "d3",
-          "x": 1595.9375127267203,
-          "y": 980
+          "x": 1875.17800503745,
+          "y": 984.9785359086117
         },
         {
           "id": "d4",
-          "x": 2735,
-          "y": 893
+          "x": 2704.828522927093,
+          "y": 973.3320397673475
         },
         {
           "id": "d5",
@@ -4546,18 +4614,18 @@
       "disciples": [
         {
           "id": "d0",
-          "x": 2298.788846096599,
-          "y": 1018.2845862794638
+          "x": 2329.692951057327,
+          "y": 1030
         },
         {
           "id": "d1",
-          "x": 1105.1510568346966,
-          "y": 985.8977017743417
+          "x": 1082.9422075178247,
+          "y": 992.7926988406189
         },
         {
           "id": "d2",
-          "x": 1826.211705771836,
-          "y": 864.3389064515135
+          "x": 1836.296513495138,
+          "y": 872.7433865267182
         },
         {
           "id": "d3",
@@ -4566,13 +4634,13 @@
         },
         {
           "id": "d4",
-          "x": 2228.261980599849,
-          "y": 1027.1610599647147
+          "x": 2219.796874133104,
+          "y": 1030
         },
         {
           "id": "d5",
-          "x": 1929.3328938035518,
-          "y": 945.3330326024301
+          "x": 1940.8406940074349,
+          "y": 950.3591333518118
         }
       ],
       "discipleScale": 0.7,
@@ -4585,15 +4653,18 @@
       "visibleDisciples": 5,
       "camera": {
         "zoom": 1.2,
-        "x": 1807.0669495705113,
-        "y": 849.1301768577381
+        "x": 1813.4285642748089,
+        "y": 854.6455119444836
       }
     }
   },
   "buildingScales": [
     {
       "file": "building/dorm-t1-map@2x.webp",
-      "size": [138, 116],
+      "size": [
+        138,
+        116
+      ],
       "anchor": {
         "x": 69,
         "y": 115
@@ -4608,10 +4679,16 @@
       "downshift": 0,
       "overlapPixels": 0,
       "measure": {
-        "door_leaf_y_src": [357, 486],
+        "door_leaf_y_src": [
+          357,
+          486
+        ],
         "door_leaf_h": 129,
         "door_frame_h": 151,
-        "building_y_src": [119, 567],
+        "building_y_src": [
+          119,
+          567
+        ],
         "building_h": 448,
         "sprite_h": 448,
         "door_ratio_leaf": 0.288,
@@ -4622,7 +4699,12 @@
         "width_change": 1.64,
         "note": "门扇双开"
       },
-      "crop": [69, 119, 604, 567],
+      "crop": [
+        69,
+        119,
+        604,
+        567
+      ],
       "sha256": "18492ea430f1716102f10f62f75836fec9658237bb6273fb0514aa6e883499b8",
       "source": "building/dorm-t1@2x.webp",
       "worldScale": 0.9677419354838711,
@@ -4639,7 +4721,10 @@
     },
     {
       "file": "building/dorm-t2-map@2x.webp",
-      "size": [138, 116],
+      "size": [
+        138,
+        116
+      ],
       "anchor": {
         "x": 69,
         "y": 115
@@ -4654,10 +4739,16 @@
       "downshift": 0,
       "overlapPixels": 0,
       "measure": {
-        "door_leaf_y_src": [376, 504],
+        "door_leaf_y_src": [
+          376,
+          504
+        ],
         "door_leaf_h": 128,
         "door_frame_h": 152,
-        "building_y_src": [126, 583],
+        "building_y_src": [
+          126,
+          583
+        ],
         "building_h": 457,
         "sprite_h": 457,
         "door_ratio_leaf": 0.28,
@@ -4668,7 +4759,12 @@
         "width_change": 1.68,
         "note": "门扇双开；灯笼不计入宽度"
       },
-      "crop": [674, 126, 1218, 583],
+      "crop": [
+        674,
+        126,
+        1218,
+        583
+      ],
       "sha256": "4c97c2bdeaa627fc96590b9ea9e8f22ea53025380beae56a045f7ac04890d663",
       "source": "building/dorm-t2@2x.webp",
       "worldScale": 0.9856262833675565,
@@ -4685,7 +4781,10 @@
     },
     {
       "file": "building/meditation-t1-map@2x.webp",
-      "size": [115, 162],
+      "size": [
+        115,
+        162
+      ],
       "anchor": {
         "x": 57,
         "y": 159
@@ -4714,7 +4813,10 @@
     },
     {
       "file": "building/meditation-t2-map@2x.webp",
-      "size": [115, 162],
+      "size": [
+        115,
+        162
+      ],
       "anchor": {
         "x": 57,
         "y": 159
@@ -4743,7 +4845,10 @@
     },
     {
       "file": "building/garden-t1-map@2x.webp",
-      "size": [624, 489],
+      "size": [
+        624,
+        489
+      ],
       "anchor": {
         "x": 312,
         "y": 484
@@ -4759,12 +4864,27 @@
       "overlapPixels": 0,
       "footprint": {
         "corners_canvas": {
-          "left": [26, 347],
-          "right": [595, 252],
-          "bottom": [423, 483],
-          "top": [198, 116]
+          "left": [
+            26,
+            347
+          ],
+          "right": [
+            595,
+            252
+          ],
+          "bottom": [
+            423,
+            483
+          ],
+          "top": [
+            198,
+            116
+          ]
         },
-        "bbox_wh_src": [569, 367],
+        "bbox_wh_src": [
+          569,
+          367
+        ],
         "ratio": 1.55,
         "note": "地面平行四边形四角（目测/按 alpha 极值测，±5px；top=left+right-bottom 推算）。不是 2:1 菱形，底角偏右（约外接框 69% 处）"
       },
@@ -4781,15 +4901,30 @@
       "worldDoorRule": null,
       "worldDoorRatio": null,
       "footprintWorld": {
-        "left": [2547.7200000000003, 937.4],
-        "right": [2684.28, 914.6],
-        "bottom": [2643, 970.04],
-        "top": [2589, 881.96]
+        "left": [
+          2547.7200000000003,
+          937.4
+        ],
+        "right": [
+          2684.28,
+          914.6
+        ],
+        "bottom": [
+          2643,
+          970.04
+        ],
+        "top": [
+          2589,
+          881.96
+        ]
       }
     },
     {
       "file": "building/garden-t2-map@2x.webp",
-      "size": [624, 489],
+      "size": [
+        624,
+        489
+      ],
       "anchor": {
         "x": 312,
         "y": 484
@@ -4805,12 +4940,27 @@
       "overlapPixels": 0,
       "footprint": {
         "corners_canvas": {
-          "left": [8, 334],
-          "right": [614, 225],
-          "bottom": [435, 484],
-          "top": [187, 75]
+          "left": [
+            8,
+            334
+          ],
+          "right": [
+            614,
+            225
+          ],
+          "bottom": [
+            435,
+            484
+          ],
+          "top": [
+            187,
+            75
+          ]
         },
-        "bbox_wh_src": [606, 409],
+        "bbox_wh_src": [
+          606,
+          409
+        ],
         "ratio": 1.48,
         "note": "地面平行四边形四角（目测/按 alpha 极值测，±5px；top=left+right-bottom 推算）。不是 2:1 菱形，底角偏右（约外接框 69% 处）"
       },
@@ -4827,15 +4977,30 @@
       "worldDoorRule": null,
       "worldDoorRatio": null,
       "footprintWorld": {
-        "left": [2543.2799999999997, 939.08],
-        "right": [2688.72, 912.9200000000001],
-        "bottom": [2645.7599999999998, 975.08],
-        "top": [2586.24, 876.9200000000001]
+        "left": [
+          2543.2799999999997,
+          939.08
+        ],
+        "right": [
+          2688.72,
+          912.9200000000001
+        ],
+        "bottom": [
+          2645.7599999999998,
+          975.08
+        ],
+        "top": [
+          2586.24,
+          876.9200000000001
+        ]
       }
     },
     {
       "file": "building/alchemy-t1-map@2x.webp",
-      "size": [114, 128],
+      "size": [
+        114,
+        128
+      ],
       "anchor": {
         "x": 57,
         "y": 127
@@ -4856,10 +5021,16 @@
       "cliffThreshold": 235,
       "extendsOntoCliff": false,
       "measure": {
-        "door_leaf_y_src": [359, 489],
+        "door_leaf_y_src": [
+          359,
+          489
+        ],
         "door_leaf_h": 130,
         "door_frame_h": 169,
-        "building_y_src": [168, 567],
+        "building_y_src": [
+          168,
+          567
+        ],
         "building_h": 399,
         "sprite_h": 516,
         "door_ratio_leaf": 0.326,
@@ -4870,7 +5041,12 @@
         "width_change": 1.82,
         "note": "单扇门，门楣斜；building 顶取烟囱顶 y168（不含烟），sprite 含烟到 y51；丹炉不计入宽度"
       },
-      "crop": [178, 51, 585, 567],
+      "crop": [
+        178,
+        51,
+        585,
+        567
+      ],
       "sha256": "8606b5315020104bfadc936d33d904413052d0d6f8e2a842ef73b0155935d4bb",
       "source": "building/alchemy-t1@2x.webp",
       "worldScale": 0.9596774193544054,
@@ -4887,7 +5063,10 @@
     },
     {
       "file": "building/alchemy-t2-map@2x.webp",
-      "size": [114, 128],
+      "size": [
+        114,
+        128
+      ],
       "anchor": {
         "x": 57,
         "y": 127
@@ -4908,10 +5087,16 @@
       "cliffThreshold": 235,
       "extendsOntoCliff": false,
       "measure": {
-        "door_leaf_y_src": [354, 484],
+        "door_leaf_y_src": [
+          354,
+          484
+        ],
         "door_leaf_h": 130,
         "door_frame_h": 157,
-        "building_y_src": [75, 577],
+        "building_y_src": [
+          75,
+          577
+        ],
         "building_h": 502,
         "sprite_h": 525,
         "door_ratio_leaf": 0.259,
@@ -4922,7 +5107,12 @@
         "width_change": 2.1,
         "note": "双开门；building 不含右下盆栽（底到 y600）与左侧丹炉；顶为屋脊卷饰"
       },
-      "crop": [669, 75, 1136, 600],
+      "crop": [
+        669,
+        75,
+        1136,
+        600
+      ],
       "sha256": "d39de8d8c9e1079e1c068302545eb5f522569b19cccbcfa839603b8dca1e3bf3",
       "source": "building/alchemy-t2@2x.webp",
       "worldScale": 0.9247800586487586,
@@ -4939,7 +5129,10 @@
     },
     {
       "file": "building/hall-t1-map@2x.webp",
-      "size": [237, 332],
+      "size": [
+        237,
+        332
+      ],
       "anchor": {
         "x": 119,
         "y": 328
@@ -4968,7 +5161,10 @@
     },
     {
       "file": "building/hall-t2-map@2x.webp",
-      "size": [237, 332],
+      "size": [
+        237,
+        332
+      ],
       "anchor": {
         "x": 119,
         "y": 328

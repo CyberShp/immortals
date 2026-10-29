@@ -1100,8 +1100,48 @@
       "source": "disciple/f-meditate-96@2x.webp",
       "batch": 2,
       "sha256": "d5d40d2a7bc6a92de159847da6fd933d380e8fe15ebd1118279c54eb6a429dc1"
+    },
+    {
+      "file": "map/bridge-h@2x.webp",
+      "size": [650, 212],
+      "anchor": { "x": 2, "y": 115 },
+      "anchors": [
+        { "x": 2, "y": 115 },
+        { "x": 647, "y": 115 }
+      ],
+      "scale": 1,
+      "source": "bridge_v1.jpg",
+      "sourceSha256": "d22d900e7f564498efce40cdca9811b970817914384ad3f7c8060b8fbe057cf8",
+      "crop": [320, 50, 650, 212],
+      "deck": {
+        "width": 118,
+        "walkableWidth": 102,
+        "axisLength": 645,
+        "repeatLength": 164
+      },
+      "operation": "colour key, decontaminate alpha, crop inside end ropes; no painted pixels"
+    },
+    {
+      "file": "map/bridge-d@2x.webp",
+      "size": [594, 356],
+      "anchor": { "x": 75, "y": 93 },
+      "anchors": [
+        { "x": 75, "y": 93 },
+        { "x": 512, "y": 265 }
+      ],
+      "scale": 1,
+      "source": "bridge_v1.jpg",
+      "sourceSha256": "d22d900e7f564498efce40cdca9811b970817914384ad3f7c8060b8fbe057cf8",
+      "crop": [340, 300, 594, 356],
+      "deck": {
+        "width": 104,
+        "walkableWidth": 88,
+        "axisLength": 469.63070598077377,
+        "repeatLength": 145
+      },
+      "operation": "colour key, decontaminate alpha, crop inside end ropes; no painted pixels"
     }
   ],
-  "assetBytes": 1682848,
-  "totalBytes": 1718114
+  "assetBytes": 1890826,
+  "totalBytes": 1927321
 }
