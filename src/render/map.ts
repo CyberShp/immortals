@@ -578,20 +578,16 @@ export async function createMap(
             const groundSprite = art(file, scale)!;
             groundSprite.alpha = sprite.alpha;
             const groundMask = new Graphics()
-              .poly(
-                [
-                  ...split.points.slice(2),
-                  [sb.x, sb.y + sb.height],
-                  [sb.x + sb.width, sb.y + sb.height],
-                ].flat(),
-              )
-              .fill(0xffffff);
+              .rect(sb.x, sb.y, sb.width, sb.height)
+              .fill(0xffffff)
+              .poly(split.points.flat())
+              .cut();
             groundGroup.addChild(groundSprite, groundMask);
             groundSprite.mask = groundMask;
             scene.addChild(groundGroup);
           }
           group.addChild(sprite);
-          if (def.id === 'B_GARDEN' && tier === 2) {
+          if (def.id === 'B_GARDEN' && tier === 2 && !split) {
             const glow = art(file, placement?.scale ?? 1);
             if (glow) {
               breathingGlow = true;

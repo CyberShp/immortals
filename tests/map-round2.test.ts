@@ -146,8 +146,11 @@ it('garden retains full canvas and has no roof in top five rows', async () => {
   for (const f of manifest.files.filter(
     (f) => f.file.includes('garden-') && f.file.includes('-map'),
   )) {
-    expect(f.size).toEqual([624, 489]);
-    expect(f.anchor.y).toBe(Math.round(484 * f.scale));
+    expect(f).toMatchObject({
+      grounded: true,
+      source: 'building/garden-grounded@2x.webp',
+    });
+    expect(f.anchor.y).toBeLessThan(f.size[1]);
     const { data, info } = await sharp(
       await readFile(new URL('../public/assets/' + f.file, import.meta.url)),
     )

@@ -16,6 +16,7 @@ const helpers = source
   .join('\n')
   .split('// END CLEAN SCREENSHOT HELPERS')[0];
 const {
+  groundedDetailCameras,
   assertDefaultDiscipleSize,
   withIsolatedContext,
   cleanFootprintContains,
@@ -24,7 +25,7 @@ const {
   cleanCloseupEvidence,
   cleanOverlaySelector,
 } = runInNewContext(
-  `${helpers}\n({assertDefaultDiscipleSize,withIsolatedContext,cleanFootprintContains,cleanScreenshot,cleanCloseupCamera,cleanCloseupEvidence,cleanOverlaySelector})`,
+  `${helpers}\n({groundedDetailCameras,assertDefaultDiscipleSize,withIsolatedContext,cleanFootprintContains,cleanScreenshot,cleanCloseupCamera,cleanCloseupEvidence,cleanOverlaySelector})`,
   {
     assert: {
       ...assert,
@@ -277,4 +278,20 @@ it('normal clean/grounded captures reject closeup size overrides and compact mar
     ).toThrow();
   }
   expect(source).toContain("url.searchParams.delete('discipleHeight')");
+});
+
+it('grounded hall and dorm details keep main zoom and render at 2x device pixels with default disciples', () => {
+  const cameras = groundedDetailCameras();
+  expect(Array.from(cameras, (c) => c.key)).toEqual(['hall', 'dorm']);
+  for (const camera of cameras) {
+    // Game zoom is clamped to 1.5; 2x comes from deviceScaleFactor 2.
+    expect(camera.zoom).toBe(0.95);
+    expect(() =>
+      assertDefaultDiscipleSize({
+        camera,
+        stats: { mode: 'full', discipleScreenHeight: 63.84 },
+      }),
+    ).not.toThrow();
+  }
+  expect(source).toContain('deviceScaleFactor: 2');
 });

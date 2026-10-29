@@ -1,3 +1,5 @@
+import { nearestWalkable } from '../src/render/world';
+import { footprintPolygons } from '../src/render/world';
 import { expect, it } from 'vitest';
 import sharp from 'sharp';
 import { stat } from 'node:fs/promises';
@@ -25,10 +27,10 @@ import buildings from '../docs/world-buildings.json';
 const points = [
   ...worldMap.spots.map((s) => {
     const d = worldMap.islands.find((d) => d.id === s.island)!;
-    return [s.point[0] + d.offset[0], s.point[1] + d.offset[1]] as [
-      number,
-      number,
-    ];
+    return nearestWalkable([
+      s.point[0] + d.offset[0],
+      s.point[1] + d.offset[1],
+    ]);
   }),
   ...worldMap.slots.map((s) => s.front),
 ];
@@ -118,30 +120,16 @@ it('alchemy actual alpha masks avoid meditation and cliff', async () => {
 });
 it('invalid cloud endpoints never produce a fake direct path', () =>
   expect(findPath([10, 10], points[0])).toEqual([]));
-it('garden footprint is centered, maximally scaled, and excluded from walking', () => {
-  for (const b of buildings.filter((b) => b.file.includes('garden'))) {
-    const c = b.footprintWorld!;
-    const pts = Object.values(c);
-    const xs = pts.map((p) => p[0]),
-      ys = pts.map((p) => p[1]);
-    expect(b.scale).toBe(0.24);
-    expect((Math.min(...xs) + Math.max(...xs)) / 2).toBeCloseTo(2616);
-    expect((Math.min(...ys) + Math.max(...ys)) / 2).toBeCloseTo(926);
-    for (const [x, y] of pts) {
-      expect(x).toBeGreaterThanOrEqual(2532);
-      expect(x).toBeLessThanOrEqual(2700);
-      expect(y).toBeGreaterThanOrEqual(875);
-      expect(y).toBeLessThanOrEqual(977);
-      expect(walkable([x, y])).toBe(false);
-    }
-    // Include the upper ground half that the previous lower-half reservation missed.
-    expect(
-      walkable([
-        (c.left[0] + c.top[0] + c.right[0] + c.bottom[0]) / 4,
-        (c.left[1] + c.top[1] + c.right[1] + c.bottom[1]) / 4,
-      ]),
-    ).toBe(false);
-  }
+it('grounded garden fence polygon excludes crops from walking', () => {
+  const slot = worldMap.slots.find((s) => s.id === 'B_GARDEN')!;
+  const poly = footprintPolygons(slot.footprint)[0];
+  for (const p of poly) expect(walkable(p)).toBe(false);
+  const center = poly.reduce(
+    (a, p) => [a[0] + p[0] / 4, a[1] + p[1] / 4],
+    [0, 0],
+  );
+  expect(walkable(center as [number, number])).toBe(false);
+  expect(walkable(slot.entrance)).toBe(true);
 });
 
 it('W1c measured doors, tier widths and body alignment agree with source geometry', async () => {
@@ -151,19 +139,11 @@ it('W1c measured doors, tier widths and body alignment agree with source geometr
   for (const b of buildings) {
     expect(b.discipleHeight).toBe(DISCIPLE_HEIGHT);
     expect(b.discipleScale).toBe(DISCIPLE_SCALE);
-    if (!/dorm|alchemy/.test(b.file) || 'grounded' in b) continue;
     const f = manifest.files.find((f) => f.file === b.file)!;
-    const src = manifest.files.find((s) => s.file === f.source)!;
-    const m = src.measure!;
+    expect(b.grounded).toBe(true);
     expect(b.sourceScale).toBeCloseTo(b.scale * f.scale);
-    expect(b.doorRatio).toBeCloseTo(
-      (m.door_leaf_h * b.sourceScale) / DISCIPLE_HEIGHT,
-    );
-    expect(m.door_leaf_y_src[1] - m.door_leaf_y_src[0]).toBe(m.door_leaf_h);
-    expect(b.bodyWidthRatio).toBeLessThanOrEqual(1.15 + 1e-9);
-    expect(b.meetsDoorRule).toBe(b.doorRatio! >= 0.4 - 1e-9);
-    expect(b.bodyBottom).toBe(b.file.includes('dorm') ? 970 : 1010);
-    expect(b.bodyBottomOffsetSource).toBe(src.crop![3] - m.building_y_src[1]);
+    expect(b.bodyBottom).toBe(b.y);
+    expect(b.doorRule).toBeNull();
   }
   for (const key of ['dorm', 'alchemy']) {
     const pair = buildings.filter((b) => b.file.includes(key));

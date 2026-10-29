@@ -29,6 +29,12 @@ const grounded = JSON.parse(
   await readFile(new URL('./grounded-geometry.json', import.meta.url)),
 );
 
+grounded.push(
+  JSON.parse(
+    await readFile(new URL('./garden-geometry.json', import.meta.url)),
+  ),
+);
+
 {
   buildings.length = 0;
   for (const f of manifest.files.filter((f) => f.file.includes('-map@'))) {
@@ -87,7 +93,9 @@ const grounded = JSON.parse(
         bodyWidth: g.oldBodyWidth,
         bodyWidthRatio: g.oldBodyWidth / (r - l),
         bodyWidthBasis:
-          'grounded source plinth span matched to 0073c92 t1 bodyWidth',
+          key === 'garden'
+            ? 'grounded fence span; old pad alpha coverage fitted'
+            : 'grounded source plinth span matched to 0073c92 t1 bodyWidth',
         bodyBottomOffsetSource: 0,
         bodyBottom: y,
         doorRule: null,

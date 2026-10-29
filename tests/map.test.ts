@@ -1,3 +1,5 @@
+import buildingPlacements from '../docs/world-buildings.json';
+import gardenGeometry from '../scripts/garden-geometry.json';
 import { buildingDefinitions } from '../src/sim/catalog';
 import { intersects } from '../src/render/layout';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
@@ -58,6 +60,9 @@ vi.mock('pixi.js', () => {
     destroy() {}
   }
   class Graphics extends Container {
+    cut() {
+      return this;
+    }
     ellipse() {
       return this;
     }
@@ -130,8 +135,6 @@ vi.mock('pixi.js', () => {
 });
 import { Assets, Application, Sprite, Container } from 'pixi.js';
 import { createMap, buildingLabelPosition } from '../src/render/map';
-import buildings from '../docs/world-buildings.json';
-import { buildingArt } from '../src/render/layout';
 const host = {
   appendChild: vi.fn(),
   append: vi.fn(),
@@ -414,12 +417,10 @@ it.each([false, true])(
         n.zIndex === worldMap.slots.find((s) => s.id === 'B_GARDEN')!.rect[3],
     ) as Container;
     if (!fail) {
-      expect(garden.position.x).toBeCloseTo(2616.24);
-      expect(garden.position.y).toBeCloseTo(975.08);
+      expect(garden.position.x).toBeCloseTo(gardenGeometry.position[0]);
+      expect(garden.position.y).toBeCloseTo(gardenGeometry.position[1]);
       const glow = garden.children.find((n) => n.blendMode === 'add');
-      expect(glow).toBeDefined();
-      expect(glow!.alpha).toBeGreaterThanOrEqual(0.15);
-      expect(glow!.alpha).toBeLessThanOrEqual(0.25);
+      expect(glow).toBeUndefined();
     }
     map.destroy();
   },
@@ -514,14 +515,13 @@ it.each([0, 60, 600])(
       const [x, y] = buildingLabelPosition(s.id);
       expect(x).toBe((s.rect[0] + s.rect[2]) / 2);
       const bottom =
-        s.id !== 'B_GARDEN'
-          ? s.rect[3]
-          : Math.max(
-              s.rect[3],
-              ...buildings
-                .filter((b) => b.file.includes('/' + buildingArt[s.id] + '-'))
+        s.id === 'B_GARDEN'
+          ? Math.max(
+              ...buildingPlacements
+                .filter((b) => b.file.includes('garden'))
                 .map((b) => b.bottom),
-            );
+            )
+          : s.rect[3];
       expect(y - bottom).toBe(8);
       const label = plaques.find(
         (n) =>
@@ -596,7 +596,8 @@ it('Clean1 actual motion controller samples 3 seeds, idle/work, interruptions an
         if (frame % 800 < 400)
           for (const d of w.disciples) {
             d.state.behavior = frame % 800 < 200 ? '社交' : '做工';
-            d.state.location = frame % 800 < 200 ? '空地' : '主殿';
+            d.state.location =
+              frame % 800 < 200 ? '空地' : frame % 1600 < 800 ? '主殿' : '药圃';
             d.state.awayUntil = 0;
           }
         map.draw(w);
@@ -693,7 +694,7 @@ it('gate motion traverses the portal with foot sorting behind and in front of th
   map.destroy();
 });
 
-it('grounded art uses baked contact shadows; only garden keeps its ellipse and ground anchors keep depth', async () => {
+it('grounded art uses baked contact shadows; all five use ground layers without ellipses and ground anchors keep depth', async () => {
   const map = await createMap(host),
     w = createWorld(42, loadData());
   w.buildings = buildingDefinitions.map((b) => ({
@@ -706,7 +707,7 @@ it('grounded art uses baked contact shadows; only garden keeps its ellipse and g
   expect(scene().children.filter((n) => n.zIndex === -900)).toHaveLength(5);
   expect(
     scene().children.filter((n) => n.zIndex === -900 && n.eventMode === 'none'),
-  ).toHaveLength(4);
+  ).toHaveLength(5);
   for (const id of ['B_HALL', 'B_DORM', 'B_MEDIT', 'B_ALCHEMY']) {
     const slot = worldMap.slots.find((s) => s.id === id)!;
     const b = window.__mapStats.buildings.find((b) => b.id === id)!;
@@ -715,3 +716,43 @@ it('grounded art uses baked contact shadows; only garden keeps its ellipse and g
   expect(window.__mapStats.buildingSprites).toBe(5);
   map.destroy();
 });
+
+it('garden entrance trips across three seeds stop outside the fence and fade out', async () => {
+  let samples = 0,
+    hiddenAtGate = 0;
+  const entrance = worldMap.slots.find((s) => s.id === 'B_GARDEN')!.entrance;
+  for (const seed of [7, 42, 368]) {
+    const map = await createMap(host),
+      w = createWorld(seed, loadData());
+    advance(w, 1);
+    for (const d of w.disciples) {
+      d.state.behavior = '做工';
+      d.state.location = '药圃';
+      d.state.awayUntil = 0;
+    }
+    map.draw(w);
+    for (let frame = 0; frame < 1600; frame++) {
+      mock.now += 250;
+      for (const [id, callback] of [...mock.frames]) {
+        mock.frames.delete(id);
+        callback(mock.now);
+      }
+      for (const d of window.__mapStats.disciples) {
+        expect(
+          worldMap.slots.some((s) => inFootprint([d.x, d.y], s.footprint)),
+        ).toBe(false);
+        expect(d.z).toBe(d.y);
+        if (
+          d.alpha === 0 &&
+          Math.hypot(d.x - entrance[0], d.y - entrance[1]) < 1
+        )
+          hiddenAtGate++;
+        samples++;
+      }
+    }
+    map.destroy();
+    mock.frames.clear();
+  }
+  expect(samples).toBeGreaterThan(10000);
+  expect(hiddenAtGate).toBeGreaterThan(0);
+}, 60000);

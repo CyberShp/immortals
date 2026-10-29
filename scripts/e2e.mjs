@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 const base = process.argv.find((a) => /^https?:/.test(a));
 if (!base)
   throw new Error(
-    '用法：node scripts/e2e.mjs http://localhost:4173 [--soak | --bridges | --clean | --grounded]',
+    '用法：node scripts/e2e.mjs http://localhost:4173 [--soak | --bridges | --clean | --grounded | --garden]',
   );
 const soak = process.argv.includes('--soak');
 await mkdir('docs/screenshots', { recursive: true });
@@ -235,7 +235,7 @@ const cleanOverlaySelector = [
   '.modal-backdrop:visible',
   '[data-overlay]:visible',
 ].join(',');
-async function cleanScreenshot(page, path, clip, hoveredId) {
+async function cleanScreenshot(page, path, clip, hoveredId, scale = 'css') {
   // Escape uses the application's closeAll handler, including card cleanup.
   // Never hide DOM/CSS or alter story flags to manufacture an unobstructed shot.
   await page.keyboard.press('Escape');
@@ -275,8 +275,8 @@ async function cleanScreenshot(page, path, clip, hoveredId) {
     hoveredId ? [hoveredId] : [],
     'unexpected named disciple',
   );
-  if (clip) await page.screenshot({ path, clip, scale: 'css' });
-  else await page.locator('#map canvas').screenshot({ path, scale: 'css' });
+  if (clip) await page.screenshot({ path, clip, scale });
+  else await page.locator('#map canvas').screenshot({ path, scale });
   assert.equal(
     await overlays.count(),
     0,
@@ -361,6 +361,15 @@ function assertDefaultDiscipleSize(sample) {
     ) < 0.1,
     `default disciple height mismatch: ${JSON.stringify(sample)}`,
   );
+}
+function groundedDetailCameras() {
+  return [
+    // In-game zoom is clamped to 1.5, so the 2x close-ups keep the default
+    // main zoom (0.95) and render at devicePixelRatio 2 in a half-size
+    // viewport: 2x real pixels per world px, no upscaling, no camera hack.
+    { key: 'hall', x: 1440, y: 850, zoom: 0.95 },
+    { key: 'dorm', x: 1260, y: 900, zoom: 0.95 },
+  ];
 }
 // END CLEAN SCREENSHOT HELPERS
 async function verifyClean(context) {
@@ -592,7 +601,7 @@ async function verifyClean(context) {
   );
   await page.close();
 }
-async function verifyGrounded(context) {
+async function verifyGrounded(context, gardenOnly = false) {
   const page = await context.newPage();
   page.on('pageerror', (e) => errors.push(e.message));
   const url = new URL(base);
@@ -611,31 +620,72 @@ async function verifyGrounded(context) {
   const captures = {};
   captures.panorama = await cleanScreenshot(
     page,
-    `${output}/xianfu-grounded-panorama.png`,
+    `${output}/xianfu-grounded-${gardenOnly ? 'garden-' : ''}panorama.png`,
   );
   await page.evaluate(() =>
     window.__camera.set({ zoom: 0.95, x: 1590, y: 970 }),
   );
-  captures.main = await cleanScreenshot(
-    page,
-    `${output}/xianfu-grounded-main.png`,
-  );
+  if (!gardenOnly)
+    captures.main = await cleanScreenshot(
+      page,
+      `${output}/xianfu-grounded-main.png`,
+    );
   await page.evaluate(() =>
     window.__camera.set({ zoom: 1.5, x: 2616, y: 926 }),
   );
   captures.east = await cleanScreenshot(
     page,
-    `${output}/xianfu-grounded-east.png`,
+    `${output}/xianfu-grounded-${gardenOnly ? 'garden-' : ''}east.png`,
   );
   for (const capture of Object.values(captures))
     assertDefaultDiscipleSize(capture);
+  if (!gardenOnly) {
+    const detailContext = await context.browser().newContext({
+      viewport: { width: 640, height: 450 },
+      deviceScaleFactor: 2,
+    });
+    try {
+      const detail = await detailContext.newPage();
+      detail.on('pageerror', (e) => errors.push(e.message));
+      await detail.goto(url.href);
+      await detail.waitForFunction(() => window.__mapReady && window.__xianfu);
+      await detail.evaluate(() => {
+        window.__xianfu.freeze(true);
+        window.__xianfu.reset();
+        window.__xianfu.artAllBuilt(1);
+      });
+      for (const { key, ...camera } of groundedDetailCameras()) {
+        await detail.evaluate((camera) => window.__camera.set(camera), camera);
+        const path = `${output}/xianfu-grounded-${key}-2x.png`;
+        const capture = await cleanScreenshot(
+          detail,
+          path,
+          undefined,
+          undefined,
+          'device',
+        );
+        const png = await readFile(path);
+        assert.equal(png.readUInt32BE(16), 1280);
+        assert.equal(png.readUInt32BE(20), 900);
+        assert.ok(Math.abs(capture.camera.zoom - 0.95) < 1e-6);
+        assert.equal(await detail.evaluate(() => devicePixelRatio), 2);
+        assertDefaultDiscipleSize(capture);
+        captures[`${key}2x`] = { ...capture, devicePixelRatio: 2 };
+      }
+      await detail.close();
+    } finally {
+      await detailContext.close();
+    }
+  }
   // Same camera and same default size as clean-main, even when run standalone.
-  assert.ok(
-    Math.abs(captures.main.stats.discipleScreenHeight - 96 * 0.7 * 0.95) < 0.1,
-  );
+  if (!gardenOnly)
+    assert.ok(
+      Math.abs(captures.main.stats.discipleScreenHeight - 96 * 0.7 * 0.95) <
+        0.1,
+    );
   assert.deepEqual(errors, []);
   await writeFile(
-    `${output}/xianfu-grounded-report.json`,
+    `${output}/xianfu-grounded-${gardenOnly ? 'garden-' : ''}report.json`,
     JSON.stringify({ captures, errors }, null, 2) + '\n',
   );
   await page.close();
@@ -656,8 +706,13 @@ try {
   // IndexedDB; a new context is required for the subsequent fresh-start checks.
   if (process.argv.includes('--clean'))
     await withIsolatedContext(browser, contextOptions, verifyClean);
-  if (process.argv.includes('--grounded')) {
-    await withIsolatedContext(browser, contextOptions, verifyGrounded);
+  if (
+    process.argv.includes('--grounded') ||
+    process.argv.includes('--garden')
+  ) {
+    await withIsolatedContext(browser, contextOptions, (context) =>
+      verifyGrounded(context, process.argv.includes('--garden')),
+    );
     await browser.close();
     console.log('Grounded screenshots verified.');
     process.exit(0);

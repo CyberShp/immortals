@@ -92,7 +92,7 @@ describe('Iris assets', () => {
   });
 });
 
-it('garden originals match pinned SHA-256 and retain full canvas in map exports', async () => {
+it('garden legacy originals stay pinned while grounded map exports share the new source', async () => {
   const hashes = {
     t1: 'e56c84afa4b725d77730100a42b1b31a369b38add4c123a6d798afc3c536dc78',
     t2: 'f1167eae4bd6c48930731d6a4da4cc23cf2fb1dc0e819112b22c1eadef29a819',
@@ -114,9 +114,8 @@ it('garden originals match pinned SHA-256 and retain full canvas in map exports'
       (f) => f.file === `building/garden-${tier}-map@2x.webp`,
     )!;
     expect(mapped).toMatchObject({
-      size: [624, 489],
-      anchor: { x: 312, y: 484 },
-      scale: 1,
+      grounded: true,
+      source: 'building/garden-grounded@2x.webp',
     });
     expect(mapped).not.toHaveProperty('cropTop');
   }

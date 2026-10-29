@@ -16,7 +16,9 @@ export function buildingLabelPosition(id: string): Point {
   // Keep plaques close enough to identify their owner at a glance.
   return [
     (s.rect[0] + s.rect[2]) / 2,
-    (grounded ? s.rect[3] : Math.max(s.rect[3], ...bottoms)) + 8,
+    (grounded && id !== 'B_GARDEN'
+      ? s.rect[3]
+      : Math.max(s.rect[3], ...bottoms)) + 8,
   ];
 }
 export function buildingLabelBox(id: string, text: string) {

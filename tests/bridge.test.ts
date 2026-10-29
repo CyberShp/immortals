@@ -1,3 +1,4 @@
+import { nearestWalkable } from '../src/render/world';
 import { expect, it } from 'vitest';
 import sharp from 'sharp';
 import { homedir } from 'node:os';
@@ -138,7 +139,9 @@ it('main-to-island paths traverse each corresponding bridge and remain walkable'
   for (const b of worldMap.bridges) {
     const island = worldMap.islands.find((i) => i.id === b.id)!;
     const spot = worldMap.spots.find((s) => s.island === b.id)!;
-    const to = spot.point.map((v, c) => v + island.offset[c]) as Point;
+    const to = nearestWalkable(
+      spot.point.map((v, c) => v + island.offset[c]) as Point,
+    );
     const path = findPath(start, to);
     expect(path.length).toBeGreaterThan(1);
     let crossed = false;

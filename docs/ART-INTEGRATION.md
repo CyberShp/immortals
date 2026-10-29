@@ -245,3 +245,78 @@ node scripts/e2e.mjs http://127.0.0.1:4173 --grounded
 - clean panorama/main 与 grounded panorama/main/east 都清除 URL `discipleHeight`，采用游戏默认尺寸。clean 48px特写重新加载单独32 world px场景，zoom1.5；不会污染普通截图。`__mapStats.discipleScreenHeight` 记录渲染所用高度乘相机倍率，两个main共用默认尺寸断言，容差0.1 CSS px，并拒绝compact模式。旧clean-main会恢复游戏默认大小，不应再作为32px尺寸基准。
 - `encode-grounded.py` 改为有损 WebP quality86、alpha_quality100、exact=True；full和map均保留内收与RGB外扩，替代上一段的lossless配置。全尺寸及t1/t2地图文件回读边缘测试全部通过，未放宽阈值。
 - 验证：build通过；25文件319测试通过；lint通过；四组sim与baseline368逐字一致；首屏1,544,877 / 2,500,000 bytes，比此前2,236,807减少691,930 bytes，达到1.7MB以内目标。未运行浏览器；外部重跑`--clean`和`--grounded`。原有外部截图与报告保留。
+
+## 步骤B：东岛灵田一体图（基于 e70d6cf）
+
+输入只读备份 `~/cutwork/backup/garden_grounded_v1.jpg`，实测1152×864，SHA-256 `5cefecacb9551ee7facbd56d298c3736ad2827f36ced61471b5b61767e108b19`。`garden_paste_preview_east.jpg`只作视觉参考，没有提取像素。未改桥、stash、world底图、src/sim或数值数据。
+
+### 切图、覆盖与坐标
+
+- 将步骤A软色键提取成共享 `grounded-cutout.mjs`，四栋重新生成后素材字节不变。灵田复用7px源羽化、full/map分别1px alpha内收、RGB外扩、Pillow有损WebP quality86/alpha_quality100/exact。原稿背景四角中位数RGB=[244,237,230]。
+- 源裁切 `[148,156,864,602]`；锚点按alpha>=0.8最低9行的左右范围中点测得：源坐标`[597.5,751]`，裁后`[449.5,595]`。map为575×401，exportScale=0.6655092592592593，Pixi等比scale=0.5003686956521739；源→世界scale=0.333，地面裁切约287.712×200.466 world px。
+- 东岛offset=`[2013,521]`。在原world.webp上描量旧土垫石框和暗边的保守闭合轮廓：`[[541,355],[577,357],[636,365],[679,373],[690,379],[686,404],[678,444],[670,458],[637,457],[574,451],[523,442],[515,433],[520,401],[530,373]]`（岛本地）。范围x515–690、y355–458，比初始约定矩形包含更多石框/阴影。该轮廓是手量几何包络，不是假称自动识别出每个石头像素。
+- 旧包络中心`[602.5,406.5]`对应源地面中心`[580,486]`；按0.001步长搜索最小等比scale（0.240起），0.333通过。地图编码后旧轮廓内14,458个像素中心全部alpha>=230/255：**100%**。测试直接回读WebP，不只相信脚本计数。
+- 世界锚点`[2621.3275,1015.745]`；slot.rect=`[2471.644,817.61,2771.011,1015.745]`（矩形围绕锚点取较大半宽，供布局用，不是碰撞矩形）。
+- 围栏接地源点`[[216,447],[567,224],[943,451],[600,699]]`变换成碰撞多边形：`[[2494.288,914.513],[2611.171,840.254],[2736.379,915.845],[2622.16,998.429]]`。围栏内部整块不可走，门也不是进入菜畦的通道。
+- 门外沿源点`[440,601]`，沿左前围栏朝西南外法线偏移约10px（`[-5.49,+8.36]`），得到入口/front=`[2563.39,974.155]`；入口可走、不在碰撞内，主岛广场可达。只改B_GARDEN的rect/front/footprint/entrance，其余world字节有基线测试。
+
+### 层级、白边及越界
+
+菜畦/后围栏/土草边置于地面层z=-900、eventMode=none；仅前围栏和左下门的窄V形条带参与主体脚点排序，主体z仍为1015.745。源蒙版点为`[[210,397],[600,641],[947,399],[947,457],[600,704],[210,451]]`，地面用同纹理互补蒙版；不额外生成艺术像素。遮挡采样使用同一蒙版，不把菜畦地面当屋顶。内部碰撞禁止弟子进入，故后围栏不需要额外抬高遮挡层。去掉代码椭圆及t2整图呼吸发光，**t1/t2同图、升级无美术变化**。
+
+full/t1-map/t2-map半透明边缘（alpha0.05–0.95）米色残留比例均**0%**，平均背景RGB距离分别188.10 /199.32 /199.32；透明RGB邻近不透明像素色差检查仍用步骤A阈值<35，米色阈值1%未放宽。
+
+新图alpha>=0.05像素面积约31,463.10 world px²：可走区外0、东桥接入邻域（本地x337–420/y472–535）0、东岛现有六组障碍轮廓（竹林/石头等）分别0。基于已有几何不是对整片竹叶逐像素语义分割。另行手描未被既有obstacles收录的北石阶`[[594,294],[626,301],[611,337],[581,331]]`及右石阶`[[712,334],[737,348],[713,367],[696,359]]`：alpha>=0.05交叠分别3,444与25个map像素，即**862.27与6.26 world px²**。北石阶被后围栏/地面明显遮住，属于保留的视觉缺点；已在标注图以红色像素标出。静态看没有覆盖竹林主干或桥头，但新图会盖住旧土垫旁部分草地/路径；不擅自改坐标。图透视与旧石框不同；本轮保留Iris原稿透视，不作非等比变形。
+
+证据：`/tmp/xianfu-grounded-garden-east.png`（合成），`/tmp/xianfu-grounded-garden-overlap.png`及`artifacts/xianfu-grounded-garden-overlap.png`（紫=旧土垫包络、橙=新围栏碰撞、蓝=可走边界、红=原障碍、绿=入口）；数据`docs/garden-grounded-report.json`。未跑浏览器，蒙版接缝、门外弟子视觉遮挡仍需外部验收。
+
+### 复现与验证
+
+```sh
+node scripts/cut-garden.mjs
+node scripts/world-buildings.mjs
+node scripts/garden-preview.mjs
+npm run build
+node scripts/e2e.mjs http://127.0.0.1:4173 --garden
+node scripts/e2e.mjs http://127.0.0.1:4173 --clean
+```
+
+`--garden`输出`/Volumes/Media/GrokBot/workspace/xianfu-grounded-garden-{panorama,east}.png`及JSON报告；截图前关闭并断言无弹窗，使用游戏默认弟子尺寸及原尺寸断言。`--clean`无弟子入碰撞/压建筑、入口淡出、脚点遮挡断言保留。可组合`--clean --garden`执行专门采样和灵田截图；完整通用UI流程仍单独用`--clean`。
+
+build/lint通过；26文件323测试通过，包括原多种子1200秒idle/work采样及新增三种子各400秒灵田入口专测；四组sim与`baseline368`逐字一致。首屏40文件**1,492,521 / 2,500,000 bytes**；没有放宽上限或新增npm依赖。现有Vite大chunk提醒仍在。
+
+改动文件：新增`grounded-cutout.mjs`、`cut-garden.mjs`、`garden-geometry.json`、`garden-preview.mjs`、`garden-grounded.test.ts`、完整garden-grounded WebP及诊断报告；更新`cut-grounded.mjs`、`world-buildings.mjs`、`e2e.mjs`、`grounded-layers.ts`、`map.ts`、灵田t1/t2 map素材、manifest、world-buildings、B_GARDEN几何及原素材/地图/碰撞回归测试、STATUS/本文。旧garden原始t1/t2 WebP保留未改。
+
+### 步骤B / Iris 放大复验修订（替代上一版0.333尺寸）
+
+当前源→世界倍率 **0.487**，是上一版0.333的 **1.462462倍**；裁后864px地面块宽 **420.768 world px**，居中目标东岛本地 **[603,405]**（world=[2616,926]）。map导出842×587，exportScale=0.9745370370、Pixi等比scale=0.4997244656。full原稿裁切/锚点不变；7px源羽化和full/map各1px内收保留，羽化区必须落在被覆盖旧框之外。t1/t2仍共图。
+
+旧土垫手量包络外扩欧氏距离4px，测试检查扩张区域**16,421个像素中心**（含原14,458与外环1,963），地图WebP回读全部alpha>=243/255（≥0.95），覆盖率100%。比上一版仅检查包络内部alpha≥0.9更严格。实际GPU截图本轮未执行，需外部确认真实渲染无旧边残留；不能用静态覆盖率替代视觉验收。
+
+新世界脚点=`[2624.5225,1055.055]`；rect=`[2405.616,765.29,2843.429,1055.055]`。
+围栏源接地点保持按原稿测得的四角（缩放改变后重新换算），世界碰撞为：
+`[[2438.732,907.007],[2609.669,798.406],[2792.781,908.955],[2625.74,1029.731]]`。
+左下门外入口/front=`[2542.33,990.365]`（门沿源[440,601]，外法线约10px）；合法可走且主岛可达。药圃名牌基准顶边=`[2624.5225,1066.628261]`，是整张图最低底边y1058.628261下方8px，不再用实心地面锚点代替图像最低边。其他建筑名牌规则不变。
+
+放大后保留的越界/遮盖，按map alpha>=0.05逐像素计算，单位world px²，各类可能交叠，不能简单相加：
+
+| 检查区域                      |             交叠面积 |
+| ----------------------------- | -------------------: |
+| 既有可走区外                  |               337.38 |
+| 岛图抠图外包络之外            |                 5.99 |
+| 东桥头邻域                    |                    0 |
+| 竹林障碍0 / 1 / 2             | 1315.80 / 612.57 / 0 |
+| 原溪流岩壁障碍3               |                74.92 |
+| 右侧石头障碍4 / 左侧石头障碍5 |           0 / 886.52 |
+| 北石阶 / 右石阶               |     1221.90 / 681.75 |
+| 另描溪流水面条带              |               662.02 |
+
+这些是既有多边形与新增手量水面/石阶包络的几何统计，不冒称逐叶/逐水纹语义分割。图已更新 `/tmp/xianfu-grounded-garden-overlap.png`、`artifacts/xianfu-grounded-garden-overlap.png`；量化报告`docs/garden-grounded-report.json`。放大后会遮挡竹林下沿、几乎整个北石阶与部分右石阶/溪流，较小版更明显；遵照要求报告、不移动其他元素或偷削碰撞。
+
+原东岛打坐参考点本地[750,400]（world[2763,921]）进入扩大后的围栏。其data坐标未改；表现层已有`nearestWalkable`将实际落点投影到world **[2770,930]**。测试改为检查与运行时代码一致的有效落点、所有岛间路径仍经过桥、所有采样弟子不入碰撞；新增此参考点的专门回归。不是放开围栏，也不是把无路判成有路。data/world.json仍只有B_GARDEN四个几何字段变化。
+
+旧引桥只读取证：build-world east.source=`/Volumes/Media/immortal-qa/design/art/concept/map_island_east_v1.jpg`。斜桥木板、四根柱子及接触暗边保守包围盒（含约1–2px抗锯齿余量）：东岛本地 **[328,472,435,550]**，世界 **[2341,993,2448,1071]**。`scripts/east-old-bridge-preview.mjs`只读取原稿并叠加标注，输出`/tmp/xianfu-east-old-bridge.png`与`artifacts/xianfu-east-old-bridge.png`；没有重建/修改桥。
+
+`--grounded`新增`xianfu-grounded-hall-2x.png`和`xianfu-grounded-dorm-2x.png`，输出目录仍为`/Volumes/Media/GrokBot/workspace/`；相机zoom=0.95×2=**1.9**，分别对准world[1440,850]/[1260,900]，游戏默认弟子高度（此zoom下配置屏幕高度127.68 CSS px），沿用关弹窗和默认尺寸断言。`--garden`仍输出东岛与全景；完整验证继续单独运行`--clean`。
+
+验证：build、325 tests、lint通过；四组sim与baseline368逐字一致；首屏 **1,572,193 / 2,500,000 bytes**。未运行浏览器，未提交/推送，未动stash/桥/其他岛数据。外部生成截图：`node scripts/e2e.mjs http://127.0.0.1:4173 --grounded`与`--garden`，回归`--clean`。

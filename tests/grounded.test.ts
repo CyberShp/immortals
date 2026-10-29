@@ -123,7 +123,7 @@ it('closed diamond collisions retain diagonal free space, legal reachable entran
   );
   const a = JSON.parse(old),
     b = JSON.parse(now);
-  for (const g of geometry)
+  for (const g of [...geometry, { id: 'B_GARDEN' }])
     for (const field of ['rect', 'front', 'footprint', 'entrance'])
       b.slots.find((s: { id: string }) => s.id === g.id)[field] = a.slots.find(
         (s: { id: string }) => s.id === g.id,

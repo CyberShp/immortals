@@ -423,43 +423,19 @@
     },
     {
       "file": "building/garden-t1-map@2x.webp",
-      "size": [624, 489],
-      "anchor": { "x": 312, "y": 484 },
-      "scale": 1,
-      "widthScale": 0.34935897435897434,
-      "relativeScale": 2.8623853211009176,
-      "needed": 0.34935897435897434,
-      "doorHeight": null,
-      "doorRatio": null,
-      "meetsDoorRule": null,
-      "downshift": 0,
-      "overlapPixels": 0,
-      "footprint": {
-        "corners_canvas": {
-          "left": [26, 347],
-          "right": [595, 252],
-          "bottom": [423, 483],
-          "top": [198, 116]
-        },
-        "bbox_wh_src": [569, 367],
-        "ratio": 1.55,
-        "note": "地面平行四边形四角（目测/按 alpha 极值测，±5px；top=left+right-bottom 推算）。不是 2:1 菱形，底角偏右（约外接框 69% 处）"
-      },
-      "source": "building/garden-t1@2x.webp",
-      "worldScale": 0.24,
-      "worldAnchor": { "x": 2616.36, "y": 970.28 },
-      "worldSourceScale": 0.24,
-      "worldBodyWidthRatio": 0.96,
+      "size": [842, 587],
+      "anchor": { "x": 438.05439814814815, "y": 579.8495370370371 },
+      "source": "building/garden-grounded@2x.webp",
+      "scale": 0.9745370370370371,
+      "grounded": true,
+      "worldScale": 0.4997244655581947,
+      "worldAnchor": { "x": 2624.5225, "y": 1055.055 },
+      "worldSourceScale": 0.487,
+      "worldBodyWidthRatio": 0.8086763070077861,
       "worldMeetsDoorRule": null,
-      "worldBodyBottom": 970.28,
+      "worldBodyBottom": 1055.055,
       "worldDoorRule": null,
-      "worldDoorRatio": null,
-      "footprintWorld": {
-        "left": [2547.7200000000003, 937.4],
-        "right": [2684.28, 914.6],
-        "bottom": [2643, 970.04],
-        "top": [2589, 881.96]
-      }
+      "worldDoorRatio": null
     },
     {
       "file": "building/garden-t2@2x.webp",
@@ -482,43 +458,19 @@
     },
     {
       "file": "building/garden-t2-map@2x.webp",
-      "size": [624, 489],
-      "anchor": { "x": 312, "y": 484 },
-      "scale": 1,
-      "widthScale": 0.34935897435897434,
-      "relativeScale": 2.8623853211009176,
-      "needed": 0.34935897435897434,
-      "doorHeight": null,
-      "doorRatio": null,
-      "meetsDoorRule": null,
-      "downshift": 0,
-      "overlapPixels": 0,
-      "footprint": {
-        "corners_canvas": {
-          "left": [8, 334],
-          "right": [614, 225],
-          "bottom": [435, 484],
-          "top": [187, 75]
-        },
-        "bbox_wh_src": [606, 409],
-        "ratio": 1.48,
-        "note": "地面平行四边形四角（目测/按 alpha 极值测，±5px；top=left+right-bottom 推算）。不是 2:1 菱形，底角偏右（约外接框 69% 处）"
-      },
-      "source": "building/garden-t2@2x.webp",
-      "worldScale": 0.24,
-      "worldAnchor": { "x": 2616.24, "y": 975.08 },
-      "worldSourceScale": 0.24,
-      "worldBodyWidthRatio": 0.96,
+      "size": [842, 587],
+      "anchor": { "x": 438.05439814814815, "y": 579.8495370370371 },
+      "source": "building/garden-grounded@2x.webp",
+      "scale": 0.9745370370370371,
+      "grounded": true,
+      "worldScale": 0.4997244655581947,
+      "worldAnchor": { "x": 2624.5225, "y": 1055.055 },
+      "worldSourceScale": 0.487,
+      "worldBodyWidthRatio": 0.8086763070077861,
       "worldMeetsDoorRule": null,
-      "worldBodyBottom": 975.08,
+      "worldBodyBottom": 1055.055,
       "worldDoorRule": null,
-      "worldDoorRatio": null,
-      "footprintWorld": {
-        "left": [2543.2799999999997, 939.08],
-        "right": [2688.72, 912.9200000000001],
-        "bottom": [2645.7599999999998, 975.08],
-        "top": [2586.24, 876.9200000000001]
-      }
+      "worldDoorRatio": null
     },
     {
       "file": "building/alchemy-t1@2x.webp",
@@ -1188,8 +1140,18 @@
       "sourceSha256": "d17ec2d1f04ba449c5cef88b730dae2d98c10d98c85f0a3ee207ee4be121e8f5",
       "crop": [181, 42, 822, 766],
       "grounded": true
+    },
+    {
+      "file": "building/garden-grounded@2x.webp",
+      "size": [864, 602],
+      "anchor": { "x": 449.5, "y": 595 },
+      "scale": 1,
+      "source": "garden_grounded_v1.jpg",
+      "sourceSha256": "5cefecacb9551ee7facbd56d298c3736ad2827f36ced61471b5b61767e108b19",
+      "crop": [148, 156, 864, 602],
+      "grounded": true
     }
   ],
-  "assetBytes": 2315884,
-  "totalBytes": 2354179
+  "assetBytes": 2429658,
+  "totalBytes": 2466770
 }
