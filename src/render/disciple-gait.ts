@@ -1,5 +1,6 @@
 import { DISCIPLE_SCALE } from './world-scale';
 // Iris initial calibration: 0.7 body heights per cycle; revise this single ratio after her measurement.
+// Ratio of body height, so stride shrinks with DISCIPLE_SCALE (0.6 → 40.32 world px/cycle).
 export const STRIDE_HEIGHT_RATIO = 0.7;
 export const strideLength = (height = 96 * DISCIPLE_SCALE) =>
   STRIDE_HEIGHT_RATIO * height;

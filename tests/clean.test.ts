@@ -130,11 +130,12 @@ it('original body widths are retained and only allowed world geometry changes', 
   ).toBe('');
 });
 
-it('gate has two solid wings and an 18px foot-center passage after 18px clearance on each side across both approaches', () => {
+it('gate has two solid wings and a 22px foot-center passage after 16px (0.6 scale) clearance on each side across both approaches', () => {
   const gate = worldMap.slots.find((s) => s.id === 'B_GATE')!;
   const rects = footprintRects(gate.footprint);
   expect(rects).toHaveLength(2);
-  expect(rects[1][0] - rects[0][2]).toBe(18);
+  // Raw wing gap 54px minus 2 × measured foot radius (16 at DISCIPLE_SCALE 0.6).
+  expect(rects[1][0] - rects[0][2]).toBe(22);
   for (const [l, t, r, b] of rects)
     for (let x = l; x <= r; x += 2)
       for (let y = t; y <= b; y += 2) expect(walkable([x, y])).toBe(false);
@@ -153,7 +154,7 @@ it('gate has two solid wings and an 18px foot-center passage after 18px clearanc
     expect(path).toEqual([a, b]);
     expect(lineClear(a, b)).toBe(true);
   }
-  expect(gate.entrance).toEqual([1566, 1218]);
+  expect(gate.entrance).toEqual([1566, 1216]);
 });
 it('gate foreground retains exact source pixels, covers the lintel and leaves the door opening transparent', async () => {
   const { data, info } = await sharp('public/assets/map/gate-foreground.webp')

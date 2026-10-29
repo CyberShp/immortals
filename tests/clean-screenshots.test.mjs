@@ -261,7 +261,7 @@ it('normal clean/grounded captures reject closeup size overrides and compact mar
   for (const zoom of [0.4, 0.95, 1.5]) {
     const sample = {
       camera: { zoom },
-      stats: { mode: 'full', discipleScreenHeight: 67.2 * zoom },
+      stats: { mode: 'full', discipleScreenHeight: 57.6 * zoom },
     };
     expect(() => assertDefaultDiscipleSize(sample)).not.toThrow();
     expect(() =>
@@ -277,7 +277,14 @@ it('normal clean/grounded captures reject closeup size overrides and compact mar
       }),
     ).toThrow();
   }
+  expect(() =>
+    assertDefaultDiscipleSize({
+      camera: { zoom: 0.95 },
+      stats: { mode: 'full', discipleScreenHeight: 67.2 * 0.95 },
+    }),
+  ).toThrow();
   expect(source).toContain("url.searchParams.delete('discipleHeight')");
+  expect(source).not.toContain('96 * 0.7');
 });
 
 it('grounded hall and dorm details keep main zoom and render at 2x device pixels with default disciples', () => {
@@ -289,7 +296,7 @@ it('grounded hall and dorm details keep main zoom and render at 2x device pixels
     expect(() =>
       assertDefaultDiscipleSize({
         camera,
-        stats: { mode: 'full', discipleScreenHeight: 63.84 },
+        stats: { mode: 'full', discipleScreenHeight: 54.72 },
       }),
     ).not.toThrow();
   }

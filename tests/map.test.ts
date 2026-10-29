@@ -228,7 +228,7 @@ describe('map orchestration without browser/GPU', () => {
       sprite.scale.y *
         manifest.files.find((f) => f.file === 'disciple/meditate-96@2x.webp')!
           .size[1],
-    ).toBeCloseTo(96 * 0.7);
+    ).toBeCloseTo(96 * 0.6);
     expect(sprite.anchor.x).toBe(40 / 80);
     expect(sprite.anchor.y).toBe(94 / 96);
     map.destroy();
@@ -587,7 +587,7 @@ it('hover overrides selection with exactly one head label and restores it on poi
   const label = scene().children.find((n) => n.zIndex === 3000)!;
   const d = window.__mapStats.disciples[1];
   expect(label.position.x).toBe(d.x);
-  expect(label.position.y + 20).toBeCloseTo(d.y - 96 * 0.7 - 8);
+  expect(label.position.y + 20).toBeCloseTo(d.y - 96 * 0.6 - 8);
   (mock.apps.at(-1) as Application).stage.emit('pointertap', {} as never);
   assertBodiesUnchanged();
   expect(window.__mapStats.nameLabels).toBe(0);
@@ -692,7 +692,7 @@ it('gate motion traverses the portal with foot sorting behind and in front of th
       expect(
         intersects(box, { x: 1470, y: 1060, width: 220, height: 150 }),
       ).toBe(false);
-      expect(box.y + box.height).toBeCloseTo(d.y - 96 * 0.7 - 8);
+      expect(box.y + box.height).toBeCloseTo(d.y - 96 * 0.6 - 8);
     }
 
     if (d.y < gate.zIndex) {

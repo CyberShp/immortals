@@ -207,6 +207,8 @@ async function recordArt(page, name) {
   return sample;
 }
 // BEGIN CLEAN SCREENSHOT HELPERS (also exercised without a browser in vitest)
+// Must equal DISCIPLE_SCALE in src/render/world-scale.ts (vitest checks it).
+const DEFAULT_DISCIPLE_SCALE = 0.6;
 function cleanFootprintContains([x, y], footprint) {
   if (footprint.polygon) {
     const poly = footprint.polygon;
@@ -370,7 +372,8 @@ function assertDefaultDiscipleSize(sample) {
   assert.equal(sample.stats.mode, 'full');
   assert.ok(
     Math.abs(
-      sample.stats.discipleScreenHeight - 96 * 0.7 * sample.camera.zoom,
+      sample.stats.discipleScreenHeight -
+        96 * DEFAULT_DISCIPLE_SCALE * sample.camera.zoom,
     ) < 0.1,
     `default disciple height mismatch: ${JSON.stringify(sample)}`,
   );
@@ -700,8 +703,10 @@ async function verifyGrounded(context, gardenOnly = false) {
   // Same camera and same default size as clean-main, even when run standalone.
   if (!gardenOnly)
     assert.ok(
-      Math.abs(captures.main.stats.discipleScreenHeight - 96 * 0.7 * 0.95) <
-        0.1,
+      Math.abs(
+        captures.main.stats.discipleScreenHeight -
+          96 * DEFAULT_DISCIPLE_SCALE * 0.95,
+      ) < 0.1,
     );
   assert.deepEqual(errors, []);
   await writeFile(

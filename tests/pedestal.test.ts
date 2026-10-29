@@ -37,8 +37,8 @@ it('all effective entrances are reachable and segments/grid shortcuts avoid the 
   }
 });
 
-it('18px clearance covers every measured shoe tip and blocks the full radius around pedestal edges', () => {
-  expect(geometry.footRadius).toBe(18);
+it('16px clearance (0.6 scale) covers every measured shoe tip and blocks the full radius around pedestal edges', () => {
+  expect(geometry.footRadius).toBe(16);
   for (const f of geometry.footMeasurements)
     expect(f.worldRadius + 1).toBeLessThanOrEqual(geometry.footRadius);
   for (const b of geometry.buildings) {
@@ -47,8 +47,8 @@ it('18px clearance covers every measured shoe tip and blocks the full radius aro
         for (let i = 0; i < 16; i++)
           expect(
             walkable([
-              p[0] + Math.cos((i * Math.PI) / 8) * 17.9,
-              p[1] + Math.sin((i * Math.PI) / 8) * 17.9,
+              p[0] + Math.cos((i * Math.PI) / 8) * 15.9,
+              p[1] + Math.sin((i * Math.PI) / 8) * 15.9,
             ]),
             `${b.id}: radius sample`,
           ).toBe(false);
