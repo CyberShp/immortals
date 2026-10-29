@@ -37,7 +37,9 @@ grounded.push(
 
 {
   buildings.length = 0;
-  for (const f of manifest.files.filter((f) => f.file.includes('-map@'))) {
+  for (const f of manifest.files.filter(
+    (f) => f.file.startsWith('building/') && f.file.includes('-map@'),
+  )) {
     const key = f.file.split('/')[1].split('-')[0],
       slot = world.slots.find((s) => s.id === names[key]),
       [l, t, r, b] = slot.rect,

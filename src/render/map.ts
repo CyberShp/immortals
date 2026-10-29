@@ -1,3 +1,4 @@
+import platform from '../../scripts/platform-geometry.json';
 import { groundedLayer, insideGroundedBody } from './grounded-layers';
 import { discipleArtFile } from './world-scale';
 import {
@@ -42,6 +43,7 @@ import {
 export { buildingLabelPosition } from './building-labels';
 import {
   worldMap,
+  inPolygon,
   walkable,
   inFootprint,
   islandOf,
@@ -168,6 +170,11 @@ export async function createMap(
         walkable: (x: number, y: number) => walkable([x, y]),
         islandOf: (x: number, y: number) => islandOf([x, y]),
         bridges: worldMap.bridges,
+        platforms: platform.joints,
+        platformAt: (x: number, y: number) =>
+          platform.joints
+            .filter((j) => inPolygon([x, y], j.polygon as Point[]))
+            .map((j) => j.id),
         slots: worldMap.slots,
         inFootprint: (x: number, y: number, id: string) =>
           inFootprint(
@@ -478,6 +485,15 @@ export async function createMap(
     ground.zIndex = -1000;
 
     scene.addChild(ground);
+    for (const joint of platform.joints) {
+      const sprite = art(platform.file, platform.scale);
+      if (sprite) {
+        sprite.position.set(...(joint.center as [number, number]));
+        sprite.zIndex = -950;
+        sprite.eventMode = 'none';
+        scene.addChild(sprite);
+      }
+    }
     const gate = art(gateArt.file, 1);
     if (gate) {
       gate.position.set(gateArt.crop[0], gateArt.crop[1]);

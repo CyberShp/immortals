@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 const base = process.argv.find((a) => /^https?:/.test(a));
 if (!base)
   throw new Error(
-    '用法：node scripts/e2e.mjs http://localhost:4173 [--soak | --bridges | --clean | --grounded | --garden]',
+    '用法：node scripts/e2e.mjs http://localhost:4173 [--soak | --bridges | --clean | --grounded | --garden | --platform]',
   );
 const soak = process.argv.includes('--soak');
 await mkdir('docs/screenshots', { recursive: true });
@@ -50,6 +50,11 @@ async function verifyIslandWalking(context, base) {
     window.__world.bridges.map((b) => b.id),
   );
   ids.forEach((id) => (bridgeCrossings[id] = 0));
+  const platformCrossings = Object.fromEntries(
+    (await page.evaluate(() => window.__world.platforms.map((p) => p.id))).map(
+      (id) => [id, 0],
+    ),
+  );
   await page.screenshot({ path: `${bridgeOutput}/xianfu-bridge-panorama.png` });
   let panorama = false,
     female = false;
@@ -66,6 +71,7 @@ async function verifyIslandWalking(context, base) {
           walkable: window.__world.walkable(m.x, m.y),
           island: window.__world.islandOf(m.x, m.y),
           bridges: window.__world.bridgeAt(m.x, m.y),
+          platforms: window.__world.platformAt(m.x, m.y),
           arrived: Math.hypot(m.x - m.toX, m.y - m.toY) <= 12,
         }));
       });
@@ -102,6 +108,7 @@ async function verifyIslandWalking(context, base) {
         if (!d.walkable) offWalkableSamples.push({ stint, sample, ...d });
         if (d.arrived && d.island) islandVisits[d.island]++;
         for (const id of d.bridges) bridgeCrossings[id]++;
+        for (const id of d.platforms) platformCrossings[id]++;
       }
       assert.equal(
         offWalkableSamples.length,
@@ -127,7 +134,8 @@ async function verifyIslandWalking(context, base) {
     if (
       panorama &&
       ['north', 'west', 'east'].every((id) => islandVisits[id] > 0) &&
-      ids.every((id) => bridgeCrossings[id] > 0 && bridgeScreenshots[id])
+      ids.every((id) => bridgeCrossings[id] > 0 && bridgeScreenshots[id]) &&
+      Object.values(platformCrossings).every((n) => n > 0)
     )
       break;
   }
@@ -137,6 +145,9 @@ async function verifyIslandWalking(context, base) {
     assert.ok(bridgeCrossings[id] > 0, `no crossing on ${id}`);
   for (const id of ids)
     assert.ok(bridgeScreenshots[id], `no verified bridge screenshot on ${id}`);
+  for (const [id, n] of Object.entries(platformCrossings))
+    assert.ok(n > 0, `no actual walk through platform ${id}`);
+  console.log({ platformCrossings });
   assert.ok(panorama, 'no simultaneous multi-island distribution');
   // Follow a woman during actual walking, so the female walk sprite is exercised.
   for (let n = 0; n < 12 && !female; n++) {
@@ -690,6 +701,53 @@ async function verifyGrounded(context, gardenOnly = false) {
   );
   await page.close();
 }
+async function verifyPlatforms(browser) {
+  const context = await browser.newContext({
+    viewport: { width: 640, height: 450 },
+    deviceScaleFactor: 2,
+  });
+  try {
+    const page = await context.newPage();
+    page.on('pageerror', (e) => errors.push(e.message));
+    const url = new URL(base);
+    url.searchParams.set('debug', '1');
+    url.searchParams.delete('discipleHeight');
+    await page.goto(url.href);
+    await page.waitForFunction(() => window.__mapReady && window.__xianfu);
+    await page.evaluate(() => {
+      window.__xianfu.freeze(true);
+      window.__xianfu.reset();
+      window.__xianfu.artAllBuilt(1);
+    });
+    const joints = await page.evaluate(() => window.__world.platforms);
+    for (const { id, center } of [
+      ...joints,
+      { id: 'north', center: [1575, 735] },
+    ]) {
+      await page.evaluate(
+        ([x, y]) => window.__camera.set({ x, y, zoom: 0.95 }),
+        center,
+      );
+      const path = `${bridgeOutput}/xianfu-grounded-platform-${id}-2x.png`;
+      const capture = await cleanScreenshot(
+        page,
+        path,
+        undefined,
+        undefined,
+        'device',
+      );
+      assertDefaultDiscipleSize(capture);
+      assert.ok(Math.abs(capture.camera.zoom - 0.95) < 1e-6);
+      const png = await readFile(path);
+      assert.equal(png.readUInt32BE(16), 1280);
+      assert.equal(png.readUInt32BE(20), 900);
+      assert.equal(await page.evaluate(() => devicePixelRatio), 2);
+    }
+    assert.deepEqual(errors, []);
+  } finally {
+    await context.close();
+  }
+}
 let browser;
 try {
   browser = await chromium.launch({
@@ -698,6 +756,12 @@ try {
     headless: true,
     args: ['--enable-unsafe-swiftshader'],
   });
+  if (process.argv.includes('--platform')) {
+    await verifyPlatforms(browser);
+    await browser.close();
+    console.log('Platform shore/joint screenshots verified.');
+    process.exit(0);
+  }
   const contextOptions = {
     viewport: { width: 1280, height: 900 },
     acceptDownloads: true,

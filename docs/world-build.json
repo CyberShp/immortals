@@ -1,6 +1,6 @@
 {
   "mode": "whole",
-  "bytes": 275816,
+  "bytes": 275148,
   "quality": 86,
   "calibration": [
     { "id": "main", "before": [244, 235, 220], "after": [241, 232, 212] },

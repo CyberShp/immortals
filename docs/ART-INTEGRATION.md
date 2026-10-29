@@ -320,3 +320,43 @@ build/lint通过；26文件323测试通过，包括原多种子1200秒idle/work�
 `--grounded`新增`xianfu-grounded-hall-2x.png`和`xianfu-grounded-dorm-2x.png`，输出目录仍为`/Volumes/Media/GrokBot/workspace/`；相机zoom=0.95×2=**1.9**，分别对准world[1440,850]/[1260,900]，游戏默认弟子高度（此zoom下配置屏幕高度127.68 CSS px），沿用关弹窗和默认尺寸断言。`--garden`仍输出东岛与全景；完整验证继续单独运行`--clean`。
 
 验证：build、325 tests、lint通过；四组sim与baseline368逐字一致；首屏 **1,572,193 / 2,500,000 bytes**。未运行浏览器，未提交/推送，未动stash/桥/其他岛数据。外部生成截图：`node scripts/e2e.mjs http://127.0.0.1:4173 --grounded`与`--garden`，回归`--clean`。
+
+## 步骤C：桥拐角平台（2946ede之上，stash未触碰）
+
+依据`data/world.json.bridges`与`bridge-geometry.mjs`：north仅1段，west/east各2段，真正的折线内部接头只有2个。下表方向角按世界屏幕坐标+x向右、+y向下、沿points顺序，单位度。接头在岛间，局部坐标仅表示相对给定岛offset的参考坐标，不宣称它在岛陆地内。
+
+| id       | 世界        | 岛局部参考                    | 前段 / 后段方向    |
+| -------- | ----------- | ----------------------------- | ------------------ |
+| west内部 | [1000,1035] | main[50,415]；west[1000,465]  | 17.7447 / -24.4440 |
+| east内部 | [2180,1050] | east[167,529]；main[1230,430] | 18.4349 / -5.7106  |
+
+岸边对接处不是两段程序化桥的内部接头，未额外放平台：north北岛端world[1575,525]/north[625,525]、主岛端[1575,735]/main[625,115]，桥段角90°；west西岛端[875,995]/west[875,425]角17.7447°、主岛端[1165,960]/main[215,340]角-24.4440°；east主岛端[2015,995]/main[1065,375]角18.4349°、东岛端[2350,1033]/east[337,512]角-5.7106°。岸上方向不是bridges里的第二条线段，没有编造角度。纹理沿轴重复不是新的几何接头。north截图取**主岛桥头[1575,735]**，没有虚构北桥平台。
+
+原稿只读`/Volumes/Media/immortal-qa/design/art/concept/bridge_platform_v1.jpg`，实际**1152×864**（说明1024×768不准确）。`platform-source.json`记录手量木面/柱/梁组件多边形与梁间镂空；按多边形生成alpha、几何羽化3源px、alpha内收1px、透明/半透明RGB向邻近实心颜色外扩；柱脚原有渐隐区域采用手量位置的alpha衰减保留。不使用色键、不生成图案、不加代码阴影。导出`public/assets/bridge/platform-map@2x.webp`（682×655，有损WebP q86、alpha100、exact），所有接头共用一张，首屏预算已包含。
+
+平台原稿锚点[576,405]，裁后[340,285]；不旋转、不非等比拉伸，scale=**0.13260465285**。平台四边投影长度49.7000/50.0833/50.2991/49.9175 world px，桥面40px，比例**1.2425–1.2575**。渲染位于底图上、弟子下（z=-950，eventMode=none）。桥端沿自身轴线截短至平台边内9px；实际build报告端点与此几何一致，测试要求8–10px。岛岸端10px重叠及六个岸锚点未改。
+
+**保留的透视不匹配：**原稿开口法线与西桥两侧离开接头方向的最小偏差37.43°/30.55°，东桥36.74°/49.28°。原图的柱子也比旧桥柱显细。平台四角与桥栏杆不能精确对齐；仅完成桥轴上的9px压入，没有把这说成整根栏杆也完美压入9px。不旋转整图使柱子歪倒、不拉伸木板。若要精确对柱，需要Iris按这两组桥方向重出接头素材。静态近景`/tmp/platform-west-detail.png`可见该差异。
+
+可走多边形在`src/render/world.ts`合并`platform-geometry.json`，进入导航边界计算；不改data/world.json，更未改sim。原桥面保留与平台的并集。测试覆盖平台中心可走、岛间路径确实穿过平台、多边形尺寸/端点压入、透明角落/实心锚点及边缘米色。半透明边缘12,558个样本米色命中**0**；接头之外相对2946ede world解码像素MAE **0.12214**。世界底图重新从原岛源合成桥段，仍q86，mini仍q75；全图有损编码带来微小非桥区差异。山门前景必须随新解码底图重新裁出以保持逐像素贴合，未改山门几何。底图未烘焙平台，运行时独立图层叠加；小地图仍显示原桥轮廓，不单独画平台。
+
+复现：
+
+```sh
+node scripts/build-platform.mjs
+node scripts/build-world.mjs
+node scripts/world-buildings.mjs
+node scripts/platform-preview.mjs
+npm run build
+node scripts/e2e.mjs http://127.0.0.1:4173 --platform
+node scripts/e2e.mjs http://127.0.0.1:4173 --bridges
+node scripts/e2e.mjs http://127.0.0.1:4173 --clean
+```
+
+`--platform`沿用当前hall/dorm细节图方法：CSS viewport640×450、deviceScaleFactor2、zoom0.95，输出实际PNG1280×900，游戏默认弟子尺寸；截图前清弹窗，并断言尺寸/DPR/缩放。生成`/Volumes/Media/GrokBot/workspace/xianfu-grounded-platform-{west,east,north}-2x.png`。`--bridges`增加对真实行走样本进入west/east平台面的计数断言，保留原三桥与到岛断言；`--clean`建筑碰撞/遮挡断言未删改。未跑浏览器，外部验证仍待进行。
+
+静态标注`/tmp/xianfu-platform-overlay.png`：蓝线平台可走面、紫框平台面包围盒、橙线桥轴/端点；北桥主岛端标明无内部接头。数据见`docs/platform-report.json`。
+
+验证：build、27文件327测试、lint通过；从git **368d2d1**只读归档至/tmp，独立运行默认（含npm头）、100轮、100轮idle、100种子×50轮，四组与当前输出逐字diff全相同。首屏**41文件，1,615,749 / 2,500,000 bytes**。未新增npm依赖，未提交、推送、访问stash或修改design。
+
+文件：新增`build-platform.mjs`、`platform-source.json`、`platform-geometry.json`、`platform-preview.mjs`、`platform.test.ts`、平台WebP及`platform-report.json`；修改`bridge-geometry.mjs`（内部端头）、`world-buildings.mjs`（只遍历building map，避开平台）、`e2e.mjs`、`src/render/{world,map}.ts`、world/world-mini/gate-foreground素材、manifest、bridge-build/world-build报告、STATUS及本文。

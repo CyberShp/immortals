@@ -1,3 +1,8 @@
+import platform from '../../scripts/platform-geometry.json';
+export const platformWalkables = platform.joints.map((j) => ({
+  id: j.id,
+  polygon: j.polygon as [number, number][],
+}));
 import { z } from 'zod';
 import raw from '../../data/world.json';
 import type { Disciple } from '../sim/data';
@@ -117,6 +122,7 @@ export function walkable(p: Point) {
   if (p[0] < 0 || p[1] < 0 || p[0] >= 3200 || p[1] >= 1400) return false;
   if (worldMap.slots.some((s) => inFootprint(p, s.footprint))) return false;
   return (
+    platformWalkables.some((b) => inPolygon(p, b.polygon)) ||
     worldMap.bridges.some((b) => inPolygon(p, b.walkable)) ||
     worldMap.islands.some((d) => {
       const q: Point = [p[0] - d.offset[0], p[1] - d.offset[1]];
@@ -133,6 +139,7 @@ const navigationPolygons: Point[][] = [
     ),
   ),
   ...worldMap.bridges.map((b) => b.walkable),
+  ...platformWalkables.map((b) => b.polygon),
   ...worldMap.slots.flatMap((s) => footprintPolygons(s.footprint)),
 ];
 const navigationEdges = navigationPolygons.flatMap((poly) =>

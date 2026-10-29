@@ -1150,8 +1150,22 @@
       "sourceSha256": "5cefecacb9551ee7facbd56d298c3736ad2827f36ced61471b5b61767e108b19",
       "crop": [148, 156, 864, 602],
       "grounded": true
+    },
+    {
+      "file": "bridge/platform-map@2x.webp",
+      "size": [682, 655],
+      "anchor": { "x": 340, "y": 285 },
+      "scale": 1,
+      "source": "/Volumes/Media/immortal-qa/design/art/concept/bridge_platform_v1.jpg",
+      "crop": [236, 120, 682, 655],
+      "platformDeck": [
+        [576, 190],
+        [883, 405],
+        [576, 625],
+        [267, 405]
+      ]
     }
   ],
-  "assetBytes": 2429658,
-  "totalBytes": 2466770
+  "assetBytes": 2471708,
+  "totalBytes": 2509197
 }
