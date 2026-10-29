@@ -5,7 +5,7 @@ import { createHash } from 'node:crypto';
 import sharp from 'sharp';
 import manifest from '../public/assets/manifest.json';
 import traits from '../data/traits.json';
-import { accessories, behaviorPose, buildingScale } from '../src/render/layout';
+import { accessories, behaviorPose } from '../src/render/layout';
 const root = new URL('../public/assets/', import.meta.url);
 describe('Iris assets', () => {
   it('every manifest entry exists with its declared dimensions', async () => {
@@ -30,15 +30,9 @@ describe('Iris assets', () => {
       expect(versions).toHaveLength(2);
       for (const f of versions) {
         const source = manifest.files.find((e) => e.file === f.source)!;
-        const expected = buildingScale(
-          id,
-          source.size[0],
-          id === 'alchemy'
-            ? buildingScale(id, source.size[0]).widthScale * 0.95
-            : undefined,
-        );
-        expect(f.scale).toBe(expected.scale);
-        expect(f.size[0]).toBe(Math.round(source.size[0] * expected.scale));
+        expect(f.size[0]).toBe(Math.round(source.size[0] * f.scale));
+        expect('grounded' in f && f.grounded).toBe(true);
+        expect(f.worldBodyWidthRatio).toBeLessThanOrEqual(1);
       }
       expect(versions[0].scale).toBe(versions[1].scale);
     }

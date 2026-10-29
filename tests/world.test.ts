@@ -151,7 +151,7 @@ it('W1c measured doors, tier widths and body alignment agree with source geometr
   for (const b of buildings) {
     expect(b.discipleHeight).toBe(DISCIPLE_HEIGHT);
     expect(b.discipleScale).toBe(DISCIPLE_SCALE);
-    if (!/dorm|alchemy/.test(b.file)) continue;
+    if (!/dorm|alchemy/.test(b.file) || 'grounded' in b) continue;
     const f = manifest.files.find((f) => f.file === b.file)!;
     const src = manifest.files.find((s) => s.file === f.source)!;
     const m = src.measure!;
@@ -206,7 +206,7 @@ for (const tick of [0, 60]) {
           [1540, 1030],
           [1590, 1050],
           [1640, 1030],
-          [1440, 940],
+          worldMap.slots.find((s) => s.id === 'B_HALL')!.entrance,
         ]);
       }
     }

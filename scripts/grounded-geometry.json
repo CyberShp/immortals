@@ -1,0 +1,134 @@
+[
+  {
+    "key": "hall",
+    "id": "B_HALL",
+    "sourceSize": [1152, 864],
+    "background": [241, 236, 230],
+    "crop": [186, 51, 798, 753],
+    "anchorSource": [633, 797],
+    "anchor": { "x": 447, "y": 746 },
+    "anchorMethod": "alpha >= 0.8; midpoint of min/max x in bottom 9 solid rows; feather 7 source px",
+    "bodySpan": [318, 854],
+    "oldBodyWidth": 215,
+    "bodyWidthMethod": "0073c92 t1 world-buildings.bodyWidth; source stone/plinth left-right extremes excluding soil/grass",
+    "worldScale": 0.40111940298507465,
+    "mapScale": 0.500145755597015,
+    "exportScale": 0.8020050125313283,
+    "position": [1440, 930],
+    "stoneSource": [
+      [318, 562],
+      [640, 720],
+      [854, 555],
+      [532, 397]
+    ],
+    "stepSource": [438, 701],
+    "footprint": [
+      [1313.647388, 835.73694],
+      [1442.807836, 899.113806],
+      [1528.647388, 832.929104],
+      [1399.48694, 769.552239]
+    ],
+    "entrance": [1361.781716, 901.492537],
+    "rect": [1260.699627, 630.764925, 1619.300373, 930],
+    "sharedTiers": true
+  },
+  {
+    "key": "dorm",
+    "id": "B_DORM",
+    "sourceSize": [1152, 864],
+    "background": [242, 237, 231],
+    "crop": [213, 102, 783, 674],
+    "anchorSource": [648.5, 768],
+    "anchor": { "x": 435.5, "y": 666 },
+    "anchorMethod": "alpha >= 0.8; midpoint of min/max x in bottom 9 solid rows; feather 7 source px",
+    "bodySpan": [314, 886],
+    "oldBodyWidth": 120,
+    "bodyWidthMethod": "0073c92 t1 world-buildings.bodyWidth; source stone/plinth left-right extremes excluding soil/grass",
+    "worldScale": 0.2097902097902098,
+    "mapScale": 0.4992879460964567,
+    "exportScale": 0.42017879948914433,
+    "position": [1260, 970],
+    "stoneSource": [
+      [314, 564],
+      [667, 698],
+      [886, 565],
+      [533, 431]
+    ],
+    "stepSource": [451, 669],
+    "footprint": [
+      [1189.825175, 927.202797],
+      [1263.881119, 955.314685],
+      [1309.825175, 927.412587],
+      [1235.769231, 899.300699]
+    ],
+    "entrance": [1218.566434, 959.230769],
+    "rect": [1168.636364, 830.27972, 1351.363636, 970],
+    "sharedTiers": true
+  },
+  {
+    "key": "meditation",
+    "id": "B_MEDIT",
+    "sourceSize": [1152, 864],
+    "background": [240, 235, 229],
+    "crop": [192, 67, 801, 731],
+    "anchorSource": [617, 791],
+    "anchor": { "x": 425, "y": 724 },
+    "anchorMethod": "alpha >= 0.8; midpoint of min/max x in bottom 9 solid rows; feather 7 source px",
+    "bodySpan": [322, 870],
+    "oldBodyWidth": 115.00000000000001,
+    "bodyWidthMethod": "0073c92 t1 world-buildings.bodyWidth; source stone/plinth left-right extremes excluding soil/grass",
+    "worldScale": 0.20985401459854017,
+    "mapScale": 0.5002769812304484,
+    "exportScale": 0.41947565543071164,
+    "position": [1810, 900],
+    "stoneSource": [
+      [322, 568],
+      [654, 734],
+      [870, 585],
+      [538, 419]
+    ],
+    "stepSource": [476, 674],
+    "footprint": [
+      [1748.093066, 853.202555],
+      [1817.764599, 888.038321],
+      [1863.093066, 856.770073],
+      [1793.421533, 821.934307]
+    ],
+    "entrance": [1780.410584, 885.44708],
+    "rect": [1720.812044, 748.065693, 1899.187956, 900],
+    "sharedTiers": true
+  },
+  {
+    "key": "alchemy",
+    "id": "B_ALCHEMY",
+    "sourceSize": [1152, 864],
+    "background": [241, 236, 230],
+    "crop": [181, 42, 822, 766],
+    "anchorSource": [643, 801],
+    "anchor": { "x": 462, "y": 759 },
+    "anchorMethod": "alpha >= 0.8; midpoint of min/max x in bottom 9 solid rows; feather 7 source px",
+    "bodySpan": [321, 882],
+    "oldBodyWidth": 73.24258064512821,
+    "bodyWidthMethod": "0073c92 t1 world-buildings.bodyWidth; source stone/plinth left-right extremes excluding soil/grass",
+    "worldScale": 0.13055718475067418,
+    "mapScale": 0.49915351565141475,
+    "exportScale": 0.2615571776155718,
+    "position": [1740, 1010],
+    "stoneSource": [
+      [321, 565],
+      [576, 732],
+      [882, 563],
+      [627, 396]
+    ],
+    "stepSource": [447, 677],
+    "footprint": [
+      [1697.960587, 979.188504],
+      [1731.252669, 1000.991554],
+      [1771.203167, 978.92739],
+      [1737.911085, 957.12434]
+    ],
+    "entrance": [1714.410792, 1003.810909],
+    "rect": [1679.682581, 910.907097, 1800.317419, 1010],
+    "sharedTiers": true
+  }
+]

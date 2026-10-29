@@ -18,14 +18,12 @@ import {
   discipleSlot,
   regions,
   plots,
-  meditationProtected,
 } from '../src/render/layout';
 import {
   type Mask,
   type Occluder,
   visibilityOrder,
   labelOverlaps,
-  overlapPixels,
 } from '../src/render/visibility';
 import { clampCamera } from '../src/render/camera';
 async function mask(file: string, scale = 0.5): Promise<Mask> {
@@ -134,34 +132,15 @@ it('actual t1 alpha masks preserve foot depth even when buildings cover heads', 
   expect(raised).toBe(0);
   console.log('调整前遮挡地点:', [...affected].sort().join('、'));
 }, 30000);
-it('alchemy final alpha overlap matches manifest at the permitted shift cap', async () => {
-  for (const f of manifest.files.filter(
+it('grounded alchemy tiers share one image without the legacy per-tier shift', async () => {
+  const versions = manifest.files.filter(
     (f) => f.file.includes('alchemy-') && f.file.includes('-map'),
-  )) {
-    const m = await mask(f.file);
-    const count = overlapPixels(
-      m,
-      381,
-      217.5 + (f.downshift ?? 0),
-      meditationProtected,
-    );
-    expect(count).toBe(f.overlapPixels);
-    expect(
-      overlapPixels(m, 381, 217.5 + (f.downshift ?? 0), [
-        meditationProtected[1],
-      ]),
-    ).toBe(0);
-    if (count) {
-      expect(f.downshift).toBe(24);
-      for (let dy = 0; dy <= 24; dy++)
-        expect(
-          overlapPixels(m, 381, 217.5 + dy, [meditationProtected[0]]),
-        ).toBeGreaterThan(0);
-    } else if (f.downshift)
-      expect(
-        overlapPixels(m, 381, 217.5 + f.downshift - 1, meditationProtected),
-      ).toBeGreaterThan(0);
-  }
+  );
+  expect(versions).toHaveLength(2);
+  expect(versions[0].worldAnchor).toEqual(versions[1].worldAnchor);
+  expect(await readFile('public/assets/' + versions[0].file)).toEqual(
+    await readFile('public/assets/' + versions[1].file),
+  );
 });
 it('garden retains full canvas and has no roof in top five rows', async () => {
   for (const f of manifest.files.filter(

@@ -16,13 +16,15 @@ const helpers = source
   .join('\n')
   .split('// END CLEAN SCREENSHOT HELPERS')[0];
 const {
+  assertDefaultDiscipleSize,
   withIsolatedContext,
+  cleanFootprintContains,
   cleanScreenshot,
   cleanCloseupCamera,
   cleanCloseupEvidence,
   cleanOverlaySelector,
 } = runInNewContext(
-  `${helpers}\n({withIsolatedContext,cleanScreenshot,cleanCloseupCamera,cleanCloseupEvidence,cleanOverlaySelector})`,
+  `${helpers}\n({assertDefaultDiscipleSize,withIsolatedContext,cleanFootprintContains,cleanScreenshot,cleanCloseupCamera,cleanCloseupEvidence,cleanOverlaySelector})`,
   {
     assert: {
       ...assert,
@@ -236,4 +238,43 @@ describe('Clean scenario storage isolation', () => {
       );
     },
   );
+});
+
+it('e2e independently checks polygon interiors and boundaries without blocking bounding-box corners', () => {
+  const fp = {
+    polygon: [
+      [0, 5],
+      [5, 10],
+      [10, 5],
+      [5, 0],
+    ],
+  };
+  expect(cleanFootprintContains([5, 5], fp)).toBe(true);
+  expect(cleanFootprintContains([0, 5], fp)).toBe(true);
+  expect(cleanFootprintContains([2.5, 2.5], fp)).toBe(true);
+  expect(cleanFootprintContains([0, 0], fp)).toBe(false);
+  expect(cleanFootprintContains([5, 11], fp)).toBe(false);
+});
+
+it('normal clean/grounded captures reject closeup size overrides and compact markers', () => {
+  for (const zoom of [0.4, 0.95, 1.5]) {
+    const sample = {
+      camera: { zoom },
+      stats: { mode: 'full', discipleScreenHeight: 67.2 * zoom },
+    };
+    expect(() => assertDefaultDiscipleSize(sample)).not.toThrow();
+    expect(() =>
+      assertDefaultDiscipleSize({
+        ...sample,
+        stats: { ...sample.stats, discipleScreenHeight: 32 * zoom },
+      }),
+    ).toThrow();
+    expect(() =>
+      assertDefaultDiscipleSize({
+        ...sample,
+        stats: { ...sample.stats, mode: 'compact' },
+      }),
+    ).toThrow();
+  }
+  expect(source).toContain("url.searchParams.delete('discipleHeight')");
 });

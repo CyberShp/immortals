@@ -11,6 +11,7 @@ import {
   inPolygon,
   inFootprint,
   footprintRects,
+  footprintPolygons,
   lineClear,
   type Point,
 } from '../src/render/world';
@@ -43,10 +44,15 @@ it('clean main geometry matches the compositing source and every entrance/spawn 
 it('north bridge-to-plaza corridor is free of every building footprint', () => {
   const corridor = [1555, 735, 1650, 1050];
   const hall = worldMap.slots.find((s) => s.id === 'B_HALL')!;
-  expect(hall.rect).toEqual([1332.5, 807, 1547.5, 930]);
-  expect(hall.footprint).toEqual([1326.5, 892, 1553.5, 933]);
+  expect([(hall.rect[0] + hall.rect[2]) / 2, hall.rect[3]]).toEqual([
+    1440, 930,
+  ]);
   for (const slot of worldMap.slots)
-    for (const [l, t, r, b] of footprintRects(slot.footprint)) {
+    for (const poly of footprintPolygons(slot.footprint)) {
+      const l = Math.min(...poly.map((p) => p[0])),
+        r = Math.max(...poly.map((p) => p[0])),
+        t = Math.min(...poly.map((p) => p[1])),
+        b = Math.max(...poly.map((p) => p[1]));
       expect(
         l < corridor[2] &&
           r > corridor[0] &&
@@ -83,15 +89,17 @@ it('alchemy alpha bottom edge stays on the measured grass top face for both tier
     expect(count).toBeGreaterThan(50);
   }
 });
-it('original render scales are retained and only allowed world geometry changes', async () => {
+it('original body widths are retained and only allowed world geometry changes', async () => {
   const before = JSON.parse(
     execFileSync('git', ['show', 'HEAD:docs/world-buildings.json'], {
       encoding: 'utf8',
     }),
   );
   for (const b of buildings)
-    expect(b.scale).toBe(
-      before.find((v: { file: string }) => v.file === b.file).scale,
+    expect(b.bodyWidth).toBe(
+      before.find(
+        (v: { file: string }) => v.file === b.file.replace('-t2-', '-t1-'),
+      ).bodyWidth,
     );
   const old = JSON.parse(
     execFileSync('git', ['show', 'HEAD:data/world.json'], { encoding: 'utf8' }),

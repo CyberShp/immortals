@@ -1,5 +1,5 @@
 import sharp from 'sharp';
-import { readFile, writeFile } from 'node:fs/promises';
+import { readFile, writeFile, readdir, stat } from 'node:fs/promises';
 import { format } from 'prettier';
 import { tsImport } from 'tsx/esm/api';
 const { DISCIPLE_SCALE, DISCIPLE_HEIGHT: H } = await tsImport(
@@ -25,6 +25,9 @@ const fixedScales = JSON.parse(
   await readFile(new URL('./clean-building-scales.json', import.meta.url)),
 );
 const buildings = [];
+const grounded = JSON.parse(
+  await readFile(new URL('./grounded-geometry.json', import.meta.url)),
+);
 
 {
   buildings.length = 0;
@@ -36,6 +39,67 @@ const buildings = [];
       centerY = (t + b) / 2;
     let x = centerX,
       y = b;
+    if (f.grounded) {
+      const g = grounded.find((g) => g.key === key);
+      const scale = g.mapScale;
+      x = g.position[0];
+      y = g.position[1];
+      const { data, info } = await sharp('public/assets/' + f.file)
+        .ensureAlpha()
+        .raw()
+        .toBuffer({ resolveWithObject: true });
+      const neighbors = world.slots.filter((s) => s.id !== slot.id);
+      const overlapsBySlot = Object.fromEntries(
+        neighbors.map((s) => [s.id, 0]),
+      );
+      let overlapSelfSlot = 0,
+        overlapNeighborSlots = 0;
+      for (let py = 0; py < info.height; py++)
+        for (let px = 0; px < info.width; px++) {
+          if (!data[(py * info.width + px) * 4 + 3]) continue;
+          const wx = x + (px - f.anchor.x) * scale,
+            wy = y + (py - f.anchor.y) * scale;
+          const hits = (r) =>
+            wx + scale > r[0] && wx < r[2] && wy + scale > r[1] && wy < r[3];
+          if (hits(slot.rect)) overlapSelfSlot++;
+          let hit = false;
+          for (const s of neighbors)
+            if (hits(s.rect)) {
+              overlapsBySlot[s.id]++;
+              hit = true;
+            }
+          if (hit) overlapNeighborSlots++;
+        }
+      buildings.push({
+        file: f.file,
+        scale,
+        x,
+        y,
+        overlapSelfSlot,
+        overlapNeighborSlots,
+        overlapsBySlot,
+        bottom: y + (f.size[1] - f.anchor.y) * scale,
+        left: x - f.anchor.x * scale,
+        right: x + (f.size[0] - f.anchor.x) * scale,
+        discipleScale: DISCIPLE_SCALE,
+        discipleHeight: H,
+        sourceScale: g.worldScale,
+        bodyWidth: g.oldBodyWidth,
+        bodyWidthRatio: g.oldBodyWidth / (r - l),
+        bodyWidthBasis:
+          'grounded source plinth span matched to 0073c92 t1 bodyWidth',
+        bodyBottomOffsetSource: 0,
+        bodyBottom: y,
+        doorRule: null,
+        doorRatio: null,
+        meetsDoorRule: null,
+        gardenFits: null,
+        grounded: true,
+        stoneFootprint: g.footprint,
+        entrance: g.entrance,
+      });
+      continue;
+    }
     const original = manifest.files.find((o) => o.file === f.source);
     const exportScale = f.scale;
     const measure = original.measure;
@@ -171,6 +235,19 @@ for (const f of manifest.files) {
   });
   if (b.footprintWorld) f.footprintWorld = b.footprintWorld;
 }
+async function assetBytes(dir) {
+  let total = 0;
+  for (const e of await readdir(dir, { withFileTypes: true })) {
+    const p = dir + '/' + e.name;
+    total += e.isDirectory()
+      ? await assetBytes(p)
+      : e.name === 'manifest.json'
+        ? 0
+        : (await stat(p)).size;
+  }
+  return total;
+}
+manifest.assetBytes = await assetBytes('public/assets');
 let json;
 for (;;) {
   json = await format(JSON.stringify(manifest), { parser: 'json' });

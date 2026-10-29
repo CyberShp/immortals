@@ -1,0 +1,114 @@
+{
+  "buildings": [
+    {
+      "key": "hall",
+      "occlusion": {
+        "relievedWalkablePixels": 50783,
+        "relievedCorridorPixels": 1314,
+        "sampleWorldArea": 0.2501457768417091,
+        "alphaMinimum": 128
+      },
+      "edge": {
+        "pixels": 17462,
+        "meanRGB": [164.37876531897837, 135.59019585385408, 99.20232504867712],
+        "meanPixelBackgroundDistance": 184.89163758604562,
+        "meanColorBackgroundDistance": 181.82676960608273,
+        "beigeWithin30Ratio": 0,
+        "exteriorShadowPixels": 447
+      },
+      "ground": {
+        "definition": "source y>=500 outside stone polygon, alpha>=0.05; conservative ground/shrub band",
+        "area": 15429.741952927141,
+        "outsideWalkableArea": 0,
+        "corridorArea": 480.0297457592397
+      },
+      "violationBounds": [
+        1555.2854769123135, 824.821478544776, 1577.7920359141792,
+        872.3353253264925
+      ]
+    },
+    {
+      "key": "dorm",
+      "occlusion": {
+        "relievedWalkablePixels": 10487,
+        "relievedCorridorPixels": 0,
+        "sampleWorldArea": 0.24928845311721826,
+        "alphaMinimum": 128
+      },
+      "edge": {
+        "pixels": 14180,
+        "meanRGB": [165.24894217207336, 142.6650916784203, 111.63166431593794],
+        "meanPixelBackgroundDistance": 172.64158335180645,
+        "meanColorBackgroundDistance": 170.40715762470046,
+        "beigeWithin30Ratio": 0.0011283497884344146,
+        "exteriorShadowPixels": 881
+      },
+      "ground": {
+        "definition": "source y>=500 outside stone polygon, alpha>=0.05; conservative ground/shrub band",
+        "area": 3386.0850586911756,
+        "outsideWalkableArea": 0,
+        "corridorArea": 0
+      }
+    },
+    {
+      "key": "meditation",
+      "occlusion": {
+        "relievedWalkablePixels": 9220,
+        "relievedCorridorPixels": 0,
+        "sampleWorldArea": 0.2502770579490504,
+        "alphaMinimum": 128
+      },
+      "edge": {
+        "pixels": 17117,
+        "meanRGB": [159.70421218671495, 140.32850382660513, 105.22790208564585],
+        "meanPixelBackgroundDistance": 177.3910287423912,
+        "meanColorBackgroundDistance": 175.29871063526303,
+        "beigeWithin30Ratio": 0.000292107261786528,
+        "exteriorShadowPixels": 1599
+      },
+      "ground": {
+        "definition": "source y>=500 outside stone polygon, alpha>=0.05; conservative ground/shrub band",
+        "area": 3786.942163827082,
+        "outsideWalkableArea": 0,
+        "corridorArea": 0
+      }
+    },
+    {
+      "key": "alchemy",
+      "occlusion": {
+        "relievedWalkablePixels": 4904,
+        "relievedCorridorPixels": 0,
+        "sampleWorldArea": 0.24915423218716715,
+        "alphaMinimum": 128
+      },
+      "edge": {
+        "pixels": 18019,
+        "meanRGB": [168.0243076752317, 144.3840945668461, 112.94034075142905],
+        "meanPixelBackgroundDistance": 168.02503317285257,
+        "meanColorBackgroundDistance": 165.59556039340967,
+        "beigeWithin30Ratio": 0.00033298185248903936,
+        "exteriorShadowPixels": 251
+      },
+      "ground": {
+        "definition": "source y>=500 outside stone polygon, alpha>=0.05; conservative ground/shrub band",
+        "area": 1569.6716627791532,
+        "outsideWalkableArea": 0,
+        "corridorArea": 0
+      }
+    }
+  ],
+  "pairwise": [
+    { "a": "hall", "b": "meditation", "alphaOverlapArea": 0 },
+    { "a": "dorm", "b": "hall", "alphaOverlapArea": 142.8422836361661 },
+    { "a": "dorm", "b": "meditation", "alphaOverlapArea": 0 },
+    { "a": "alchemy", "b": "hall", "alphaOverlapArea": 0 },
+    { "a": "alchemy", "b": "dorm", "alphaOverlapArea": 0 },
+    { "a": "alchemy", "b": "meditation", "alphaOverlapArea": 0 }
+  ],
+  "thresholds": {
+    "edgeAlpha": [0.05, 0.95],
+    "minMeanPixelDistance": 60,
+    "maxBeigeRatio": 0.01,
+    "sourceFeather": 7
+  }
+}

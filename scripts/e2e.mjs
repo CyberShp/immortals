@@ -4,7 +4,7 @@ import assert from 'node:assert/strict';
 const base = process.argv.find((a) => /^https?:/.test(a));
 if (!base)
   throw new Error(
-    '用法：node scripts/e2e.mjs http://localhost:4173 [--soak | --bridges | --clean]',
+    '用法：node scripts/e2e.mjs http://localhost:4173 [--soak | --bridges | --clean | --grounded]',
   );
 const soak = process.argv.includes('--soak');
 await mkdir('docs/screenshots', { recursive: true });
@@ -194,6 +194,28 @@ async function recordArt(page, name) {
   return sample;
 }
 // BEGIN CLEAN SCREENSHOT HELPERS (also exercised without a browser in vitest)
+function cleanFootprintContains([x, y], footprint) {
+  if (footprint.polygon) {
+    const poly = footprint.polygon;
+    let inside = false;
+    for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
+      const [a, b] = poly[i],
+        [u, v] = poly[j],
+        dx = u - a,
+        dy = v - b;
+      const t = Math.max(
+        0,
+        Math.min(1, ((x - a) * dx + (y - b) * dy) / (dx * dx + dy * dy)),
+      );
+      if (Math.hypot(x - a - t * dx, y - b - t * dy) < 1e-7) return true;
+      if (b > y !== v > y && x < ((u - a) * (y - b)) / (v - b) + a)
+        inside = !inside;
+    }
+    return inside;
+  }
+  const rects = typeof footprint[0] === 'number' ? [footprint] : footprint;
+  return rects.some(([l, t, r, b]) => x >= l && x <= r && y >= t && y <= b);
+}
 async function withIsolatedContext(browser, options, run) {
   const context = await browser.newContext(options);
   try {
@@ -270,8 +292,15 @@ function cleanCloseupCamera(disciples, zoom = 1.5) {
   );
   return {
     zoom,
-    x: visible.reduce((n, d) => n + d.x, 0) / visible.length,
-    y: visible.reduce((n, d) => n + d.y, 0) / visible.length - 20 / zoom,
+    x:
+      (Math.min(...visible.map((d) => d.x)) +
+        Math.max(...visible.map((d) => d.x))) /
+      2,
+    y:
+      (Math.min(...visible.map((d) => d.y)) +
+        Math.max(...visible.map((d) => d.y))) /
+        2 -
+      20 / zoom,
   };
 }
 function cleanCloseupEvidence(sample, canvas, world, slots, spriteHeight) {
@@ -324,6 +353,15 @@ function cleanCloseupEvidence(sample, canvas, world, slots, spriteHeight) {
     nearEntrance: nearEntrance.map((d) => d.id),
   };
 }
+function assertDefaultDiscipleSize(sample) {
+  assert.equal(sample.stats.mode, 'full');
+  assert.ok(
+    Math.abs(
+      sample.stats.discipleScreenHeight - 96 * 0.7 * sample.camera.zoom,
+    ) < 0.1,
+    `default disciple height mismatch: ${JSON.stringify(sample)}`,
+  );
+}
 // END CLEAN SCREENSHOT HELPERS
 async function verifyClean(context) {
   const page = await context.newPage();
@@ -348,18 +386,12 @@ async function verifyClean(context) {
       slots: window.__world.slots,
     }));
     for (const d of sample.stats.disciples) {
-      for (const slot of sample.slots) {
-        const rects =
-          typeof slot.footprint[0] === 'number'
-            ? [slot.footprint]
-            : slot.footprint;
-        for (const [l, t, r, b] of rects) {
-          assert.ok(
-            !(d.x >= l && d.x <= r && d.y >= t && d.y <= b),
-            `footprint ${slot.id}: ${JSON.stringify(d)}`,
-          );
-        }
-      }
+      for (const slot of sample.slots)
+        assert.equal(
+          cleanFootprintContains([d.x, d.y], slot.footprint),
+          false,
+          `footprint ${slot.id}: ${JSON.stringify(d)}`,
+        );
       assert.equal(d.z, d.y, 'disciple depth must equal its actual foot');
       if (d.alpha === 0) hidden++;
       for (const b of sample.stats.buildings) {
@@ -427,10 +459,8 @@ async function verifyClean(context) {
   assert.ok(behind > 0, 'must sample a disciple behind building art');
   const output =
     process.env.CLEAN_SCREENSHOT_DIR ?? '/Volumes/Media/GrokBot/workspace';
-  // Keep the validated 48-unit motion sampling above unchanged. A fresh,
-  // frozen screenshot scene uses 32 world units at 1.5 zoom for 48 CSS px.
-  const screenshotSpriteHeight = 32;
-  url.searchParams.set('discipleHeight', String(screenshotSpriteHeight));
+  // Normal captures use the game default; closeup override gets its own page load.
+  url.searchParams.delete('discipleHeight');
   await page.goto(url.href);
   await page.waitForFunction(() => window.__mapReady && window.__xianfu);
   await page.evaluate(() => {
@@ -451,6 +481,16 @@ async function verifyClean(context) {
     page,
     `${output}/xianfu-clean-main.png`,
   );
+  assertDefaultDiscipleSize(captures.main);
+  const screenshotSpriteHeight = 32;
+  url.searchParams.set('discipleHeight', String(screenshotSpriteHeight));
+  await page.goto(url.href);
+  await page.waitForFunction(() => window.__mapReady && window.__xianfu);
+  await page.evaluate(() => {
+    window.__xianfu.freeze(true);
+    window.__xianfu.reset();
+    window.__xianfu.artAllBuilt(1);
+  });
   // Fresh tick-zero subjects are stationary meditators; no sim advances between
   // framing and capture, so they cannot walk out of the selected crop.
   const subjects = await page.evaluate(() => window.__mapStats.disciples);
@@ -552,6 +592,54 @@ async function verifyClean(context) {
   );
   await page.close();
 }
+async function verifyGrounded(context) {
+  const page = await context.newPage();
+  page.on('pageerror', (e) => errors.push(e.message));
+  const url = new URL(base);
+  url.searchParams.set('debug', '1');
+  url.searchParams.delete('discipleHeight');
+  await page.goto(url.href);
+  await page.waitForFunction(() => window.__mapReady && window.__xianfu);
+  await page.evaluate(() => {
+    window.__xianfu.freeze(true);
+    window.__xianfu.reset();
+    window.__xianfu.artAllBuilt(1);
+    window.__camera.panorama();
+  });
+  const output =
+    process.env.GROUNDED_SCREENSHOT_DIR ?? '/Volumes/Media/GrokBot/workspace';
+  const captures = {};
+  captures.panorama = await cleanScreenshot(
+    page,
+    `${output}/xianfu-grounded-panorama.png`,
+  );
+  await page.evaluate(() =>
+    window.__camera.set({ zoom: 0.95, x: 1590, y: 970 }),
+  );
+  captures.main = await cleanScreenshot(
+    page,
+    `${output}/xianfu-grounded-main.png`,
+  );
+  await page.evaluate(() =>
+    window.__camera.set({ zoom: 1.5, x: 2616, y: 926 }),
+  );
+  captures.east = await cleanScreenshot(
+    page,
+    `${output}/xianfu-grounded-east.png`,
+  );
+  for (const capture of Object.values(captures))
+    assertDefaultDiscipleSize(capture);
+  // Same camera and same default size as clean-main, even when run standalone.
+  assert.ok(
+    Math.abs(captures.main.stats.discipleScreenHeight - 96 * 0.7 * 0.95) < 0.1,
+  );
+  assert.deepEqual(errors, []);
+  await writeFile(
+    `${output}/xianfu-grounded-report.json`,
+    JSON.stringify({ captures, errors }, null, 2) + '\n',
+  );
+  await page.close();
+}
 let browser;
 try {
   browser = await chromium.launch({
@@ -568,6 +656,12 @@ try {
   // IndexedDB; a new context is required for the subsequent fresh-start checks.
   if (process.argv.includes('--clean'))
     await withIsolatedContext(browser, contextOptions, verifyClean);
+  if (process.argv.includes('--grounded')) {
+    await withIsolatedContext(browser, contextOptions, verifyGrounded);
+    await browser.close();
+    console.log('Grounded screenshots verified.');
+    process.exit(0);
+  }
   const context = await browser.newContext(contextOptions);
   if (process.argv.includes('--bridges')) {
     await mkdir(bridgeOutput, { recursive: true });

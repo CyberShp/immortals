@@ -1,3 +1,4 @@
+import { groundedLayer, insideGroundedBody } from './grounded-layers';
 import { discipleArtFile } from './world-scale';
 import {
   Application,
@@ -42,6 +43,7 @@ export { buildingLabelPosition } from './building-labels';
 import {
   worldMap,
   walkable,
+  inFootprint,
   islandOf,
   segmentDistance,
   DISCIPLE_SCALE,
@@ -101,6 +103,7 @@ declare global {
     __mapReady: boolean;
     __mapStats: {
       mode: 'full' | 'compact';
+      discipleScreenHeight: number;
       markers: number;
       markerCssDiameter: number;
       buildingLabels: number;
@@ -166,6 +169,11 @@ export async function createMap(
         islandOf: (x: number, y: number) => islandOf([x, y]),
         bridges: worldMap.bridges,
         slots: worldMap.slots,
+        inFootprint: (x: number, y: number, id: string) =>
+          inFootprint(
+            [x, y],
+            worldMap.slots.find((s) => s.id === id)!.footprint,
+          ),
         bridgeAt: (x: number, y: number) =>
           worldMap.bridges
             .filter((b) =>
@@ -293,6 +301,19 @@ export async function createMap(
       canvas.height,
     );
     const rgba = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
+    const split = groundedLayer(file);
+    if (split)
+      for (let py = 0; py < canvas.height; py++)
+        for (let px = 0; px < canvas.width; px++) {
+          if (
+            !insideGroundedBody(
+              px - entry.anchor.x * scale,
+              py - entry.anchor.y * scale,
+              split.points,
+            )
+          )
+            rgba[(py * canvas.width + px) * 4 + 3] = 0;
+        }
     masks.set(file, {
       width: canvas.width,
       height: canvas.height,
@@ -418,6 +439,7 @@ export async function createMap(
 
     const stats = {
       mode: compact ? ('compact' as const) : ('full' as const),
+      discipleScreenHeight: compact ? 0 : height * cam.zoom,
       markers: 0,
       markerCssDiameter: compact ? marker.diameter * marker.scale : 0,
       buildingLabels: 0,
@@ -517,12 +539,14 @@ export async function createMap(
             z: baseY,
           });
         if (sprite) {
-          const shadow = groundShadow(
-            (placement?.bodyWidth ?? p[2] - p[0]) * 1.05,
-          );
-          shadow.position.set(drawX, baseY);
-          shadow.zIndex = -900;
-          scene.addChild(shadow);
+          if (!('grounded' in entries.get(file)!)) {
+            const shadow = groundShadow(
+              (placement?.bodyWidth ?? p[2] - p[0]) * 1.05,
+            );
+            shadow.position.set(drawX, baseY);
+            shadow.zIndex = -900;
+            scene.addChild(shadow);
+          }
           const entry = entries.get(file)!;
           const scale = placement?.scale ?? 1;
           const sb = {
@@ -540,6 +564,32 @@ export async function createMap(
             height: sb.height * cam.zoom,
           });
           sprite.alpha = b.level === 0 ? 0.45 : 1;
+          const split = groundedLayer(file);
+          if (split) {
+            const bodyMask = new Graphics()
+              .poly(split.points.flat())
+              .fill(0xffffff);
+            group.addChild(bodyMask);
+            sprite.mask = bodyMask;
+            const groundGroup = new Container();
+            groundGroup.position.set(drawX, y);
+            groundGroup.zIndex = -900;
+            groundGroup.eventMode = 'none';
+            const groundSprite = art(file, scale)!;
+            groundSprite.alpha = sprite.alpha;
+            const groundMask = new Graphics()
+              .poly(
+                [
+                  ...split.points.slice(2),
+                  [sb.x, sb.y + sb.height],
+                  [sb.x + sb.width, sb.y + sb.height],
+                ].flat(),
+              )
+              .fill(0xffffff);
+            groundGroup.addChild(groundSprite, groundMask);
+            groundSprite.mask = groundMask;
+            scene.addChild(groundGroup);
+          }
           group.addChild(sprite);
           if (def.id === 'B_GARDEN' && tier === 2) {
             const glow = art(file, placement?.scale ?? 1);

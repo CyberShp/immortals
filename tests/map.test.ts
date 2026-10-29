@@ -1,3 +1,4 @@
+import { buildingDefinitions } from '../src/sim/catalog';
 import { intersects } from '../src/render/layout';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
 import { advance, createWorld } from '../src/sim/world';
@@ -512,12 +513,15 @@ it.each([0, 60, 600])(
     for (const s of worldMap.slots.filter((s) => s.id !== 'B_GATE')) {
       const [x, y] = buildingLabelPosition(s.id);
       expect(x).toBe((s.rect[0] + s.rect[2]) / 2);
-      const bottom = Math.max(
-        s.rect[3],
-        ...buildings
-          .filter((b) => b.file.includes('/' + buildingArt[s.id] + '-'))
-          .map((b) => b.bottom),
-      );
+      const bottom =
+        s.id !== 'B_GARDEN'
+          ? s.rect[3]
+          : Math.max(
+              s.rect[3],
+              ...buildings
+                .filter((b) => b.file.includes('/' + buildingArt[s.id] + '-'))
+                .map((b) => b.bottom),
+            );
       expect(y - bottom).toBe(8);
       const label = plaques.find(
         (n) =>
@@ -686,5 +690,28 @@ it('gate motion traverses the portal with foot sorting behind and in front of th
   expect(front).toBeGreaterThan(0);
   expect(passage).toBeGreaterThan(50);
   expect(window.__mapStats.disciples[0].y).toBe(trip.to[1]);
+  map.destroy();
+});
+
+it('grounded art uses baked contact shadows; only garden keeps its ellipse and ground anchors keep depth', async () => {
+  const map = await createMap(host),
+    w = createWorld(42, loadData());
+  w.buildings = buildingDefinitions.map((b) => ({
+    ...w.buildings[0],
+    id: b.id,
+    name: b.name,
+    level: 1,
+  }));
+  map.draw(w);
+  expect(scene().children.filter((n) => n.zIndex === -900)).toHaveLength(5);
+  expect(
+    scene().children.filter((n) => n.zIndex === -900 && n.eventMode === 'none'),
+  ).toHaveLength(4);
+  for (const id of ['B_HALL', 'B_DORM', 'B_MEDIT', 'B_ALCHEMY']) {
+    const slot = worldMap.slots.find((s) => s.id === id)!;
+    const b = window.__mapStats.buildings.find((b) => b.id === id)!;
+    expect(b.z).toBe(slot.rect[3]);
+  }
+  expect(window.__mapStats.buildingSprites).toBe(5);
   map.destroy();
 });

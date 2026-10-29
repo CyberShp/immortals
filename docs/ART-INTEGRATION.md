@@ -160,3 +160,88 @@ Clean1 改动文件清单：
 - 验证：`scripts/e2e.mjs`、`tests/clean.test.ts`、`tests/world.test.ts`、`tests/map.test.ts`、`tests/map-round2.test.ts`、`tests/bridge.test.ts`、`tests/clean-names.test.ts`、`tests/clean-screenshots.test.mjs`、`tests/map-final.test.ts`。
 - 生成产物：`public/assets/map/world.webp`、`public/assets/map/world-mini.webp`、`public/assets/manifest.json`、`docs/bridge-build.json`、`docs/world-build.json`、`docs/world-buildings.json`、`public/assets/map/gate-foreground.webp`。
 - 记录：`STATUS.md`、`docs/ART-INTEGRATION.md`；`docs/screenshots/e2e-report.json` 只做格式修正。
+
+## 步骤A：四栋 grounded 一体切图（基于 0073c92）
+
+桥任务仍暂停；没有读取/恢复 stash，也没有修改桥、世界底图、山门、灵田或任何 sim 数据。四张原稿从 `~/cutwork/backup/{hall,dorm,meditation,alchemy}_grounded_v1.jpg` 读取，实测均为 **1152×864**。本轮只处理原像素：外部背景连通域软色键、按背景衰减反推接触阴影 alpha、去米色污染、7 源像素边缘羽化、裁切与等比缩放。白墙等封闭内部浅色不参与外部色键。没有补画地基/草/石，没有环境滤镜或程序化地面贴花。
+
+`public/assets/building/*-grounded@2x.webp` 保存原分辨率切图；现有 `*-t1-map@2x.webp` / `*-t2-map@2x.webp` 用约 2 倍世界分辨率导出，两级文件字节相同，暂时升级无视觉变化。manifest 记录尺寸、锚点、原稿 SHA256、crop 和 grounded 标记。四栋代码椭圆阴影取消，使用原图自带阴影；灵田原阴影/发光与山门逻辑保留。
+
+### 量法与几何
+
+主体宽度基准取 0073c92 的 `docs/world-buildings.json` t1 `bodyWidth`（现有脚底主体宽测量；主殿是旧 canvas 宽代理）。新图取石台/主体的左右极值，不含土草块：主殿源 x318–854、居舍 x314–886、静修室 x322–870、炼丹房 x321–882。源图到世界等比倍率 = 旧主体宽 / 新主体跨度。地面锚点取羽化后 alpha≥0.8 的最低行 y，以及最低 9 行内该阈值轮廓 x 最小/最大值的中点；因此不是建筑门口，也不是外接框中心。
+
+| 建筑   | 主体源宽 → 世界宽 | 源→世界倍率 | 原稿锚点    | 裁切后锚点  | 固定世界锚点 | 世界入口                  |
+| ------ | ----------------- | ----------- | ----------- | ----------- | ------------ | ------------------------- |
+| 主殿   | 536 → 215         | 0.401119403 | (633,797)   | (447,746)   | (1440,930)   | (1361.781716,901.492537)  |
+| 居舍   | 572 → 120         | 0.209790210 | (648.5,768) | (435.5,666) | (1260,970)   | (1218.566434,959.230769)  |
+| 静修室 | 548 → 115         | 0.209854015 | (617,791)   | (425,724)   | (1810,900)   | (1780.410584,885.447080)  |
+| 炼丹房 | 561 → 73.242581   | 0.130557185 | (643,801)   | (462,759)   | (1740,1010)  | (1714.410792,1003.810909) |
+
+入口源台阶前沿测点分别为 `(438,701)/(451,669)/(476,674)/(447,677)`，映射到世界后沿屏幕向下加 10px。入口均在可走区、所有脚印外且从广场可达。rect 为覆盖切图并关于固定锚点水平对称的逻辑框；底边中点不变。只改这四栋 `rect/front/footprint/entrance`，世界其余字段与桥/岛几何保持原值，slots 以外文本逐字不变。
+
+石台脚印采用 `{ "polygon": [...] }`，四角按实际可见底座与平行边推算被建筑挡住的后角；没有沿用旧窄矩形，也没有为走廊削脚印。世界坐标依次为：
+
+- 主殿：`(1313.647388,835.736940), (1442.807836,899.113806), (1528.647388,832.929104), (1399.486940,769.552239)`。
+- 居舍：`(1189.825175,927.202797), (1263.881119,955.314685), (1309.825175,927.412587), (1235.769231,899.300699)`。
+- 静修室：`(1748.093066,853.202555), (1817.764599,888.038321), (1863.093066,856.770073), (1793.421533,821.934307)`。
+- 炼丹房：`(1697.960587,979.188504), (1731.252669,1000.991554), (1771.203167,978.927390), (1737.911085,957.124340)`。
+
+`inFootprint` 将多边形边界也视为碰撞；导航线段使用真实多边形边，而非外接矩形。矩形与山门双矩形保持兼容。e2e 用独立点入多边形算法检查采样点，保留入口消失、脚底排序/遮挡断言。近景相机由平均位置改为极值包围盒中心，保证新入口处弟子仍完整入镜。建筑名牌以 grounded 的实体地面锚点+8px 为基准，忽略其下方浅透明阴影尾部，防止居舍牌被无形尾巴推到悬崖外。
+
+### 白边与重叠证据
+
+边缘带定义 alpha 0.05–0.95，同时检查实测背景色及 `#F1E8D4`；RGB 距离小于 30 计为残留米色。要求平均逐像素背景色距 >60、残留比例 <1%（距离越大说明越不像纸底，不是越小越好）。实测原尺寸切图：
+
+| 建筑   | 实测背景 RGB | 边缘平均色距 | 残留比例 | 保留的外部半透明深色阴影像素 |
+| ------ | ------------ | ------------ | -------- | ---------------------------- |
+| 主殿   | 241,236,230  | 214.12       | 0.080%   | 882                          |
+| 居舍   | 242,237,231  | 217.83       | 0.049%   | 2170                         |
+| 静修室 | 240,235,229  | 224.21       | 0.017%   | 3218                         |
+| 炼丹房 | 241,236,230  | 232.12       | 0.226%   | 991                          |
+
+精确背景/统计以 `scripts/grounded-geometry.json`、`docs/grounded-report.json` 为准；单测同时检查原尺寸与地图变体。地面越界采用保守的源 y≥500、石台多边形外、alpha≥0.05 的土草/灌木区域采样，面积换算为世界像素²；并非靠肉眼声称全部无缝。
+
+- **主殿地面侵入走廊约 596.60 世界像素²**，世界包围范围 x1555.29–1579.79、y823.32–874.84，即本地 x605.29–629.79、y203.32–254.84。石台本体最右 x1528.65，距走廊左边约26.35px；碰撞走廊断言与北桥→广场寻路通过。
+- **主殿/居舍 alpha 重叠约 257.76 世界像素²**，位于居舍右上方/主殿左侧土草。其他四栋配对重叠为0。保留实图，未移动坐标或裁掉地面掩盖问题。
+- 四栋上述地面区域越出主岛可走区面积均为0；炼丹房底沿的独立逐列崖线检查通过。
+
+`/tmp/xianfu-grounded-overlap.png`：蓝色可走区/北桥走廊、橙色石台脚印、绿点入口、红框越界、紫框相邻图像重叠；副本 `artifacts/xianfu-grounded-overlap.png`（artifacts 沿用现有 gitignore）。另有 `/tmp/xianfu-grounded-main.png` 原图静态合成、`/tmp/xianfu-grounded-cutouts.png` 绿色背景白边检查图。
+
+不满意之处：地面块仍有明确的土草色边界；主殿地面侵入空路、与居舍重叠；按旧 73.24px 主体宽匹配后炼丹房样张显小；锚点固定在地面块前沿，使可见建筑本体比旧图更靠后。四栋只用一版样张，没有升级造型。后角位置来自被遮挡底座平行边推算，不是假装能从图片直接看到。由于地面和建筑共用一个 y 层，侵入走廊的地面块可能遮挡经过该区域的弟子，需外部截图观察；本轮不拆地面、不改坐标。
+
+### 重建和外部验收
+
+```sh
+node scripts/cut-grounded.mjs
+node scripts/world-buildings.mjs
+node scripts/grounded-preview.mjs
+npm run build
+node scripts/e2e.mjs http://127.0.0.1:4173 --clean
+node scripts/e2e.mjs http://127.0.0.1:4173 --grounded
+```
+
+`--grounded` 用独立 context 输出 `/Volumes/Media/GrokBot/workspace/xianfu-grounded-{panorama,main,east}.png` 及报告，拍摄前关闭弹窗并检查无 overlay/无未选中弟子名牌；`GROUNDED_SCREENSHOT_DIR` 可改输出目录。也可 `--clean --grounded` 连跑 Clean 专项采样与新截图；完整原 UI 回归仍用单独 `--clean`。本轮未运行浏览器。
+
+本轮验证：`npm run build`、`npm test`（312/312）、`npm run lint` 全过；四组 sim 输出与 `~/cutwork/baseline368/` 逐字一致；首屏静态上界 **1,585,311 / 2,500,000 字节**。测试另覆盖真实多边形边界/包围框角落可通行、原稿哈希、两级像素相同、四栋仅烘焙阴影、sim无副作用、长时运动采样。未提交推送、未动 stash，未改 design/sim/桥。
+
+本轮改动文件：`scripts/cut-grounded.mjs`、`scripts/grounded-geometry.json`、`scripts/grounded-preview.mjs`、`scripts/clean-preview.mjs`、`scripts/world-buildings.mjs`、`scripts/e2e.mjs`；`src/render/world.ts`、`src/render/map.ts`、`src/render/building-labels.ts`；`data/world.json` 的四槽几何；manifest、四张 grounded 原尺寸 WebP、八张 t1/t2-map WebP、`docs/world-buildings.json`、`docs/grounded-report.json`；`tests/grounded.test.ts`、`tests/assets.test.ts`、`tests/clean.test.ts`、`tests/clean-screenshots.test.mjs`、`tests/map-round2.test.ts`、`tests/map.test.ts`、`tests/world.test.ts`；`STATUS.md` 和本文件。
+
+### 步骤A / Lore 边缘与地面遮挡补充
+
+- `scripts/grounded-edge.mjs`：全尺寸与地图缩放结果分别做 1px alpha 最小值内收；对半透明及全透明像素用最近 alpha=255 像素 RGB 外扩。原脚点/裁切测量基准保持不动，避免重新测量使世界入口漂移。保留 7px 羽化与阴影 alpha；外扩会改变阴影边缘 RGB，不能宣称与原稿阴影颜色逐像素一致。
+- Sharp 执行抠图、裁切、缩放；最后用现有 Python3/Pillow 11.3 的 WebP lossless + exact 编码（`scripts/encode-grounded.py`），保留 alpha=0 的 RGB。重建环境需要 Pillow，未新增 npm 依赖。t1/t2 仍共图；没有调整 world.webp 的质量配置。
+- 编码后 full/map/t2-map 回读检查：透明像素附近 12px（覆盖 7px 羽化带）内若存在全不透明像素，最近颜色距离均值必须 <35，米色比例 <1%；半透明边缘米色比例仍 <1%。四张 full 实测米色比例：hall 0%、dorm 0.0423%、meditation 0%、alchemy 0.0333%。另测内收不扩大 alpha、透明区 RGB 外扩、半透明阴影 alpha 保留。
+- 发现真实的可走地面被整栋 sprite 遮挡：遍历 map alpha>=128、y<脚点、且 walkable 的地面像素，分离后免于遮挡的样本分别为 hall 50,783、dorm 10,487、meditation 9,220、alchemy 4,904（每样本约0.25 world px²）；hall 其中1,314个位于北桥走廊。这是静态可走位置采样，不是宣称浏览器真实行走帧已验收。
+- 最小分层：沿手量石台左右端—前顶点折线拆下半部。`grounded-layers.ts` 统一定义，主体仍在原脚点 y 深度；地面复用原纹理的互补蒙版，固定 z=-900、eventMode=none，低于所有弟子。主体 alpha 遮挡采样也裁去同一部分；寻路、入口、碰撞、弟子 y 排序均不改。不烘焙 world，不增加纹理请求。上半部侧面灌木仍随主体，保留真实建筑后方遮挡；并非对每株灌木作语义分割。
+- 静态合成已改为全部地面先画、主体后画。更新 `/tmp/xianfu-grounded-main.png`、`/tmp/xianfu-grounded-overlap.png`、`artifacts/xianfu-grounded-overlap.png`。内收后原图地面侵走廊仍约480.03 world px²，hall/dorm图像交叠约142.84 world px²；不移动建筑或削碰撞。
+- 不加 ColorMatrixFilter：本轮没有足够证据支持按岛整体改色，不拿滤镜掩盖素材问题。
+- 指定只读参考 `/Volumes/Media/immortal-qa/design/research-scene-blending.md` 当前不存在，目录检索未找到；未能阅读第3/5条，不声称采纳其内容。实施依据为 Lore 在本轮消息中的明确要求。
+- 验证：build/test/lint、四组 sim 字节 diff、首屏预算；不跑浏览器。外部继续执行 `node scripts/e2e.mjs http://127.0.0.1:4173 --clean` 与 `--grounded`，保留全部原 clean 深度/碰撞断言。重点检查石台分层接缝、入口淡出、走廊弟子与侧面灌木。
+
+### 步骤A / 外部验收后尺寸与预算修正
+
+- 根因：`--grounded` 原本就用游戏默认 `96 * 0.7 = 67.2` world px；`--clean` 的普通截图却沿用了48px特写场景的32 world px override。同为0.95相机时，配置屏幕高度分别63.84与30.4 CSS px（2.1倍），并非游戏尺寸回归。
+- clean panorama/main 与 grounded panorama/main/east 都清除 URL `discipleHeight`，采用游戏默认尺寸。clean 48px特写重新加载单独32 world px场景，zoom1.5；不会污染普通截图。`__mapStats.discipleScreenHeight` 记录渲染所用高度乘相机倍率，两个main共用默认尺寸断言，容差0.1 CSS px，并拒绝compact模式。旧clean-main会恢复游戏默认大小，不应再作为32px尺寸基准。
+- `encode-grounded.py` 改为有损 WebP quality86、alpha_quality100、exact=True；full和map均保留内收与RGB外扩，替代上一段的lossless配置。全尺寸及t1/t2地图文件回读边缘测试全部通过，未放宽阈值。
+- 验证：build通过；25文件319测试通过；lint通过；四组sim与baseline368逐字一致；首屏1,544,877 / 2,500,000 bytes，比此前2,236,807减少691,930 bytes，达到1.7MB以内目标。未运行浏览器；外部重跑`--clean`和`--grounded`。原有外部截图与报告保留。

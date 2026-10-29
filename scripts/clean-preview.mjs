@@ -16,7 +16,8 @@ for (const b of buildings
   const f = manifest.files.find((f) => f.file === b.file);
   const x = b.x - 950,
     y = b.y - 620;
-  shadows += `<ellipse cx="${x}" cy="${b.bodyBottom - 620 + 3}" rx="${(b.bodyWidth * 1.05) / 2}" ry="${(b.bodyWidth * 1.05 * 0.18) / 2}" fill="#3b2a1a" opacity=".27"/>`;
+  if (!b.grounded)
+    shadows += `<ellipse cx="${x}" cy="${b.bodyBottom - 620 + 3}" rx="${(b.bodyWidth * 1.05) / 2}" ry="${(b.bodyWidth * 1.05 * 0.18) / 2}" fill="#3b2a1a" opacity=".27"/>`;
   layers.push({
     input: await sharp('public/assets/' + b.file)
       .resize({ width: Math.round(f.size[0] * b.scale) })
@@ -31,11 +32,18 @@ let overlay = `<polygon points="${main.walkable.map((p) => p.join(',')).join(' '
 for (const poly of main.obstacles)
   overlay += `<polygon points="${poly.map((p) => p.join(',')).join(' ')}" fill="#ff6600" fill-opacity=".18" stroke="#f60"/>`;
 for (const s of world.slots.filter((s) => s.id !== 'B_GARDEN')) {
-  const rects =
-    typeof s.footprint[0] === 'number' ? [s.footprint] : s.footprint;
-  for (const [l, t, r, b] of rects) {
-    overlay += `<rect x="${l - 950}" y="${t - 620}" width="${r - l}" height="${b - t}" fill="#f33" fill-opacity=".16" stroke="#d22"/><circle cx="${s.entrance[0] - 950}" cy="${s.entrance[1] - 620}" r="4" fill="#1b5"/><text x="${l - 950}" y="${t - 625}" font-size="12">${s.id}</text>`;
-  }
+  const polygons = s.footprint.polygon
+    ? [s.footprint.polygon]
+    : (typeof s.footprint[0] === 'number' ? [s.footprint] : s.footprint).map(
+        ([l, t, r, b]) => [
+          [l, t],
+          [r, t],
+          [r, b],
+          [l, b],
+        ],
+      );
+  for (const poly of polygons)
+    overlay += `<polygon points="${poly.map(([x, y]) => [x - 950, y - 620].join(',')).join(' ')}" fill="#f33" fill-opacity=".16" stroke="#d22"/><circle cx="${s.entrance[0] - 950}" cy="${s.entrance[1] - 620}" r="4" fill="#1b5"/>`;
 }
 overlay +=
   '<rect x="605" y="115" width="95" height="315" fill="#33eeaa" fill-opacity=".12" stroke="#088"/><circle cx="640" cy="430" r="6" fill="none" stroke="#088"/>';

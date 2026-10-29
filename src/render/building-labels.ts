@@ -6,12 +6,18 @@ import { buildingArt, intersects, type Box } from './layout';
 
 export function buildingLabelPosition(id: string): Point {
   const s = worldMap.slots.find((s) => s.id === id)!;
+  const grounded = worldBuildings.some(
+    (b) => b.file.includes('/' + buildingArt[id] + '-') && 'grounded' in b,
+  );
   const bottoms = worldBuildings
     .filter((b) => b.file.includes('/' + buildingArt[id] + '-'))
     .map((b) => b.bottom);
   // Stable across tiers: text starts 8 world units below the lowest art pixel,
   // Keep plaques close enough to identify their owner at a glance.
-  return [(s.rect[0] + s.rect[2]) / 2, Math.max(s.rect[3], ...bottoms) + 8];
+  return [
+    (s.rect[0] + s.rect[2]) / 2,
+    (grounded ? s.rect[3] : Math.max(s.rect[3], ...bottoms)) + 8,
+  ];
 }
 export function buildingLabelBox(id: string, text: string) {
   const [x, y] = buildingLabelPosition(id);

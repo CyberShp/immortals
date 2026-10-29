@@ -32,7 +32,7 @@ export const worldSchema = z.object({
         rect: z.tuple([z.number(), z.number(), z.number(), z.number()]),
         front: point,
         entrance: point,
-        footprint: z.union([rect, z.array(rect).min(1)]),
+        footprint: z.union([rect, z.array(rect).min(1), z.object({ polygon })]),
       }),
     )
     .length(6),
@@ -76,13 +76,36 @@ export function segmentDistance(p: Point, a: Point, b: Point) {
   return Math.hypot(p[0] - a[0] - t * dx, p[1] - a[1] - t * dy);
 }
 export type FootprintRect = [number, number, number, number];
-export type Footprint = FootprintRect | FootprintRect[];
+export type Footprint = FootprintRect | FootprintRect[] | { polygon: Point[] };
 export function footprintRects(footprint: Footprint): FootprintRect[] {
+  if ('polygon' in footprint)
+    throw new Error('Polygon footprint requires footprintPolygons');
   return typeof footprint[0] === 'number'
     ? [footprint as FootprintRect]
     : (footprint as FootprintRect[]);
 }
+export function footprintPolygons(footprint: Footprint): Point[][] {
+  if ('polygon' in footprint) return [footprint.polygon];
+  return footprintRects(footprint).map(([l, t, r, b]) => [
+    [l, t],
+    [r, t],
+    [r, b],
+    [l, b],
+  ]);
+}
 export function inFootprint(p: Point, footprint: Footprint) {
+  if ('polygon' in footprint)
+    return (
+      inPolygon(p, footprint.polygon) ||
+      footprint.polygon.some(
+        (a, i) =>
+          segmentDistance(
+            p,
+            a,
+            footprint.polygon[(i + 1) % footprint.polygon.length],
+          ) <= 1e-7,
+      )
+    );
   return footprintRects(footprint).some((rect) => inRect(p, rect));
 }
 function inRect(p: Point, rect: readonly number[]) {
@@ -110,16 +133,7 @@ const navigationPolygons: Point[][] = [
     ),
   ),
   ...worldMap.bridges.map((b) => b.walkable),
-  ...worldMap.slots.flatMap((s) =>
-    footprintRects(s.footprint).map(([l, t, r, b]) => {
-      return [
-        [l, t],
-        [r, t],
-        [r, b],
-        [l, b],
-      ] as Point[];
-    }),
-  ),
+  ...worldMap.slots.flatMap((s) => footprintPolygons(s.footprint)),
 ];
 const navigationEdges = navigationPolygons.flatMap((poly) =>
   poly.map((a, i) => [a, poly[(i + 1) % poly.length]]),
