@@ -36,7 +36,8 @@ export async function createMap(host: HTMLElement) {
           text: def.name + '预留位',
           style: { fontSize: 10, fill: 0x5a564c },
         });
-        label.position.set(def.slot[0] - 30, def.slot[1]);
+        label.anchor.set(0.5, 0);
+        label.position.set(def.slot[0], def.slot[1] + 12);
         scene.addChild(marker, label);
       }
     for (const b of w.buildings) {
@@ -60,11 +61,13 @@ export async function createMap(host: HTMLElement) {
         text: `${b.name} ${b.targetLevel ? '⚒' : `Lv${b.level}`}\n占位`,
         style: { fontSize: 14, fill: 0x263f34, fontFamily: 'serif' },
       });
-      label.position.set(-15, 12);
+      label.anchor.set(0.5, 0);
+      label.position.set(0, 12);
       group.addChild(label);
       scene.addChild(group);
     }
-    w.disciples.forEach((d, i) => {
+    const occupants = new Map<string, number>();
+    w.disciples.forEach((d) => {
       if (
         d.stage === '坐化' ||
         d.state.awayUntil ||
@@ -74,20 +77,24 @@ export async function createMap(host: HTMLElement) {
       const positions: Record<string, number[]> = {
         空地: [280, 240],
         松下: [250, 300],
-        采石点: [360, 170],
-        药圃: [410, 260],
-        静修室: [160, 140],
-        炼丹房: [480, 160],
+        采石点: [330, 205],
+        药圃: [410, 230],
+        静修室: [160, 90],
+        炼丹房: [480, 110],
       };
       const site = w.buildings.find((b) => d.state.location === `工地:${b.id}`);
       const pos = site
-        ? [site.x, site.y + 25]
+        ? [site.x, site.y - 20]
         : (positions[d.state.location] ?? [250, 230]);
-      const x = pos[0] + ((i % 3) - 1) * 18,
-        y = pos[1] + Math.floor(i / 3) * 22;
+      const locationKey = pos.join(',');
+      const i = occupants.get(locationKey) ?? 0;
+      occupants.set(locationKey, i + 1);
+      const x = pos[0] + ((i % 3) - 1) * 28,
+        y = pos[1] - Math.floor(i / 3) * 28;
       const g = new Container();
       g.position.set(x, y);
-      g.zIndex = y;
+      // Characters sit over the building artwork, above the separate labels.
+      g.zIndex = 500 + y;
       g.addChild(
         new Graphics()
           .circle(0, 0, 9)
@@ -101,10 +108,11 @@ export async function createMap(host: HTMLElement) {
           }),
       );
       const t = new Text({
-        text: `${d.name} ${Number(d.flags.walkUntil) > w.tick ? '→' : d.state.behavior === '修炼' ? '◉' : d.state.behavior === '做工' ? '⚒' : '◇'}${d.stage === '迟暮' ? ' 白发' : ''}\n占位`,
-        style: { fontSize: 12, fill: 0x34483a, fontFamily: 'serif' },
+        text: d.name.slice(0, 1),
+        style: { fontSize: 12, fill: 0xffffff, fontFamily: 'serif' },
       });
-      t.position.set(-20, 15);
+      t.anchor.set(0.5);
+      t.position.set(0, 0);
       g.addChild(t);
       scene.addChild(g);
     });

@@ -25,15 +25,20 @@ npm run preview
 
 默认十秒一步、三十步一轮、一轮一季。设置中的加速或 `?speed=30` 仅加速前台，范围一至三百倍；离线结算始终使用真实时间。声音默认关闭，当前只保存开关，不播放音频。
 
-浏览器回归（先构建，单独终端启动服务）：
+## 验证
+
+先运行 `npm run build`，再在单独终端启动 preview：
 
 ```sh
 npx vite preview --port 4173
-node scripts/e2e.mjs http://localhost:4173
-node scripts/e2e.mjs http://localhost:4173 --soak
+# 在另一个终端执行；可选 --soak 运行短时挂机
+node scripts/e2e.mjs http://localhost:4173/
+node scripts/e2e.mjs http://localhost:4173/ --soak
+# 默认 10 分钟墙钟、10 倍加速，可用环境变量调整
+SOAK_MIN=10 SOAK_SPEED=10 node scripts/soak-long.mjs http://localhost:4173/
 ```
 
-脚本使用系统 Chrome，连接给定地址，不启动/停止服务。截图与挂机 JSON 输出到 `docs/screenshots/`。`?debug=1` 才暴露 `window.__xianfu`；包括只读世界快照、推进、导出、重置和修改 lastSeen，供测试离线弹窗。正式 URL 不暴露钩子。本环境 Chrome 启动 SIGABRT，截图与浏览器挂机仍待运行。
+脚本使用系统 Chrome，连接给定地址，不启动/停止服务。截图与挂机 JSON 输出到 `docs/screenshots/`。`?debug=1` 才暴露 `window.__xianfu`；包括只读世界快照、推进、导出、重置和修改 lastSeen，供测试离线弹窗。正式 URL 不暴露钩子。沙箱内 Chrome 无法启动；执行者已在沙箱外完成 6 张截图与断言、短 soak，以及 10 分钟墙钟 ×10 加速挂机（`docs/screenshots/soak-long-report.json`）。这些是本轮小修复前的证据，修复后浏览器回归待复跑。
 
 ## 目录
 

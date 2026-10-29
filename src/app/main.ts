@@ -1,3 +1,4 @@
+import { formatResource, formatLog } from '../display/format';
 import { CONFIG as C } from '../sim/config';
 import { loadData, traitName } from '../sim/data';
 import {
@@ -56,7 +57,7 @@ export async function start() {
   const loop = new FixedLoop();
   let previous = performance.now();
   const root = document.querySelector<HTMLDivElement>('#app')!;
-  root.innerHTML = `<div id="game"><header><div class="seal">仙</div><div><p class="eyebrow">宗门起居录 · 数据与事件</p><h1>模拟仙府</h1></div><span id="season"></span><nav><button id="small">小窗</button><button id="settings-open">设置</button><button id="save-open">存档</button></nav></header><section id="resources" class="resources" aria-label="宗门资源"></section><main><section class="disciples"><div class="section-head"><h2>山中门人</h2><span>各循其道，自有生息</span></div><div id="disciples"></div></section><aside><section class="map-panel"><div class="section-head"><h2>宗门山</h2><span>占位图</span></div><div id="map"></div><p class="caption">一脉青山，半卷人间。</p></section><section class="buildings"><div class="section-head"><h2>山场营造</h2><span id="reputation"></span></div><div id="buildings"></div></section><section class="legacy"><h2>传承录</h2><div id="legacy"></div></section><section class="story"><button id="story-open">本局故事回顾</button></section><section class="journal"><div class="section-head"><h2>山门纪事</h2><span>近事百条</span></div><div id="events"></div><ol id="logs"></ol></section></aside></main><footer>十秒一步 · 三十步一季 <span>按反引号隐藏 · 定期导出存档，留一份山门底册</span></footer></div><div id="cover" hidden><header><h1>季度工作台账</h1><span>内部资料 · 工作底稿</span></header><table><thead><tr><th>事项</th><th>负责人</th><th>进度</th><th>备注</th></tr></thead><tbody><tr><td>资料整理</td><td>项目组</td><td>已完成</td><td>归档备查</td></tr><tr><td>季度复核</td><td>综合组</td><td>进行中</td><td>等待反馈</td></tr></tbody></table></div><p id="notice" role="status"></p><dialog id="modal"><button id="close" class="close" aria-label="关闭">×</button><div id="modal-body"></div></dialog>`;
+  root.innerHTML = `<div id="game"><header><div class="seal">仙</div><div><p class="eyebrow">宗门起居录 · 数据与事件</p><h1>模拟仙府</h1></div><span id="season"></span><nav><button id="small">小窗</button><button id="settings-open">设置</button><button id="save-open">存档</button></nav></header><section id="resources" class="resources" aria-label="宗门资源"></section><main><section class="disciples"><div class="section-head"><h2>山中门人</h2><span>各循其道，自有生息</span></div><div id="disciples"></div></section><aside><section class="map-panel"><div class="section-head"><h2>宗门山</h2><span>占位图</span></div><div id="map"></div><p class="caption">一脉青山，半卷人间。</p></section><section class="buildings"><div class="section-head"><h2>山场营造</h2><span id="reputation"></span></div><div id="buildings"></div></section><section class="legacy"><h2>传承录</h2><div id="legacy"></div></section><section class="story"><button id="story-open">本局故事回顾</button></section><section class="journal"><div class="section-head"><h2>山门纪事</h2><span>近事百条</span></div><div id="events"></div><button id="compact-event" class="event-hint" hidden aria-haspopup="dialog"></button><ol id="logs"></ol></section></aside></main><footer>十秒一步 · 三十步一季 <span>按反引号隐藏 · 定期导出存档，留一份山门底册</span></footer></div><div id="cover" hidden><header><h1>季度工作台账</h1><span>内部资料 · 工作底稿</span></header><table><thead><tr><th>事项</th><th>负责人</th><th>进度</th><th>备注</th></tr></thead><tbody><tr><td>资料整理</td><td>项目组</td><td>已完成</td><td>归档备查</td></tr><tr><td>季度复核</td><td>综合组</td><td>进行中</td><td>等待反馈</td></tr></tbody></table></div><p id="notice" role="status"></p><dialog id="modal"><button id="close" class="close" aria-label="关闭">×</button><div id="modal-body"></div></dialog>`;
   const el = <T extends HTMLElement = HTMLElement>(id: string) =>
     document.getElementById(id) as T;
   const dialog = el<HTMLDialogElement>('modal');
@@ -112,7 +113,7 @@ export async function start() {
     favicon.href = icon(hidden);
     doc.body.innerHTML = hidden
       ? '<h2>季度工作台账</h2><p>资料整理　已完成</p>'
-      : `<h2>模拟仙府 · 第${world.round + 1}季</h2><p>灵石 ${fmt(world.resources.stone)}　灵草 ${fmt(world.resources.herb)}　丹药 ${fmt(world.resources.pill)}</p>${world.disciples.map((d) => `<p>${escape(d.name)}　${d.realm.major}${d.realm.layer}层 · ${d.state.behavior}</p>`).join('')}${world.events.map((e) => `<button data-event="${escape(e.id)}">🔴 ${escape(e.hint)}</button>`).join('')}${offline ? '<button id="offline-child">🔴 离线纪事待阅</button>' : ''}<p>详情在主窗口展开</p>`;
+      : `<h2>模拟仙府 · 第${world.round + 1}季</h2><p>灵石 ${formatResource(world.resources.stone, 'stone')}　灵草 ${formatResource(world.resources.herb, 'herb')}　丹药 ${formatResource(world.resources.pill, 'pill')}</p>${world.disciples.map((d) => `<p>${escape(d.name)}　${d.realm.major}${d.realm.layer}层 · ${d.state.behavior}</p>`).join('')}${world.events.map((e) => `<button data-event="${escape(e.id)}">🔴 ${escape(e.hint)}</button>`).join('')}${offline ? '<button id="offline-child">🔴 离线纪事待阅</button>' : ''}<p>详情在主窗口展开</p>`;
     doc.querySelectorAll<HTMLButtonElement>('[data-event]').forEach(
       (b) =>
         (b.onclick = () => {
@@ -131,7 +132,7 @@ export async function start() {
     el('resources').innerHTML = (['stone', 'herb', 'pill'] as const)
       .map(
         (key, i) =>
-          `<div><span>${['灵石', '灵草', '丹药', '声望'][i]}</span><strong>${fmt(world.resources[key])}</strong><small>${` / ${world.capacity[key] * (world.buildings.find((b) => b.id === 'B_HALL')?.level ?? 1)}`}</small></div>`,
+          `<div><span>${['灵石', '灵草', '丹药', '声望'][i]}</span><strong>${formatResource(world.resources[key], key)}</strong><small>${` / ${formatResource(world.capacity[key] * (world.buildings.find((b) => b.id === 'B_HALL')?.level ?? 1), key)}`}</small></div>`,
       )
       .join('');
     el('disciples').innerHTML = world.disciples
@@ -147,12 +148,13 @@ export async function start() {
             .join(' / ')}</p></div></article>`,
       )
       .join('');
-    el('reputation').textContent = `声望 ${fmt(world.resources.reputation)}`;
+    el('reputation').textContent =
+      `声望 ${formatResource(world.resources.reputation, 'reputation')}`;
     el('buildings').innerHTML = buildingDefinitions
       .map((def) => {
         const b = world.buildings.find((b) => b.id === def.id),
           order = buildingOrder(world, def.id);
-        return `<article><h3>${def.name} <small>${b?.level ? `Lv${b.level}` : '预留位'}</small></h3><p>${costText(order.cost)} · ${def.duration} 步</p>${b?.targetLevel ? `<progress value="${b.progress}" max="${def.duration}"></progress><small>建造 ${Math.floor((b.progress / def.duration) * 100)}%</small>` : `<button data-build="${def.id}" ${order.available ? '' : 'disabled'} title="${order.reason}">${order.reason || (b?.level ? '升级' : '建造')}</button>`}</article>`;
+        return `<article><h3>${def.name} <small>${b?.level ? `Lv${b.level}` : '预留位'}</small></h3><p>${formatLog(costText(order.cost))} · ${def.duration} 步</p>${b?.targetLevel ? `<progress value="${b.progress}" max="${def.duration}"></progress><small>建造 ${Math.floor((b.progress / def.duration) * 100)}%</small>` : `<button data-build="${def.id}" ${order.available ? '' : 'disabled'} title="${order.reason}">${order.reason || (b?.level ? '升级' : '建造')}</button>`}</article>`;
       })
       .join('');
     el('legacy').innerHTML =
@@ -194,10 +196,18 @@ export async function start() {
       (offline
         ? '<button id="offline-hint" class="event-hint"><i></i>离线纪事待阅 →</button>'
         : '');
+    const latest = [...world.events].sort(
+      (a, b) => b.createdTick - a.createdTick,
+    )[0];
+    const unread = world.events.length + Number(!!offline);
+    const compact = el<HTMLButtonElement>('compact-event');
+    compact.hidden = unread === 0;
+    compact.innerHTML = `<i aria-hidden="true"></i><b>${escape(latest?.hint ?? '离线纪事待阅')}</b><span>未读 ${unread} · 展开 →</span>`;
+    compact.onclick = () => (latest ? eventModal(latest.id) : showOffline());
     el('logs').innerHTML = world.logs
       .slice()
       .reverse()
-      .map((t) => `<li>${escape(t)}</li>`)
+      .map((t) => `<li>${escape(formatLog(t))}</li>`)
       .join('');
     el('events')
       .querySelectorAll<HTMLButtonElement>('[data-event]')
@@ -221,7 +231,7 @@ export async function start() {
     const event = world.events.find((e) => e.id === id);
     if (!event) return;
     show(
-      `<p class="eyebrow">◇ ${escape(event.kind)} · 图标占位</p><h2>${escape(event.hint)}</h2><p>${escape(event.text)}</p><div class="actions">${event.options.map((o, i) => `<button data-choice="${i}" ${optionAvailable(world, event, i) ? '' : 'disabled'}>${escape(o)}${i === (defaultOption(world, event) < 0 ? event.defaultOption : defaultOption(world, event)) ? ' · ★默认' : ''}<small>${costText(event.choices[i]?.cost ?? {})}${optionAvailable(world, event, i) ? '' : ' · 条件或资源不足'}</small></button>`).join('')}</div>`,
+      `<p class="eyebrow">◇ ${escape(event.kind)} · 图标占位</p><h2>${escape(event.hint)}</h2><p>${escape(event.text)}</p><div class="actions">${event.options.map((o, i) => `<button data-choice="${i}" ${optionAvailable(world, event, i) ? '' : 'disabled'}>${escape(o)}${i === (defaultOption(world, event) < 0 ? event.defaultOption : defaultOption(world, event)) ? ' · ★默认' : ''}<small>${formatLog(costText(event.choices[i]?.cost ?? {}))}${optionAvailable(world, event, i) ? '' : ' · 条件或资源不足'}</small></button>`).join('')}</div>`,
     );
     el('modal-body')
       .querySelectorAll<HTMLButtonElement>('[data-choice]')
@@ -262,12 +272,12 @@ export async function start() {
     if (!offline) return;
     const s = offline;
     show(
-      `<p class="eyebrow">重返山门</p><h2>离线期间发生的事</h2><p>离线 ${(s.elapsedMs / 3600000).toFixed(2)} 小时，有效 ${(s.effectiveMs / 60000).toFixed(1)} 分钟，共 ${s.rounds} 轮。</p><p>灵石 +${fmt(s.resources.stone)} · 灵草 +${fmt(s.resources.herb)} · 丹药 ${fmt(s.resources.pill)} · 声望 +${fmt(s.resources.reputation)}</p><p>${s.clockRollback ? '检测到时钟回拨或无效时间，本次未补算。' : ''}${s.clamped === 'over7d' ? '已按七天上限结算。' : ''}${s.warehouseFull ? '库房已满，溢出资源已舍弃。' : ''}</p><ul>${[
+      `<p class="eyebrow">重返山门</p><h2>离线期间发生的事</h2><p>离线 ${(s.elapsedMs / 3600000).toFixed(2)} 小时，有效 ${(s.effectiveMs / 60000).toFixed(1)} 分钟，共 ${s.rounds} 轮。</p><p>灵石 +${formatResource(s.resources.stone, 'stone')} · 灵草 +${formatResource(s.resources.herb, 'herb')} · 丹药 ${formatResource(s.resources.pill, 'pill')} · 声望 +${formatResource(s.resources.reputation, 'reputation')}</p><p>${s.clockRollback ? '检测到时钟回拨或无效时间，本次未补算。' : ''}${s.clamped === 'over7d' ? '已按七天上限结算。' : ''}${s.warehouseFull ? '库房已满，溢出资源已舍弃。' : ''}</p><ul>${[
         ...s.relations,
         ...s.hints,
       ]
         .slice(0, 10)
-        .map((t) => `<li>${escape(t)}</li>`)
+        .map((t) => `<li>${escape(formatLog(t))}</li>`)
         .join(
           '',
         )}</ul><p>离线不筑基、不坐化；年龄最多推进八季。</p><button id="offline-ok">已阅，回山</button>`,

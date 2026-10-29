@@ -1,3 +1,4 @@
+import { formatResources, formatLog } from '../src/display/format';
 import { loadData } from '../src/sim/data';
 import {
   createWorld,
@@ -34,7 +35,7 @@ for (let n = 0; n < count; n++) {
     }
     if (!args.includes('--seeds'))
       console.log(
-        `第 ${w.round} 轮｜资源 ${JSON.stringify(w.resources)}\n建筑：${w.buildings.map((b) => `${b.name} Lv${b.level}${b.targetLevel ? '（建造中）' : ''}`).join('；')}\n弟子：${w.disciples.map((d) => `${d.name} ${d.realm.major}${d.realm.layer}层 ${d.stage}`).join('；')}\n事件：${w.logs.slice(before).join('；')}\n故事：${['A', 'B', 'C', 'D'].map((c) => `${c} ${[1, 2, 3].filter((i) => w.flags[`done:EV_${c}${i}`] !== undefined).length}`).join(' / ')}`,
+        `第 ${w.round} 轮｜资源 ${JSON.stringify(formatResources(w.resources))}\n建筑：${w.buildings.map((b) => `${b.name} Lv${b.level}${b.targetLevel ? '（建造中）' : ''}`).join('；')}\n弟子：${w.disciples.map((d) => `${d.name} ${d.realm.major}${d.realm.layer}层 ${d.stage}`).join('；')}\n事件：${w.logs.slice(before).map(formatLog).join('；')}\n故事：${['A', 'B', 'C', 'D'].map((c) => `${c} ${[1, 2, 3].filter((i) => w.flags[`done:EV_${c}${i}`] !== undefined).length}`).join(' / ')}`,
       );
   }
   results.push(w);

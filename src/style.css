@@ -710,3 +710,53 @@ progress {
     display: none;
   }
 }
+
+#compact-event {
+  display: none;
+}
+@media (max-width: 480px) {
+  #game {
+    padding-bottom: 44px;
+  }
+  .journal {
+    display: none;
+  }
+  #compact-event {
+    position: fixed;
+    bottom: 8px;
+    left: 8px;
+    width: calc(100% - 16px);
+    height: 32px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    z-index: 4;
+    margin: 0;
+  }
+  /* The fixed hint stays visible even though the desktop journal is hidden. */
+  .journal:has(#compact-event:not([hidden])) {
+    display: contents;
+  }
+  .journal #events {
+    display: none;
+  }
+  #compact-event i {
+    flex: 0 0 6px;
+    margin: 0;
+  }
+  #compact-event b {
+    min-width: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-weight: normal;
+  }
+  #compact-event span {
+    display: inline;
+    flex-shrink: 0;
+    margin-left: auto;
+  }
+  #notice {
+    bottom: 48px;
+  }
+}

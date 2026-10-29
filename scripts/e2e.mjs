@@ -29,8 +29,8 @@ try {
   url.searchParams.set('speed', soak ? '100' : '1');
   await page.goto(url.href);
   await page.waitForFunction(() => !!window.__xianfu);
-  const shot = (name) =>
-    page.screenshot({ path: `docs/screenshots/${name}.png`, fullPage: true });
+  const shot = (name, fullPage = true) =>
+    page.screenshot({ path: `docs/screenshots/${name}.png`, fullPage });
   if (soak) {
     const start = await page.evaluate(() => window.__xianfu.world());
     const started = Date.now();
@@ -79,7 +79,7 @@ try {
     });
     await page.reload();
     await page.getByRole('heading', { name: '离线期间发生的事' }).waitFor();
-    await shot('03-offline');
+    await shot('03-offline', false);
     await page.locator('#offline-ok').click();
     await page.locator('#save-open').click();
     const downloaded = page.waitForEvent('download');
@@ -103,7 +103,7 @@ try {
       await page.evaluate(() => window.__xianfu.world()),
       before,
     );
-    await shot('04-export-import');
+    await shot('04-export-import', false);
     await page.locator('#close').click();
     await page.evaluate(() => {
       window.__xianfu.reset();
@@ -111,7 +111,7 @@ try {
     });
     await page.locator('#events [data-event]').first().click();
     await page.locator('[data-choice]').first().waitFor();
-    await shot('05-event');
+    await shot('05-event', false);
     await page.locator('#close').click();
     await page.setViewportSize({ width: 480, height: 320 });
     assert.equal(await page.locator('#modal').isVisible(), false);
@@ -119,7 +119,32 @@ try {
     assert.ok(
       await page.evaluate(() => document.documentElement.scrollWidth <= 480),
     );
-    await shot('06-compact');
+    const hint = page.locator('#compact-event');
+    assert.equal(await hint.isVisible(), true);
+    const pending = await page.evaluate(() => window.__xianfu.world().events);
+    assert.ok(pending.length > 0);
+    assert.ok((await hint.innerText()).includes(pending.at(-1).hint));
+    assert.ok((await hint.innerText()).includes(`未读 ${pending.length}`));
+    assert.equal(await hint.locator('i').isVisible(), true);
+    const box = await hint.boundingBox();
+    const resources = await page.locator('#resources').boundingBox();
+    assert.ok(box && resources);
+    assert.ok(box.x >= 0 && box.x + box.width <= 480);
+    assert.ok(
+      box.y >= resources.y + resources.height && box.y + box.height <= 320,
+    );
+    await shot('06-compact', false);
+    await hint.click();
+    await page.locator('[data-choice]').first().waitFor();
+    await page.locator('[data-choice]:not([disabled])').first().click();
+    assert.equal(await page.locator('#modal').isVisible(), false);
+    assert.equal(
+      await page.evaluate(
+        (id) => window.__xianfu.world().events.some((e) => e.id === id),
+        pending.at(-1).id,
+      ),
+      false,
+    );
     assert.deepEqual(errors, []);
     console.log('六项截图与交互断言通过。');
   }
