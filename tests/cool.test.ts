@@ -19,6 +19,7 @@ import { worldMap } from '../src/render/world';
 import { buildingLabelObstacles } from '../src/render/building-labels';
 import { createWorld, step } from '../src/sim/world';
 import { loadData } from '../src/sim/data';
+import { DISCIPLE_HEIGHT } from '../src/render/world-scale';
 
 type P = [number, number];
 const clone = () => JSON.parse(JSON.stringify(raw));
@@ -204,17 +205,17 @@ describe('cool 打开时的可走区域与寻路', () => {
     });
     expect(Number.isFinite(seconds)).toBe(true);
     expect(w.WALK_SPEED).toBe(20);
-    // Lore 选定：主殿入口在西侧台阶，k=0.6 时落入 8–15 s 目标（实测 14.19 s）。
+    // Lore 选 A：主殿入口跟随 Iris 台阶脚，k=0.6 时落入 8–15 s 目标（实测 13.00 s）。
     expect(seconds).toBeGreaterThanOrEqual(8);
     expect(seconds).toBeLessThanOrEqual(15);
-    expect(seconds).toBeCloseTo(14.19, 1);
+    expect(seconds).toBeCloseTo(13.0, 1);
     expect(length / w.WALK_SPEED).toBeCloseTo(seconds, 6);
   });
-  it('主殿入口在西侧台阶：脚印西南面外侧、可走、A* 可达', () => {
+  it('主殿入口在西侧台阶脚：脚印西南面外侧、可走、A* 可达', () => {
     const src = coolWorldSchema
       .parse(raw)
       .slots.find((s) => s.id === 'B_HALL')!;
-    expect(src.entrance).toEqual([470, 330]);
+    expect(src.entrance).toEqual([488, 374]);
     const hall = cool.slots.find((s) => s.id === 'B_HALL')!;
     const poly = (hall.footprint as { polygon: P[] }).polygon;
     const [west, south] = [poly[0], poly[1]];
@@ -233,6 +234,42 @@ describe('cool 打开时的可走区域与寻路', () => {
         w.findPath(s.entrance, hall.entrance).length,
         s.id,
       ).toBeGreaterThanOrEqual(2);
+    }
+  });
+  it('社交站位 5 在主殿台阶前约一个身位，且不挡入口通道（A* 路径）', () => {
+    const hall = cool.slots.find((s) => s.id === 'B_HALL')!.entrance;
+    const spot = cool.spots.find((s) => s.id === 'C_SOCIAL_5')!.point;
+    expect(w.walkable(spot)).toBe(true);
+    const gap = Math.hypot(spot[0] - hall[0], spot[1] - hall[1]);
+    // 一个身位：不小于脚距 FOOT_SPACING，不超过弟子身高。
+    expect(gap).toBeGreaterThanOrEqual(w.FOOT_SPACING);
+    expect(gap).toBeLessThanOrEqual(DISCIPLE_HEIGHT);
+    const seg = (p: P, a: P, b: P) => {
+      const dx = b[0] - a[0],
+        dy = b[1] - a[1],
+        l = dx * dx + dy * dy;
+      const u = l
+        ? Math.max(
+            0,
+            Math.min(1, ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / l),
+          )
+        : 0;
+      return Math.hypot(p[0] - a[0] - u * dx, p[1] - a[1] - u * dy);
+    };
+    const sources: P[] = [
+      ...cool.slots.filter((s) => s.id !== 'B_HALL').map((s) => s.entrance),
+      ...cool.spots.filter((s) => s.id !== 'C_SOCIAL_5').map((s) => s.point),
+      cool.quarry,
+      cool.expeditionPoint,
+    ];
+    for (const from of sources) {
+      const path = w.findPath(from, hall);
+      expect(path.length).toBeGreaterThanOrEqual(2);
+      for (let i = 1; i < path.length; i++)
+        expect(
+          seg(spot, path[i - 1], path[i]),
+          `${from}`,
+        ).toBeGreaterThanOrEqual(w.FOOT_SPACING);
     }
   });
 });
