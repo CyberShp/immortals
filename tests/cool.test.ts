@@ -222,17 +222,17 @@ describe('cool 打开时的可走区域与寻路', () => {
     });
     expect(Number.isFinite(seconds)).toBe(true);
     expect(w.WALK_SPEED).toBe(20);
-    // D 档重排：主殿入口在 Iris 台阶脚，落入 8–15 s 目标（实测约 11.5 s）。
+    // D 档重排：主殿入口在 Iris 台阶脚，落入 8–15 s 目标（08 增补 R7 换 hall-v2 后实测约 12.0 s，N20）。
     expect(seconds).toBeGreaterThanOrEqual(8);
     expect(seconds).toBeLessThanOrEqual(15);
-    expect(seconds).toBeCloseTo(11.5, 0);
+    expect(seconds).toBeCloseTo(12.0, 0);
     expect(length / w.WALK_SPEED).toBeCloseTo(seconds, 6);
   });
   it('主殿入口在台阶脚（Iris 登记换算的世界坐标）：脚印外、可走、A* 可达', () => {
     const src = coolWorldSchema
       .parse(raw)
       .slots.find((s) => s.id === 'B_HALL')!;
-    expect(src.entrance).toEqual([1363.1, 789.7]);
+    expect(src.entrance).toEqual([1371.4, 776.8]);
     const hall = cool.slots.find((s) => s.id === 'B_HALL')!;
     expect(w.inFootprint(hall.entrance, hall.footprint)).toBe(false);
     expect(w.walkable(hall.entrance)).toBe(true);

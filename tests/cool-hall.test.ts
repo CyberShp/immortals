@@ -54,7 +54,7 @@ describe('cool-hall.json 几何', () => {
     const bad = JSON.parse(JSON.stringify(raw));
     bad.layers.roof.file = 'map/world.webp';
     expect(coolHallSchema.safeParse(bad).success).toBe(false);
-    expect(hall.hallZ).toBeCloseTo(881.6, 6);
+    expect(hall.hallZ).toBeCloseTo(872.6, 6);
   });
   it('16 站位两两间距 ≥63 世界 px，都在内景范围内；1 号最靠宝座', () => {
     for (const [i, a] of hall.stations.entries()) {
@@ -71,6 +71,39 @@ describe('cool-hall.json 几何', () => {
     }
     const toThrone = hall.stations.map((p) => d(p, hall.throne));
     expect(Math.min(...toThrone)).toBe(toThrone[0]);
+  });
+  it('08 增补 R2/R7：8 把交椅分列过道两侧（1 号离宝座最近、奇偶分侧），同侧 ≥32、离站位 ≥40；13 柱、客座只画', () => {
+    expect(hall.layers.columns).toHaveLength(13);
+    expect(hall.layers.base.file.startsWith('cool/hall2/')).toBe(true);
+    expect(hall.chairs).toHaveLength(8);
+    const tf = hall.throneFront;
+    const dt = hall.chairs.map((c) => d(c.point, tf));
+    expect(Math.min(...dt)).toBe(dt[0]);
+    // 过道方向（八卦→宝座）的叉积定侧：奇数号同侧、偶数号另一侧。
+    const side = (p: readonly number[]) =>
+      Math.sign(
+        (hall.throne[0] - tf[0]) * (p[1] - tf[1]) -
+          (hall.throne[1] - tf[1]) * (p[0] - tf[0]),
+      );
+    const odd = side(hall.chairs[0].point);
+    for (const [i, c] of hall.chairs.entries()) {
+      expect(side(c.point), `交椅 ${i + 1}`).toBe(i % 2 ? -odd : odd);
+      for (const [j, e] of hall.chairs.entries())
+        if (j > i && j % 2 === i % 2)
+          expect(d(c.point, e.point)).toBeGreaterThanOrEqual(32);
+      for (const s of hall.stations)
+        expect(d(c.point, s)).toBeGreaterThanOrEqual(40);
+    }
+    // 同侧朝向一致（无背面帧：两侧各一个朝向）。
+    expect(
+      new Set(hall.chairs.filter((_, i) => i % 2 === 0).map((c) => c.face))
+        .size,
+    ).toBe(1);
+    expect(
+      new Set(hall.chairs.filter((_, i) => i % 2 === 1).map((c) => c.face))
+        .size,
+    ).toBe(1);
+    expect(hall.guests.length).toBeGreaterThanOrEqual(1);
   });
   it('排队位 = 列队区前 4 个；列队位两两不重叠（≥ 脚距 28），都在脚印外', () => {
     expect(hall.lineup.slice(0, 4)).toEqual(hall.queue);

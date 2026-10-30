@@ -1226,8 +1226,8 @@
       ]
     }
   ],
-  "assetBytes": 4176746,
-  "totalBytes": 4236630,
+  "assetBytes": 4449744,
+  "totalBytes": 4513601,
   "groups": {
     "cool": {
       "firstScreen": false,
@@ -1659,6 +1659,102 @@
           "size": [917, 598],
           "bytes": 86538,
           "source": "hall-final-v1/building_hall_interior_cool_v1.png（分界线以上：殿内地面/后墙/宝座）"
+        },
+        {
+          "file": "cool/hall2/hall-base.webp",
+          "size": [834, 289],
+          "bytes": 31022,
+          "source": "hall-v2 内景 building_hall_interior_cool_v2_registered_basefix.png（台基 = ×platform_base_mask / 内景 = ×(1−mask)）"
+        },
+        {
+          "file": "cool/hall2/hall-col-01.webp",
+          "size": [27, 157],
+          "bytes": 1122,
+          "source": "hall-v2 外观 building_hall_exterior_cool_v2.png 13 根柱身（青玉/金箍颜色掩膜）+柱础"
+        },
+        {
+          "file": "cool/hall2/hall-col-02.webp",
+          "size": [29, 175],
+          "bytes": 1530,
+          "source": "hall-v2 外观 building_hall_exterior_cool_v2.png 13 根柱身（青玉/金箍颜色掩膜）+柱础"
+        },
+        {
+          "file": "cool/hall2/hall-col-03.webp",
+          "size": [25, 152],
+          "bytes": 576,
+          "source": "hall-v2 外观 building_hall_exterior_cool_v2.png 13 根柱身（青玉/金箍颜色掩膜）+柱础"
+        },
+        {
+          "file": "cool/hall2/hall-col-04.webp",
+          "size": [25, 154],
+          "bytes": 882,
+          "source": "hall-v2 外观 building_hall_exterior_cool_v2.png 13 根柱身（青玉/金箍颜色掩膜）+柱础"
+        },
+        {
+          "file": "cool/hall2/hall-col-05.webp",
+          "size": [25, 155],
+          "bytes": 840,
+          "source": "hall-v2 外观 building_hall_exterior_cool_v2.png 13 根柱身（青玉/金箍颜色掩膜）+柱础"
+        },
+        {
+          "file": "cool/hall2/hall-col-06.webp",
+          "size": [25, 160],
+          "bytes": 892,
+          "source": "hall-v2 外观 building_hall_exterior_cool_v2.png 13 根柱身（青玉/金箍颜色掩膜）+柱础"
+        },
+        {
+          "file": "cool/hall2/hall-col-07.webp",
+          "size": [25, 162],
+          "bytes": 960,
+          "source": "hall-v2 外观 building_hall_exterior_cool_v2.png 13 根柱身（青玉/金箍颜色掩膜）+柱础"
+        },
+        {
+          "file": "cool/hall2/hall-col-08.webp",
+          "size": [25, 161],
+          "bytes": 964,
+          "source": "hall-v2 外观 building_hall_exterior_cool_v2.png 13 根柱身（青玉/金箍颜色掩膜）+柱础"
+        },
+        {
+          "file": "cool/hall2/hall-col-09.webp",
+          "size": [25, 162],
+          "bytes": 952,
+          "source": "hall-v2 外观 building_hall_exterior_cool_v2.png 13 根柱身（青玉/金箍颜色掩膜）+柱础"
+        },
+        {
+          "file": "cool/hall2/hall-col-10.webp",
+          "size": [25, 174],
+          "bytes": 968,
+          "source": "hall-v2 外观 building_hall_exterior_cool_v2.png 13 根柱身（青玉/金箍颜色掩膜）+柱础"
+        },
+        {
+          "file": "cool/hall2/hall-col-11.webp",
+          "size": [29, 159],
+          "bytes": 702,
+          "source": "hall-v2 外观 building_hall_exterior_cool_v2.png 13 根柱身（青玉/金箍颜色掩膜）+柱础"
+        },
+        {
+          "file": "cool/hall2/hall-col-12.webp",
+          "size": [29, 151],
+          "bytes": 696,
+          "source": "hall-v2 外观 building_hall_exterior_cool_v2.png 13 根柱身（青玉/金箍颜色掩膜）+柱础"
+        },
+        {
+          "file": "cool/hall2/hall-col-13.webp",
+          "size": [29, 154],
+          "bytes": 854,
+          "source": "hall-v2 外观 building_hall_exterior_cool_v2.png 13 根柱身（青玉/金箍颜色掩膜）+柱础"
+        },
+        {
+          "file": "cool/hall2/hall-roof.webp",
+          "size": [835, 728],
+          "bytes": 122836,
+          "source": "hall-v2 外观 building_hall_exterior_cool_v2.png ×(1−platform_base_mask)"
+        },
+        {
+          "file": "cool/hall2/hall-room.webp",
+          "size": [837, 655],
+          "bytes": 107202,
+          "source": "hall-v2 内景 building_hall_interior_cool_v2_registered_basefix.png（台基 = ×platform_base_mask / 内景 = ×(1−mask)）"
         },
         {
           "file": "cool/props/chair-guest.webp",

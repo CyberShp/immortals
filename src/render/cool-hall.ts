@@ -7,7 +7,7 @@ import raw from './cool-hall.json';
 export type P = [number, number];
 const point = z.tuple([z.number().finite(), z.number().finite()]);
 const layer = z.object({
-  file: z.string().startsWith('cool/hall/'),
+  file: z.string().regex(/^cool\/hall2?\//),
   size: z.tuple([z.number().int().positive(), z.number().int().positive()]),
   x: z.number(),
   y: z.number(),
@@ -22,14 +22,19 @@ export const coolHallSchema = z.object({
   throne: point,
   throneFront: point,
   stations: z.array(point).length(16),
-  guests: z.array(point).length(4),
+  /** 08 增补 R2：8 把交椅（筑基资历 1–8 号；1 号离宝座最近，奇偶分列过道两侧）。face：人物朝向（无背面帧，左右各一）。 */
+  chairs: z
+    .array(z.object({ point, face: z.enum(['left', 'right']) }))
+    .length(8),
+  /** 客座：只画不分配（08 增补 R2）。 */
+  guests: z.array(point).min(1),
   queue: z.array(point).length(4),
   lineup: z.array(point).min(8),
   layers: z.object({
     base: layer,
     room: layer,
     roof: layer,
-    columns: z.array(layer.extend({ foot: point })).length(6),
+    columns: z.array(layer.extend({ foot: point })).min(1),
   }),
 });
 export type CoolHall = z.infer<typeof coolHallSchema> & { hallZ: number };
