@@ -37,7 +37,8 @@ import {
 } from './roof-fade';
 import { DISCIPLE_HEIGHT } from './world-scale';
 import {
-  ASSEMBLY,
+  coolMotionMs,
+  gatherSpeedFactor,
   DOOR_FADE,
   addLateJoiner,
   approachParam,
@@ -167,7 +168,7 @@ type Motion = {
   roofIndoor?: { from: Point; to: Point; start: number };
   /** cool 主殿：当前路线的门口位置与殿内/殿外状态（仅表现层）。 */
   coolRoute?: HallRoute;
-  /** cool 召集：迟暮弟子走速 ×0.7（P6 ③）；其余为 1 / undefined。 */
+  /** cool 召集/讲道聚集段走速系数（08 增补 1.1：×1.6）；日常与散场为 undefined（1.0）。 */
   speedFactor?: number;
 };
 declare global {
@@ -1865,8 +1866,8 @@ export async function createMap(
       return {
         point: seat ? (seat.point ?? overflow(seat.index)) : destinations[i],
         inside: !!seat?.inside,
-        speedFactor:
-          held && d.stage === '迟暮' ? ASSEMBLY.elderSpeed : undefined,
+        // 08 增补 1.1：聚集段 ×1.6（含仪式中仍在路上的迟到者）；散场放人后恢复 1.0。
+        speedFactor: held ? gatherSpeedFactor(d.stage) : undefined,
       };
     });
   }
@@ -1934,7 +1935,12 @@ export async function createMap(
       else {
         m.row = row;
         m.indoorIndex = indoorIndex;
-        if (m.toX !== x || m.toY !== y) {
+        // cool：目标不变但聚集提速开/关（如召集席位恰是日常站位）且仍在路上 → 从当前位置重排一段。
+        const speedChanged =
+          !!coolHall &&
+          (m.speedFactor ?? 1) !== (ct?.speedFactor ?? 1) &&
+          now - m.start < m.duration;
+        if (m.toX !== x || m.toY !== y || speedChanged) {
           const previousFoot: [number, number] = [m.x, m.y];
           [m.x, m.y] = alongPath(
             m.path,
@@ -1983,12 +1989,12 @@ export async function createMap(
           if (!path.length) continue;
           m.roofIndoor = undefined;
           m.path = path;
-          m.duration =
-            m.speedFactor === undefined
-              ? (pathLength(path) / (routeSpeed(path) * walkScale)) * 1000
-              : (pathLength(path) /
-                  (routeSpeed(path) * walkScale * m.speedFactor)) *
-                1000;
+          m.duration = coolMotionMs(
+            pathLength(path),
+            routeSpeed(path),
+            walkScale,
+            m.speedFactor,
+          );
           m.row = row;
           m.fromX = m.x;
           m.fromY = m.y;

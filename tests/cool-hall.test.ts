@@ -2,6 +2,8 @@
 import { afterAll, beforeAll, describe, expect, it, vi } from 'vitest';
 import {
   ASSEMBLY,
+  coolMotionMs,
+  gatherSpeedFactor,
   COOL_ROOF,
   DOOR_FADE,
   HALL_CAPACITY,
@@ -27,6 +29,7 @@ import {
   type CoolRoof,
   type P,
 } from '../src/render/cool-hall';
+import { routeSpeed } from '../src/render/world';
 import raw from '../src/render/cool-hall.json';
 
 const hall = buildCoolHall(raw);
@@ -291,7 +294,7 @@ describe('召集全员（4.6，P6 推荐口径）', () => {
       index: 2,
     });
   });
-  it('计时：到齐或 30 s 超时开仪式，仪式 20 s，散开列队区先走、殿内 16→1', () => {
+  it('计时：到齐或 50 s 超时开仪式，仪式 20 s，散开列队区先走、殿内 16→1', () => {
     const order = Array.from({ length: 18 }, (_, i) => `D${i + 1}`);
     let a = startAssembly(hall, order, 't')!;
     a = assemblyTick(a, ASSEMBLY.gatherTimeoutMs - 1, false)!;
@@ -383,5 +386,36 @@ describe('cool 打开时：排队位/列队位在可走区且不压入口通道�
       expect(w.channelClearance(p as P, paths), `${p}`).toBeGreaterThan(28);
     }
     expect(cool.slots.find((s) => s.id === 'B_HALL')!.entrance).toEqual(e);
+  });
+  it('N1/N4/N5：聚集段 duration = 路长/(routeSpeed×1.6×迟暮系数=1)；日常/散场 1.0；上限 50 s、仪式 20 s、放人 700 ms', () => {
+    expect(ASSEMBLY.gatherTimeoutMs).toBe(50_000);
+    expect(ASSEMBLY.ceremonyMs).toBe(20_000);
+    expect(ASSEMBLY.releaseGapMs).toBe(700);
+    expect(gatherSpeedFactor('壮年')).toBe(1.6);
+    expect(gatherSpeedFactor('迟暮')).toBe(1.6);
+    for (const len of [131, 650, 1569, 1600, 1780]) {
+      const path: [number, number][] = [
+        [0, 0],
+        [len, 0],
+      ];
+      const v = routeSpeed(path);
+      expect(coolMotionMs(len, v, 1, gatherSpeedFactor('迟暮'))).toBeCloseTo(
+        (len / (v * 1.6)) * 1000,
+        6,
+      );
+      // 日常 / 散场：不带系数 = 1.0 倍。
+      expect(coolMotionMs(len, v, 1, undefined)).toBeCloseTo(
+        (len / v) * 1000,
+        6,
+      );
+      // 全图任意路线聚集 ≤ 80/1.6 = 50 s。
+      expect(coolMotionMs(len, v, 1, 1.6)).toBeLessThanOrEqual(50_000 + 1e-6);
+    }
+    expect(
+      routeSpeed([
+        [0, 0],
+        [1000, 0],
+      ]) * 1.6,
+    ).toBe(32);
   });
 });

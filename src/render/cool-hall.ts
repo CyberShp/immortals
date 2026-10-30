@@ -388,15 +388,33 @@ export function addLateJoiner(
   return seats.get(id)!;
 }
 
-// ---------- 召集计时（P6 推荐：到齐超时 30 s、仪式 20 s）----------
+// ---------- 召集计时（08 增补 1.1 + 拍板 #1：到齐上限 50 s、仪式 20 s）----------
 export const ASSEMBLY = {
-  gatherTimeoutMs: 30_000,
+  /** 08 增补拍板 #1：等待上限 50 s（原 P6 推荐 30 s）。 */
+  gatherTimeoutMs: 50_000,
   ceremonyMs: 20_000,
   /** 散开时相邻两人出发间隔，避免门口对穿。 */
   releaseGapMs: 700,
-  /** P6 ③：迟暮弟子走速 ×0.7。 */
+  /** 08 增补 1.1：聚集段（走向自己的席位）速度 = routeSpeed × 1.6，到席位即恢复。 */
+  gatherSpeed: 1.6,
+  /** P6 ③ 迟暮 ×0.7；08 增补拍板 #1：聚集段不再减速（系数 1），日常/散场不提速也不在此处减速。 */
   elderSpeed: 0.7,
+  elderGatherFactor: 1,
 };
+/** 聚集段速度系数（召集、讲道共用）：1.6 × 迟暮系数（拍板 #1 = 1）。 */
+export const gatherSpeedFactor = (stage: string | undefined) =>
+  ASSEMBLY.gatherSpeed * (stage === '迟暮' ? ASSEMBLY.elderGatherFactor : 1);
+/** 一段路线的走完时间（ms）：路长 / (routeSpeed × walkScale × 系数)；系数缺省 = 1.0（日常/散场）。 */
+export function coolMotionMs(
+  length: number,
+  speed: number,
+  walkScale = 1,
+  factor?: number,
+) {
+  return factor === undefined
+    ? (length / (speed * walkScale)) * 1000
+    : (length / (speed * walkScale * factor)) * 1000;
+}
 export type Assembly = {
   phase: 'gather' | 'ceremony' | 'disperse';
   /** 只在未暂停时累加的召集时钟（老板键暂停时一起停）。 */
