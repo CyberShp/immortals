@@ -71,6 +71,8 @@ import {
   type HallRoute,
   type Seat,
   type TriggerState,
+  coolFloorParam,
+  type CoolRoom,
 } from './cool-hall';
 import {
   SERMON,
@@ -295,6 +297,10 @@ export async function createMap(
   const coolHall = cool ? buildCoolHall() : undefined;
   let coolRoof: CoolRoof = roofClosed();
   let coolRoofHold: number | undefined;
+  // v4g 楼层视图：auto = 按殿内有人淡出屋顶、内景为正殿；固定楼层 = 屋顶淡出并保持，显示该层内景。
+  let coolFloor: CoolRoom | 'auto' = coolHall
+    ? coolFloorParam(location.search)
+    : 'auto';
   let coolOccupied = false;
   let dailyMap = new Map<string, Seat>();
   let assembly: Assembly | undefined;
@@ -389,6 +395,7 @@ export async function createMap(
           const now = performance.now();
           return {
             roofAlpha: coolRoofHold ?? coolRoofAlpha(coolRoof, now),
+            floor: coolFloor,
             roof: { ...coolRoof },
             occupied: coolOccupied,
             assemblyEnabled,
@@ -503,6 +510,18 @@ export async function createMap(
           cancelFrame();
           paint(performance.now());
         },
+        /** 调试/楼层切换：'main' | 'left' | 'right' | 'floor2' 固定楼层（屋顶淡出并保持），'auto' 恢复按殿内有人淡出。三层只有外观。 */
+        view: (floor: CoolRoom | 'auto' = 'auto') => {
+          if (!coolHall) return;
+          const rooms = coolHall.layers.rooms ?? {};
+          coolFloor =
+            floor === 'main' || (floor !== 'auto' && rooms[floor])
+              ? floor
+              : 'auto';
+          cancelFrame();
+          paint(performance.now());
+          return coolFloor;
+        },
       },
     });
   const app = new Application();
@@ -535,6 +554,11 @@ export async function createMap(
         coolHall.layers.room,
         coolHall.layers.roof,
         ...coolHall.layers.columns,
+        ...(coolHall.layers.shadow ? [coolHall.layers.shadow] : []),
+        ...(coolHall.layers.outerColumns ?? []),
+        ...(coolHall.layers.carpet ? [coolHall.layers.carpet] : []),
+        ...(coolHall.layers.stairs ?? []),
+        ...Object.values(coolHall.layers.rooms ?? {}),
       ].map((l) => ({ file: l.file, size: l.size, anchor: { x: 0, y: 0 } }))
     : [
         { file: groundFile, size: [3200, 1400], anchor: { x: 0, y: 0 } },
@@ -1056,10 +1080,17 @@ export async function createMap(
     }
 
     let breathingGlow = false;
-    // cool 主殿：台基层(z=hallZ-1) / 内景层(z=-900) / 6 柱(z=柱脚 y) / 外观屋顶层(z=hallZ, α=屋顶淡变)。
-    // 屋顶完全不透明时不画内景与柱（被屋顶整盖）；只淡屋顶层（二 #14）。
-    coolRoof = coolRoofUpdate(coolRoof, coolOccupied, now);
+    // cool 主殿：落影(z=-905) / 台基层(z=hallZ-1) / 台阶层(z=hallZ-1，按楼层) / 内景层(z=-900) / 红毯(z=-899.5)
+    // / 金柱(z=柱脚 y) / 外檐柱(z=hallZ-0.5, α=屋顶) / 外观屋顶层(z=hallZ, α=屋顶淡变)。
+    // 屋顶完全不透明时不画内景与柱（被屋顶整盖）；只淡屋顶层与外檐柱（二 #14）。
+    // v4g 楼层视图：固定楼层时屋顶按"殿内有人"同样淡出并保持；内景换成该层。
+    coolRoof = coolRoofUpdate(
+      coolRoof,
+      coolOccupied || coolFloor !== 'auto',
+      now,
+    );
     const coolRoofNow = coolRoofHold ?? coolRoofAlpha(coolRoof, now);
+    const coolRoomNow: CoolRoom = coolFloor === 'auto' ? 'main' : coolFloor;
     const paintCoolHall = (id: string): boolean => {
       if (!coolHall || id !== 'B_HALL') return false;
       const L = coolHall.layers;
@@ -1075,9 +1106,16 @@ export async function createMap(
       };
       if (!textures.has(L.base.file) || !textures.has(L.roof.file))
         return false;
+      const floorNow = coolRoofNow < 1 ? coolRoomNow : 'outside';
+      if (L.shadow) add(L.shadow, -905);
       add(L.base, coolHall.hallZ - 1);
-      if (coolRoofNow < 1) {
+      for (const s of L.stairs ?? [])
+        if (s.floors.includes(floorNow)) add(s, coolHall.hallZ - 1);
+      if (coolRoofNow < 1 && coolRoomNow !== 'main')
+        add(L.rooms?.[coolRoomNow] ?? L.room, -900);
+      if (coolRoofNow < 1 && coolRoomNow === 'main') {
         add(L.room, -900);
+        if (L.carpet) add(L.carpet, -899.5);
         for (const c of L.columns) add(c, c.foot[1]);
         // 08 增补 R2：8 把交椅是殿内道具，只在屋顶淡出时随内景画；z 按坐点 y，略在坐者之下。
         for (const c of coolHall.chairs) {
@@ -1091,7 +1129,11 @@ export async function createMap(
           stats.coolChairs++;
         }
       }
-      if (coolRoofNow > 0) add(L.roof, coolHall.hallZ, coolRoofNow);
+      if (coolRoofNow > 0) {
+        add(L.roof, coolHall.hallZ, coolRoofNow);
+        for (const c of L.outerColumns ?? [])
+          add(c, coolHall.hallZ - 0.5, coolRoofNow);
+      }
       stats.buildingSprites++;
       const x0 = L.roof.x,
         y0 = L.roof.y,
@@ -1784,6 +1826,14 @@ export async function createMap(
         stats.fallbacks++;
       }
       group.alpha = alpha;
+      // v4g 楼层视图：殿内弟子都在一层正殿；看左右厅/二层时不画（sim 不变，只是不显示）。
+      if (
+        coolHall &&
+        hallStatus?.inside &&
+        coolRoomNow !== 'main' &&
+        coolRoofNow < 1
+      )
+        group.visible = false;
       if (d.state.injuredUntil > world.tick) {
         const injuryRing = new Graphics();
         const rx = compact ? marker.diameter / 2 / cam.zoom + 3 / cam.zoom : 30;
@@ -1894,7 +1944,7 @@ export async function createMap(
       coolOccupied = hallOccupied;
       active ||=
         roofAnimatingCool(coolRoof, now) ||
-        hallOccupied !== (coolRoof.to === 0);
+        (hallOccupied || coolFloor !== 'auto') !== (coolRoof.to === 0);
       lastCoolSeats = coolSeats;
       if (assembly && assemblyEnabled) {
         // 召集时钟只在未暂停（未按老板键、页面可见）时走；单帧最多计 100 ms。

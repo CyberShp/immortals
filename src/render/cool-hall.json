@@ -1,9 +1,43 @@
 {
-  "$comment": "主殿几何（世界坐标），08 增补 R7 起用 Iris hall-v2（外观+内景同画布已配准）。由 immortal-qa/art-rebuild/cool-rebuild/batch1-cut/v2/{floor,hall_v2,seats,gen_world_v2}.py 生成；像素→世界：k·p+t（统一缩放+平移，最小二乘对齐 v1 台基 L/F/R 三角，保持主殿在世界里的位置）。queue/lineup 由 artifacts/b1/lineup.ts 按新足迹重选。",
+  "$comment": "主殿几何（世界坐标），08 增补 R7 起用 Iris hall-v2（外观+内景同画布已配准）。由 immortal-qa/art-rebuild/cool-rebuild/batch1-cut/v2/{floor,hall_v2,seats,gen_world_v2}.py 生成；像素→世界：k·p+t（统一缩放+平移，最小二乘对齐 v1 台基 L/F/R 三角，保持主殿在世界里的位置）。queue/lineup 由 artifacts/b1/lineup.ts 按新足迹重选。 【过渡】layers 已换 v4g 切层，几何仍为 v2，下一提交迁移。",
   "source": {
-    "interior": "hall-v2 building_hall_interior_cool_v2_registered_basefix.png 1152×864",
-    "exterior": "hall-v2 building_hall_exterior_cool_v2.png 1152×864",
-    "mask": "hall-v2 platform_base_mask.png",
+    "exterior": "forge_roof_v1/hall_ext_v4g_roof_v1.png 1152×864",
+    "interiors": {
+      "main": "forge_interior_v1/hall_int_v4g_v3.png",
+      "left": "forge_interior_v1/side_left_v1.png",
+      "right": "forge_interior_v1/side_right_v1.png",
+      "floor2": "forge_interior_v1/floor2_council_v1.png"
+    },
+    "registration": {
+      "main": {
+        "affine": [
+          [1.0242738723754883, 0.007685818709433079, -14.828521728515625],
+          [0.011797666549682617, 1.0405967235565186, -31.487228393554688]
+        ],
+        "profileMAE": 1.58
+      },
+      "left": {
+        "affine": [
+          [1.0262422561645508, 0.017364980652928352, -21.98171043395996],
+          [0.02345728501677513, 1.0745079517364502, -57.79475784301758]
+        ],
+        "profileMAE": 2.76
+      },
+      "right": {
+        "affine": [
+          [1.0240979194641113, -0.006143463775515556, -5.2450971603393555],
+          [0.014736042357981205, 1.029015302658081, -24.180299758911133]
+        ],
+        "profileMAE": 1.19
+      },
+      "floor2": {
+        "affine": [
+          [1.0209709405899048, 0.03597356006503105, -33.14060974121094],
+          [0.019455639645457268, 1.0503143072128296, -43.904571533203125]
+        ],
+        "profileMAE": 1.2
+      }
+    },
     "k": 1.252587,
     "t": [887.368, -141.973]
   },
@@ -111,135 +145,215 @@
   ],
   "layers": {
     "base": {
-      "file": "cool/hall2/hall-base.webp",
-      "size": [834, 289],
+      "file": "cool/hall4/hall-base.webp",
+      "size": [835, 284],
       "x": 1102.8,
-      "y": 515.6,
+      "y": 518.1,
       "scale": 1.252587
     },
     "room": {
-      "file": "cool/hall2/hall-room.webp",
-      "size": [837, 655],
-      "x": 1102.8,
-      "y": 58.4,
+      "file": "cool/hall4/hall-room-main.webp",
+      "size": [820, 704],
+      "x": 1114.1,
+      "y": -104.4,
       "scale": 1.252587
     },
     "roof": {
-      "file": "cool/hall2/hall-roof.webp",
-      "size": [835, 728],
-      "x": 1105.3,
-      "y": -36.8,
+      "file": "cool/hall4/hall-roof.webp",
+      "size": [794, 659],
+      "x": 1132.9,
+      "y": -48.0,
       "scale": 1.252587
     },
     "columns": [
       {
-        "file": "cool/hall2/hall-col-01.webp",
-        "size": [27, 157],
-        "x": 1297.0,
-        "y": 324.0,
+        "file": "cool/hall4/hall-col-01.webp",
+        "size": [54, 285],
+        "x": 1387.2,
+        "y": 205.0,
         "scale": 1.252587,
-        "foot": [1313.2, 514.4]
+        "foot": [1421.0, 559.5]
       },
       {
-        "file": "cool/hall2/hall-col-02.webp",
-        "size": [29, 175],
-        "x": 1330.8,
-        "y": 320.2,
+        "file": "cool/hall4/hall-col-02.webp",
+        "size": [53, 282],
+        "x": 1514.9,
+        "y": 121.1,
         "scale": 1.252587,
-        "foot": [1348.3, 533.2]
+        "foot": [1547.5, 471.8]
       },
       {
-        "file": "cool/hall2/hall-col-03.webp",
-        "size": [25, 152],
-        "x": 1408.4,
-        "y": 324.0,
+        "file": "cool/hall4/hall-col-03.webp",
+        "size": [57, 289],
+        "x": 1643.9,
+        "y": 334.0,
         "scale": 1.252587,
-        "foot": [1423.5, 508.1]
+        "foot": [1680.3, 693.5]
       },
       {
-        "file": "cool/hall2/hall-col-04.webp",
-        "size": [25, 154],
-        "x": 1463.6,
+        "file": "cool/hall4/hall-col-04.webp",
+        "size": [53, 292],
+        "x": 1778.0,
+        "y": 246.3,
+        "scale": 1.252587,
+        "foot": [1814.3, 609.6]
+      }
+    ],
+    "shadow": {
+      "file": "cool/hall4/hall-shadow.webp",
+      "size": [905, 287],
+      "x": 1096.6,
+      "y": 516.9,
+      "scale": 1.252587
+    },
+    "outerColumns": [
+      {
+        "file": "cool/hall4/hall-ocol-01.webp",
+        "size": [37, 142],
+        "x": 1322.0,
+        "y": 311.5,
+        "scale": 1.252587,
+        "foot": [1344.6, 519.4]
+      },
+      {
+        "file": "cool/hall4/hall-ocol-02.webp",
+        "size": [37, 148],
+        "x": 1400.9,
         "y": 344.0,
         "scale": 1.252587,
-        "foot": [1478.6, 530.7]
+        "foot": [1423.5, 559.5]
       },
       {
-        "file": "cool/hall2/hall-col-05.webp",
-        "size": [25, 155],
-        "x": 1521.2,
-        "y": 364.1,
+        "file": "cool/hall4/hall-ocol-03.webp",
+        "size": [37, 149],
+        "x": 1493.6,
+        "y": 372.8,
         "scale": 1.252587,
-        "foot": [1536.2, 552.0]
+        "foot": [1516.2, 589.5]
       },
       {
-        "file": "cool/hall2/hall-col-06.webp",
-        "size": [25, 160],
-        "x": 1659.0,
-        "y": 412.9,
+        "file": "cool/hall4/hall-ocol-04.webp",
+        "size": [38, 149],
+        "x": 1631.4,
+        "y": 414.2,
         "scale": 1.252587,
-        "foot": [1674.0, 607.1]
+        "foot": [1654.6, 630.9]
       },
       {
-        "file": "cool/hall2/hall-col-07.webp",
-        "size": [25, 162],
-        "x": 1714.1,
-        "y": 433.0,
+        "file": "cool/hall4/hall-ocol-05.webp",
+        "size": [39, 149],
+        "x": 1727.9,
+        "y": 445.5,
         "scale": 1.252587,
-        "foot": [1729.1, 629.6]
+        "foot": [1751.7, 662.2]
       },
       {
-        "file": "cool/hall2/hall-col-08.webp",
-        "size": [25, 161],
-        "x": 1769.2,
-        "y": 451.8,
-        "scale": 1.252587,
-        "foot": [1784.2, 647.2]
-      },
-      {
-        "file": "cool/hall2/hall-col-09.webp",
-        "size": [25, 162],
-        "x": 1799.3,
-        "y": 461.8,
-        "scale": 1.252587,
-        "foot": [1814.3, 658.4]
-      },
-      {
-        "file": "cool/hall2/hall-col-10.webp",
-        "size": [25, 174],
-        "x": 1831.8,
+        "file": "cool/hall4/hall-ocol-06.webp",
+        "size": [40, 152],
+        "x": 1821.8,
         "y": 470.5,
         "scale": 1.252587,
-        "foot": [1846.8, 682.2]
+        "foot": [1846.2, 691.0]
       },
       {
-        "file": "cool/hall2/hall-col-11.webp",
-        "size": [29, 159],
-        "x": 1866.9,
-        "y": 454.3,
+        "file": "cool/hall4/hall-ocol-07.webp",
+        "size": [39, 145],
+        "x": 1880.7,
+        "y": 445.5,
         "scale": 1.252587,
-        "foot": [1884.4, 647.2]
+        "foot": [1904.5, 657.2]
       },
       {
-        "file": "cool/hall2/hall-col-12.webp",
-        "size": [29, 151],
-        "x": 1923.3,
-        "y": 425.4,
+        "file": "cool/hall4/hall-ocol-08.webp",
+        "size": [38, 143],
+        "x": 1933.3,
+        "y": 416.7,
         "scale": 1.252587,
-        "foot": [1940.8, 608.3]
+        "foot": [1956.5, 625.9]
       },
       {
-        "file": "cool/hall2/hall-col-13.webp",
-        "size": [29, 154],
-        "x": 1987.1,
-        "y": 391.6,
+        "file": "cool/hall4/hall-ocol-09.webp",
+        "size": [37, 141],
+        "x": 1985.9,
+        "y": 386.6,
         "scale": 1.252587,
-        "foot": [2004.7, 578.3]
+        "foot": [2008.4, 593.3]
       }
-    ]
+    ],
+    "carpet": {
+      "file": "cool/hall4/hall-carpet.webp",
+      "size": [69, 33],
+      "x": 1655.2,
+      "y": 493.1,
+      "scale": 1.252587
+    },
+    "stairs": [
+      {
+        "file": "cool/hall4/hall-stair-front.webp",
+        "size": [159, 131],
+        "x": 1298.2,
+        "y": 622.1,
+        "scale": 1.252587,
+        "floors": ["outside", "main", "left", "right", "floor2"]
+      }
+    ],
+    "rooms": {
+      "left": {
+        "file": "cool/hall4/hall-room-left.webp",
+        "size": [791, 673],
+        "x": 1132.9,
+        "y": -65.6,
+        "scale": 1.252587
+      },
+      "right": {
+        "file": "cool/hall4/hall-room-right.webp",
+        "size": [791, 692],
+        "x": 1132.9,
+        "y": -89.4,
+        "scale": 1.252587
+      },
+      "floor2": {
+        "file": "cool/hall4/hall-room-floor2.webp",
+        "size": [827, 637],
+        "x": 1125.4,
+        "y": -20.5,
+        "scale": 1.252587
+      }
+    }
   },
   "baseSize": {
     "bboxWidth": 1038.4,
     "bboxHeight": 516.0
+  },
+  "measured": {
+    "$comment": "v4g 外景/正殿内景实测（像素→世界）。outerColumns: 9 根外檐柱（长边 6、短边 4、转角共用）柱脚=柱础前下沿；facadeDoors: 正门门槛中点（外景）；sideDoors: 正殿左右侧门脚 / 左厅门（后墙右端）/ 右厅门（后墙左端）。",
+    "outerColumns": [
+      [1344.6, 519.4],
+      [1423.5, 559.5],
+      [1516.2, 589.5],
+      [1654.6, 630.9],
+      [1751.7, 662.2],
+      [1846.2, 691.0],
+      [1904.5, 657.2],
+      [1956.5, 625.9],
+      [2008.4, 593.3]
+    ],
+    "goldColumns": [
+      [1421.0, 559.5],
+      [1547.5, 471.8],
+      [1680.3, 693.5],
+      [1814.3, 609.6]
+    ],
+    "facadeDoors": {
+      "main": [1603.2, 568.2],
+      "facadeLine": "y = 557 + 0.299·(x − 538)（像素，正立面门槛线）"
+    },
+    "sideDoors": {
+      "mainLeft": [1215.5, 524.4],
+      "mainRight": [2033.5, 563.2],
+      "leftHall": [2015.9, 549.5],
+      "rightHall": [1583.8, 339.0]
+    },
+    "taiji": [1586.3, 597.1]
   }
 }

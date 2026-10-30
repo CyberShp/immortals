@@ -13,6 +13,7 @@ import {
   assemblyTick,
   buildCoolHall,
   coolHallSchema,
+  coolFloorParam,
   coolRoofAlpha,
   coolRoofUpdate,
   dailySeats,
@@ -50,6 +51,48 @@ const inPoly = (p: readonly number[], poly: readonly (readonly number[])[]) => {
   return c;
 };
 
+describe('cool-hall.json v4g 分层与楼层', () => {
+  it('所有层同一坐标系（同 scale）、都在 cool/hall4/；台阶层各楼层都显示；左右厅/二层内景与正殿同框', () => {
+    const L = hall.layers;
+    const all = [
+      L.base,
+      L.room,
+      L.roof,
+      L.shadow!,
+      L.carpet!,
+      ...L.columns,
+      ...L.outerColumns!,
+      ...L.stairs!,
+      ...Object.values(L.rooms!),
+    ];
+    expect(all).toHaveLength(22);
+    for (const l of all) {
+      expect(l.file.startsWith('cool/hall4/')).toBe(true);
+      expect(l.scale).toBeCloseTo(L.base.scale, 9);
+    }
+    expect(L.stairs![0].floors).toEqual([
+      'outside',
+      'main',
+      'left',
+      'right',
+      'floor2',
+    ]);
+    expect(Object.keys(L.rooms!).sort()).toEqual(['floor2', 'left', 'right']);
+    // 外檐柱柱脚都在台基前缘附近（≤ 台基底边以下）。
+    for (const c of L.outerColumns!)
+      expect(c.foot[1]).toBeLessThanOrEqual(hall.hallZ);
+    const bad = JSON.parse(JSON.stringify(raw));
+    bad.layers.stairs[0].floors = ['floor3'];
+    expect(coolHallSchema.safeParse(bad).success).toBe(false);
+  });
+  it('?coolFloor= 只接受 main/left/right/floor2，其它（含三层）回 auto', () => {
+    expect(coolFloorParam('?cool=1&coolFloor=left')).toBe('left');
+    expect(coolFloorParam('?cool=1&coolFloor=floor2')).toBe('floor2');
+    expect(coolFloorParam('?cool=1&coolFloor=floor3')).toBe('auto');
+    expect(coolFloorParam('?cool=1')).toBe('auto');
+  });
+});
+
 describe('cool-hall.json 几何', () => {
   it('zod 校验：16 站位、4 会客座、4 排队位、≥8 列队位、分层素材都在 cool/hall/', () => {
     expect(coolHallSchema.safeParse(raw).success).toBe(true);
@@ -74,9 +117,10 @@ describe('cool-hall.json 几何', () => {
     const toThrone = hall.stations.map((p) => d(p, hall.throne));
     expect(Math.min(...toThrone)).toBe(toThrone[0]);
   });
-  it('08 增补 R2/R7：8 把交椅分列过道两侧（1 号离宝座最近、奇偶分侧），同侧 ≥32、离站位 ≥40；13 柱、客座只画', () => {
-    expect(hall.layers.columns).toHaveLength(13);
-    expect(hall.layers.base.file.startsWith('cool/hall2/')).toBe(true);
+  it('08 增补 R2/R7：8 把交椅分列过道两侧（1 号离宝座最近、奇偶分侧），同侧 ≥32、离站位 ≥40；v4g 4 金柱 + 9 外檐柱、客座只画', () => {
+    expect(hall.layers.columns).toHaveLength(4);
+    expect(hall.layers.outerColumns).toHaveLength(9);
+    expect(hall.layers.base.file.startsWith('cool/hall4/')).toBe(true);
     expect(hall.chairs).toHaveLength(8);
     const tf = hall.throneFront;
     const dt = hall.chairs.map((c) => d(c.point, tf));

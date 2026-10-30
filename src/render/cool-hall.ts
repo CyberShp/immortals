@@ -5,9 +5,26 @@ import { z } from 'zod';
 import raw from './cool-hall.json';
 
 export type P = [number, number];
+/** 楼层视图：outside=外观（屋顶不透明）；main=一层正殿；left/right=一层左右厅；floor2=二层议事。三层只有外观，不可选。 */
+export const COOL_FLOORS = [
+  'outside',
+  'main',
+  'left',
+  'right',
+  'floor2',
+] as const;
+export type CoolFloor = (typeof COOL_FLOORS)[number];
+export type CoolRoom = Exclude<CoolFloor, 'outside'>;
+/** URL ?coolFloor=main|left|right|floor2 → 固定楼层视图（屋顶淡出并保持）；缺省/其它值 = auto（按殿内有人自动淡出，内景为正殿）。 */
+export function coolFloorParam(search: string): CoolRoom | 'auto' {
+  const v = new URLSearchParams(search).get('coolFloor');
+  return v === 'main' || v === 'left' || v === 'right' || v === 'floor2'
+    ? v
+    : 'auto';
+}
 const point = z.tuple([z.number().finite(), z.number().finite()]);
 const layer = z.object({
-  file: z.string().regex(/^cool\/hall2?\//),
+  file: z.string().regex(/^cool\/hall[24]?\//),
   size: z.tuple([z.number().int().positive(), z.number().int().positive()]),
   x: z.number(),
   y: z.number(),
@@ -34,7 +51,23 @@ export const coolHallSchema = z.object({
     base: layer,
     room: layer,
     roof: layer,
+    /** 殿内金柱（只在正殿内景画，z=柱脚 y）。 */
     columns: z.array(layer.extend({ foot: point })).min(1),
+    /** v4g：外景地面落影（z=-905，与其它建筑落影同层），始终画。 */
+    shadow: layer.optional(),
+    /** v4g：外檐柱（z=hallZ-0.5，α 随屋顶）；内景视图不画（柱脚落在殿内地面上）。 */
+    outerColumns: z.array(layer.extend({ foot: point })).optional(),
+    /** v4g：红毯延伸（正殿，z=-899.5 贴在内景之上）。 */
+    carpet: layer.optional(),
+    /** v4g：台阶层，floors 列出在哪些楼层视图里显示（outside = 屋顶不透明时）。 */
+    stairs: z
+      .array(layer.extend({ floors: z.array(z.enum(COOL_FLOORS)).min(1) }))
+      .optional(),
+    /** v4g：可替换内景（与 room=正殿同机位同台基）。 */
+    rooms: z
+      .object({ left: layer, right: layer, floor2: layer })
+      .partial()
+      .optional(),
   }),
 });
 export type CoolHall = z.infer<typeof coolHallSchema> & { hallZ: number };
