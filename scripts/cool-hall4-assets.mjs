@@ -2,7 +2,7 @@
 // batch1-cut/out-v5p/hall4/*.png（v5p/cut.py + carpet2.py + stairs.py 切层结果；v4g 为 out-v4g）→ public/assets/cool/hall4/*.webp，
 // 并把 groups.cool.files 里的 cool/hall4/ 条目替换为本次结果、重算总字节（tests/assets.test.ts 校验）。
 // 编码参数与 scripts/cool-assets.mjs 一致。用法：node scripts/cool-hall4-assets.mjs [out-v5p 目录]
-// v5p 起外檐柱只剩 01/03/04/06/09；旧的 hall-ocol-02/05/07/08.webp 不再导出、也不在 manifest 里（文件未删）。
+// v5p 起外檐柱只剩 01/03/04/06/09；旧的 hall-ocol-02/05/07/08.webp 不再导出、也不在 manifest 里（旧文件已于 2026-10-31 按指挥官确认删除）。
 import sharp from 'sharp';
 import { mkdir, readFile, readdir, stat, writeFile } from 'node:fs/promises';
 import { format } from 'prettier';
