@@ -5,6 +5,14 @@ import platform from '../../scripts/platform-geometry.json';
 import { groundedLayer, insideGroundedBody } from './grounded-layers';
 import { discipleArtFile } from './world-scale';
 import {
+  COOL_CONTACT_SHADOW,
+  COOL_DISCIPLE_POSES,
+  coolDiscipleFile,
+  coolDiscipleScale,
+  coolPose,
+  coolSpriteFlip,
+} from './cool-disciple';
+import {
   Application,
   Assets,
   Container,
@@ -188,6 +196,7 @@ declare global {
       discipleSprites: number;
       fallbacks: number;
       poses: Record<string, number>;
+      coolFrames: Record<string, number>;
       disciples: {
         id: string;
         x: number;
@@ -461,7 +470,25 @@ export async function createMap(
         .filter((file) => file !== groundFile)
         .map((file) => ({ file }))
     : [];
-  const loadList = [...needed, ...mapEntries, ...roofEntries, ...depthEntries];
+  // ?cool=1：弟子 D1/D2 新帧（128×192，脚底锚点 64,186）；旧帧仍加载，供遮挡掩码与回退。
+  const coolDiscipleEntries = cool
+    ? ['m', 'f'].flatMap((g) =>
+        COOL_DISCIPLE_POSES.map((pose) => ({
+          file: coolDiscipleFile(g, pose),
+          size: [128, 192],
+          anchor: { x: 64, y: 186 },
+        })),
+      )
+    : [];
+  for (const entry of coolDiscipleEntries)
+    entries.set(entry.file, entry as (typeof manifest.files)[number]);
+  const loadList = [
+    ...needed,
+    ...mapEntries,
+    ...roofEntries,
+    ...depthEntries,
+    ...coolDiscipleEntries,
+  ];
   await Promise.all(
     loadList.map(async ({ file }) => {
       try {
@@ -849,6 +876,7 @@ export async function createMap(
       discipleSprites: 0,
       fallbacks: 0,
       poses: {} as Record<string, number>,
+      coolFrames: {} as Record<string, number>,
       disciples: [] as Window['__mapStats']['disciples'],
       buildings: [] as Window['__mapStats']['buildings'],
       discipleScale: DISCIPLE_SCALE,
@@ -1443,13 +1471,27 @@ export async function createMap(
       };
       const colors = rootRingColors(d.root.elements);
       const file = discipleArtFile(d.gender, pose);
-      const sprite = compact ? undefined : art(file, height / 96);
+      // ?cool=1：精灵换新帧（身高比例不变：站立头顶→脚底 168 px 缩到 DISCIPLE_HEIGHT）；
+      // 遮挡掩码与名牌宽度仍按旧帧算。
+      const coolFile = cool
+        ? coolDiscipleFile(
+            d.gender === '女' ? 'f' : 'm',
+            coolPose(pose, gait.cycles),
+          )
+        : undefined;
+      const sprite = compact
+        ? undefined
+        : coolFile
+          ? art(coolFile, coolDiscipleScale(height))
+          : art(file, height / 96);
+      if (coolFile)
+        stats.coolFrames[coolFile] = (stats.coolFrames[coolFile] ?? 0) + 1;
       const groundMarks = discipleGroundMarks(pose, height, compact);
       if (groundMarks.shadow) {
         const shadow = groundShadow(
           groundMarks.shadow.width,
           0,
-          groundMarks.shadow.color,
+          cool ? COOL_CONTACT_SHADOW : groundMarks.shadow.color,
         );
         shadow.position.set(groundMarks.shadow.x, groundMarks.shadow.y);
         shadow.label = 'contact-shadow';
@@ -1481,7 +1523,8 @@ export async function createMap(
         )
         .stroke({ width: 1, color: 0x263f34 });
       // 坐在蒲团上不画灵根彩环。
-      if ((groundMarks.ring && !indoor?.seat) || !sprite) {
+      // ?cool=1：灵根环常显。
+      if (cool || (groundMarks.ring && !indoor?.seat) || !sprite) {
         group.addChild(ring);
         stats.rings++;
       }
@@ -1551,7 +1594,7 @@ export async function createMap(
       stats.disciples.at(-1)!.z = group.zIndex;
       if (compact) stats.markers++;
       if (sprite) {
-        sprite.scale.x *= flip;
+        sprite.scale.x *= coolFile ? coolSpriteFlip(coolFile, m.facing) : flip;
         group.addChild(sprite);
         stats.discipleSprites++;
       } else if (!compact) {
