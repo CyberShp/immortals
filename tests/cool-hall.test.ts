@@ -310,6 +310,21 @@ describe('召集全员（4.6，P6 推荐口径）', () => {
     expect(new Set(line.map((s) => s.index)).size).toBe(8);
     expect(a.seats.get('D1')).toMatchObject({ kind: 'station', index: 0 });
   });
+  it('N6（拍板 2）：注入 8 名筑基 + 16 炼气 = 24 人 → 8 把椅全坐满、16 个站位全用、会客座不分配', () => {
+    const zj = Array.from({ length: 8 }, (_, i) => `Z${i + 1}`);
+    const lq = Array.from({ length: 16 }, (_, i) => `L${i + 1}`);
+    const a = startAssembly(hall, [...zj, ...lq], 't', (id) =>
+      id.startsWith('Z'),
+    );
+    const seats = [...a.seats.values()];
+    const chairs = seats.filter((s) => s.kind === 'chair').map((s) => s.index);
+    expect(chairs.sort((x, y) => x - y)).toEqual([0, 1, 2, 3, 4, 5, 6, 7]);
+    const st = seats.filter((s) => s.kind === 'station').map((s) => s.index);
+    expect(new Set(st).size).toBe(16);
+    expect(seats.every((s) => s.kind === 'chair' || s.kind === 'station')).toBe(
+      true,
+    );
+  });
   it('N8 身份：筑基 ≤8 全坐椅、第 9 名筑基进站位且在全部炼气之前；炼气不坐；空椅不补；会客座从不分配', () => {
     expect(chairEligible({ realm: { major: '筑基' } })).toBe(true);
     expect(chairEligible({ realm: { major: '炼气' } })).toBe(false);
@@ -477,19 +492,19 @@ describe('cool 打开时：排队位/列队位在可走区且不压入口通道�
     }
     expect(cool.slots.find((s) => s.id === 'B_HALL')!.entrance).toEqual(e);
   });
-  it('N1/N4/N5：聚集段 duration = 路长/(routeSpeed×1.6×迟暮系数=1)；日常/散场 1.0；上限 50 s、仪式 20 s、放人 700 ms', () => {
+  it('N1/N4/N5：聚集段 duration = 路长/(routeSpeed×1.6)，迟暮同样 1.6；日常/散场 1.0（迟暮也 1.0，无 ×0.7）；上限 50 s、仪式 20 s、放人 700 ms', () => {
+    expect(Object.keys(ASSEMBLY).filter((k) => /elder/i.test(k))).toEqual([]);
     expect(ASSEMBLY.gatherTimeoutMs).toBe(50_000);
     expect(ASSEMBLY.ceremonyMs).toBe(20_000);
     expect(ASSEMBLY.releaseGapMs).toBe(700);
-    expect(gatherSpeedFactor('壮年')).toBe(1.6);
-    expect(gatherSpeedFactor('迟暮')).toBe(1.6);
+    expect(gatherSpeedFactor()).toBe(1.6);
     for (const len of [131, 650, 1569, 1600, 1780]) {
       const path: [number, number][] = [
         [0, 0],
         [len, 0],
       ];
       const v = routeSpeed(path);
-      expect(coolMotionMs(len, v, 1, gatherSpeedFactor('迟暮'))).toBeCloseTo(
+      expect(coolMotionMs(len, v, 1, gatherSpeedFactor())).toBeCloseTo(
         (len / (v * 1.6)) * 1000,
         6,
       );

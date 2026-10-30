@@ -465,8 +465,14 @@ export async function createMap(
           draw(world);
           return 'started';
         },
-        /** 调试注入：表现层复制弟子到总数 n（7.5 #34），不进 sim。 */
-        inject: (n: number) => {
+        /**
+         * 调试注入：表现层复制弟子到总数 n（7.5 #34），不进 sim。opts.major 把前 count 个（缺省全部）
+         * 新注入者的大境界改成 major（N6 验收：注入 8 名筑基测椅子坐满，指挥官 2026-10-30 拍板 2）。
+         */
+        inject: (
+          n: number,
+          opts?: { major?: '炼气' | '筑基'; count?: number },
+        ) => {
           if (!world) return;
           const real = world.disciples.filter((d) => !injected.includes(d));
           const base = real.filter((d) => d.stage !== '坐化');
@@ -477,6 +483,8 @@ export async function createMap(
             clone.id = `INJ${String(k).padStart(2, '0')}`;
             clone.name = `注入${k}`;
             clone.state = { ...clone.state, awayUntil: 0 };
+            if (opts?.major && (opts.count === undefined || k <= opts.count))
+              clone.realm = { ...clone.realm, major: opts.major };
             injected.push(clone);
           }
           draw(world);
@@ -2141,7 +2149,7 @@ export async function createMap(
         point: seat ? (seat.point ?? overflow(seat.index)) : destinations[i],
         inside: !!seat?.inside,
         // 08 增补 1.1：聚集段 ×1.6（含仪式中仍在路上的迟到者）；散场放人后恢复 1.0。
-        speedFactor: held ? gatherSpeedFactor(d.stage) : undefined,
+        speedFactor: held ? gatherSpeedFactor() : undefined,
       };
     });
   }

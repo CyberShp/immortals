@@ -444,13 +444,12 @@ export const ASSEMBLY = {
   releaseGapMs: 700,
   /** 08 增补 1.1：聚集段（走向自己的席位）速度 = routeSpeed × 1.6，到席位即恢复。 */
   gatherSpeed: 1.6,
-  /** P6 ③ 迟暮 ×0.7；08 增补拍板 #1：聚集段不再减速（系数 1），日常/散场不提速也不在此处减速。 */
-  elderSpeed: 0.7,
-  elderGatherFactor: 1,
 };
-/** 聚集段速度系数（召集、讲道共用）：1.6 × 迟暮系数（拍板 #1 = 1）。 */
-export const gatherSpeedFactor = (stage: string | undefined) =>
-  ASSEMBLY.gatherSpeed * (stage === '迟暮' ? ASSEMBLY.elderGatherFactor : 1);
+/**
+ * 聚集段速度系数（召集、讲道共用）= 1.6，全员相同。指挥官拍板（2026-10-30 23:10）：按 N1，
+ * 表现层任何阶段都不做迟暮减速（聚集 1.6，日常/散场 1.0），故不再按境界/年龄区分。
+ */
+export const gatherSpeedFactor = (): number => ASSEMBLY.gatherSpeed;
 /** 一段路线的走完时间（ms）：路长 / (routeSpeed × walkScale × 系数)；系数缺省 = 1.0（日常/散场）。 */
 export function coolMotionMs(
   length: number,
