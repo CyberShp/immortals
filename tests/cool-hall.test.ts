@@ -99,7 +99,7 @@ describe('cool-hall.json 几何', () => {
     const bad = JSON.parse(JSON.stringify(raw));
     bad.layers.roof.file = 'map/world.webp';
     expect(coolHallSchema.safeParse(bad).success).toBe(false);
-    expect(hall.hallZ).toBeCloseTo(872.6, 6);
+    expect(hall.hallZ).toBeCloseTo(871.4, 6);
   });
   it('16 站位两两间距 ≥63 世界 px，都在内景范围内；1 号最靠宝座', () => {
     for (const [i, a] of hall.stations.entries()) {

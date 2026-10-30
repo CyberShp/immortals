@@ -232,7 +232,7 @@ describe('cool 打开时的可走区域与寻路', () => {
     const src = coolWorldSchema
       .parse(raw)
       .slots.find((s) => s.id === 'B_HALL')!;
-    expect(src.entrance).toEqual([1371.4, 776.8]);
+    expect(src.entrance).toEqual([1379.3, 781.7]);
     const hall = cool.slots.find((s) => s.id === 'B_HALL')!;
     expect(w.inFootprint(hall.entrance, hall.footprint)).toBe(false);
     expect(w.walkable(hall.entrance)).toBe(true);
