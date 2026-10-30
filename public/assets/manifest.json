@@ -1226,8 +1226,8 @@
       ]
     }
   ],
-  "assetBytes": 4449744,
-  "totalBytes": 4513601,
+  "assetBytes": 4887684,
+  "totalBytes": 4956713,
   "groups": {
     "cool": {
       "firstScreen": false,
@@ -1839,6 +1839,138 @@
           "size": [286, 49],
           "bytes": 3346,
           "source": "ui-batch1-v1/u3_bars_plaque_v2.jpg"
+        },
+        {
+          "file": "cool/hall4/hall-base.webp",
+          "size": [835, 284],
+          "bytes": 23866,
+          "source": "v4g 外景 hall_ext_v4g_roof_v1.png 台基前缘层（前排望柱柱头切线以下，不含正面台阶）"
+        },
+        {
+          "file": "cool/hall4/hall-carpet.webp",
+          "size": [69, 33],
+          "bytes": 416,
+          "source": "hall_int_v4g_v3.png 红毯沿轴向挤出到宝座台阶脚（脚本色块，v4g/carpet.py）"
+        },
+        {
+          "file": "cool/hall4/hall-col-01.webp",
+          "size": [54, 285],
+          "bytes": 3094,
+          "source": "forge_interior_v1/hall_int_v4g_v3.png 4 根金柱（柱头/柱身/柱础矩形 − 地面色）"
+        },
+        {
+          "file": "cool/hall4/hall-col-02.webp",
+          "size": [53, 282],
+          "bytes": 3114,
+          "source": "forge_interior_v1/hall_int_v4g_v3.png 4 根金柱（柱头/柱身/柱础矩形 − 地面色）"
+        },
+        {
+          "file": "cool/hall4/hall-col-03.webp",
+          "size": [57, 289],
+          "bytes": 3576,
+          "source": "forge_interior_v1/hall_int_v4g_v3.png 4 根金柱（柱头/柱身/柱础矩形 − 地面色）"
+        },
+        {
+          "file": "cool/hall4/hall-col-04.webp",
+          "size": [53, 292],
+          "bytes": 3084,
+          "source": "forge_interior_v1/hall_int_v4g_v3.png 4 根金柱（柱头/柱身/柱础矩形 − 地面色）"
+        },
+        {
+          "file": "cool/hall4/hall-ocol-01.webp",
+          "size": [37, 142],
+          "bytes": 1696,
+          "source": "v4g 外景 hall_ext_v4g_roof_v1.png 外檐柱（柱身+箍，柱础留在屋顶层）"
+        },
+        {
+          "file": "cool/hall4/hall-ocol-02.webp",
+          "size": [37, 148],
+          "bytes": 1648,
+          "source": "v4g 外景 hall_ext_v4g_roof_v1.png 外檐柱（柱身+箍，柱础留在屋顶层）"
+        },
+        {
+          "file": "cool/hall4/hall-ocol-03.webp",
+          "size": [37, 149],
+          "bytes": 1754,
+          "source": "v4g 外景 hall_ext_v4g_roof_v1.png 外檐柱（柱身+箍，柱础留在屋顶层）"
+        },
+        {
+          "file": "cool/hall4/hall-ocol-04.webp",
+          "size": [38, 149],
+          "bytes": 1762,
+          "source": "v4g 外景 hall_ext_v4g_roof_v1.png 外檐柱（柱身+箍，柱础留在屋顶层）"
+        },
+        {
+          "file": "cool/hall4/hall-ocol-05.webp",
+          "size": [39, 149],
+          "bytes": 1832,
+          "source": "v4g 外景 hall_ext_v4g_roof_v1.png 外檐柱（柱身+箍，柱础留在屋顶层）"
+        },
+        {
+          "file": "cool/hall4/hall-ocol-06.webp",
+          "size": [40, 152],
+          "bytes": 2064,
+          "source": "v4g 外景 hall_ext_v4g_roof_v1.png 外檐柱（柱身+箍，柱础留在屋顶层）"
+        },
+        {
+          "file": "cool/hall4/hall-ocol-07.webp",
+          "size": [39, 145],
+          "bytes": 1422,
+          "source": "v4g 外景 hall_ext_v4g_roof_v1.png 外檐柱（柱身+箍，柱础留在屋顶层）"
+        },
+        {
+          "file": "cool/hall4/hall-ocol-08.webp",
+          "size": [38, 143],
+          "bytes": 1316,
+          "source": "v4g 外景 hall_ext_v4g_roof_v1.png 外檐柱（柱身+箍，柱础留在屋顶层）"
+        },
+        {
+          "file": "cool/hall4/hall-ocol-09.webp",
+          "size": [37, 141],
+          "bytes": 1818,
+          "source": "v4g 外景 hall_ext_v4g_roof_v1.png 外檐柱（柱身+箍，柱础留在屋顶层）"
+        },
+        {
+          "file": "cool/hall4/hall-roof.webp",
+          "size": [794, 659],
+          "bytes": 89178,
+          "source": "v4g 外景 hall_ext_v4g_roof_v1.png 切线以上 − 9 根外檐柱"
+        },
+        {
+          "file": "cool/hall4/hall-room-floor2.webp",
+          "size": [827, 637],
+          "bytes": 68016,
+          "source": "forge_interior_v1/floor2_council_v1.png（ECC 仿射配准到外景）切线以上"
+        },
+        {
+          "file": "cool/hall4/hall-room-left.webp",
+          "size": [791, 673],
+          "bytes": 65866,
+          "source": "forge_interior_v1/side_left_v1.png（ECC 仿射配准到外景）切线以上"
+        },
+        {
+          "file": "cool/hall4/hall-room-main.webp",
+          "size": [820, 704],
+          "bytes": 70158,
+          "source": "forge_interior_v1/hall_int_v4g_v3.png（ECC 仿射配准到外景）切线以上"
+        },
+        {
+          "file": "cool/hall4/hall-room-right.webp",
+          "size": [791, 692],
+          "bytes": 75984,
+          "source": "forge_interior_v1/side_right_v1.png（ECC 仿射配准到外景）切线以上"
+        },
+        {
+          "file": "cool/hall4/hall-shadow.webp",
+          "size": [905, 287],
+          "bytes": 11718,
+          "source": "v4g 外景 hall_ext_v4g_roof_v1.png 地面落影（抠图背景族 × 台基外扩/右侧地面）"
+        },
+        {
+          "file": "cool/hall4/hall-stair-front.webp",
+          "size": [159, 131],
+          "bytes": 4558,
+          "source": "v4g 外景 hall_ext_v4g_roof_v1.png 正面台阶（各楼层都显示）"
         }
       ]
     }
