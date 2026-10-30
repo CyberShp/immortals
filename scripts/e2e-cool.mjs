@@ -197,11 +197,26 @@ const report = {};
   await settle(page);
   const card = await page.locator('#disciple-card').isVisible();
   assert.equal(card, true, '点选弟子后弟子卡未出现');
-  // dorm→hall 重测：调试钩子按当前几何走一趟（WALK_SPEED 不变）。
+  // dorm→hall 重测：调试钩子按当前几何走一趟（WALK_SPEED 不变），
+  // 并在页面内逐帧等弟子真正走到主殿入口，记录墙钟耗时（measuredSeconds）。
   const walk = await page.evaluate(
-    (id) => window.__xianfu.walkDormToHall(id),
+    (id) =>
+      new Promise((resolve) => {
+        const t0 = performance.now();
+        const r = window.__xianfu.walkDormToHall(id);
+        const tick = () => {
+          const d = window.__mapStats.disciples.find((e) => e.id === id);
+          const t = (performance.now() - t0) / 1000;
+          if (d && Math.hypot(d.x - r.to[0], d.y - r.to[1]) < 0.5)
+            resolve({ ...r, measuredSeconds: t, arrived: [d.x, d.y] });
+          else if (t > 60) resolve({ ...r, timeout: true });
+          else requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      }),
     target.id,
   );
+  assert.ok(!walk.timeout, 'dorm→hall 60 s 内未走到主殿入口');
   report.cool = {
     ...info,
     moved,

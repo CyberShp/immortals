@@ -204,5 +204,35 @@ describe('cool 打开时的可走区域与寻路', () => {
     });
     expect(Number.isFinite(seconds)).toBe(true);
     expect(w.WALK_SPEED).toBe(20);
+    // Lore 选定：主殿入口在西侧台阶，k=0.6 时落入 8–15 s 目标（实测 14.19 s）。
+    expect(seconds).toBeGreaterThanOrEqual(8);
+    expect(seconds).toBeLessThanOrEqual(15);
+    expect(seconds).toBeCloseTo(14.19, 1);
+    expect(length / w.WALK_SPEED).toBeCloseTo(seconds, 6);
+  });
+  it('主殿入口在西侧台阶：脚印西南面外侧、可走、A* 可达', () => {
+    const src = coolWorldSchema
+      .parse(raw)
+      .slots.find((s) => s.id === 'B_HALL')!;
+    expect(src.entrance).toEqual([470, 330]);
+    const hall = cool.slots.find((s) => s.id === 'B_HALL')!;
+    const poly = (hall.footprint as { polygon: P[] }).polygon;
+    const [west, south] = [poly[0], poly[1]];
+    // 西南面（西角→南角）外侧，且位于西半段（不是原来的南角正前方）。
+    const [ex, ey] = hall.entrance;
+    const side =
+      (south[0] - west[0]) * (ey - west[1]) -
+      (south[1] - west[1]) * (ex - west[0]);
+    expect(side).toBeGreaterThan(0);
+    expect((ex - west[0]) / (south[0] - west[0])).toBeLessThan(0.5);
+    expect(w.inFootprint(hall.entrance, hall.footprint)).toBe(false);
+    expect(w.walkable(hall.entrance)).toBe(true);
+    for (const s of cool.slots) {
+      if (s.id === 'B_HALL') continue;
+      expect(
+        w.findPath(s.entrance, hall.entrance).length,
+        s.id,
+      ).toBeGreaterThanOrEqual(2);
+    }
   });
 });
