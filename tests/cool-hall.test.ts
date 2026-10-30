@@ -65,7 +65,7 @@ describe('cool-hall.json v4g 分层与楼层', () => {
       ...L.stairs!,
       ...Object.values(L.rooms!),
     ];
-    expect(all).toHaveLength(22);
+    expect(all).toHaveLength(20);
     for (const l of all) {
       expect(l.file.startsWith('cool/hall4/')).toBe(true);
       expect(l.scale).toBeCloseTo(L.base.scale, 9);
@@ -81,6 +81,16 @@ describe('cool-hall.json v4g 分层与楼层', () => {
     // 外檐柱柱脚都在台基前缘附近（≤ 台基底边以下）。
     for (const c of L.outerColumns!)
       expect(c.foot[1]).toBeLessThanOrEqual(hall.hallZ);
+    // v5p：正厅上二层楼梯只在正厅、二层下楼口只在二层显示；都带 foot（z 与殿内弟子/金柱互相遮挡），在台基前缘之后。
+    const [, up, down] = L.stairs!;
+    expect(up.file).toBe('cool/hall4/hall-stair-up-main.webp');
+    expect(up.floors).toEqual(['main']);
+    expect(down.file).toBe('cool/hall4/hall-stair-down-floor2.webp');
+    expect(down.floors).toEqual(['floor2']);
+    for (const s of [up, down]) {
+      expect(s.foot![1]).toBeLessThan(hall.hallZ);
+    }
+    expect(L.stairs![0].foot).toBeUndefined();
     const bad = JSON.parse(JSON.stringify(raw));
     bad.layers.stairs[0].floors = ['floor3'];
     expect(coolHallSchema.safeParse(bad).success).toBe(false);
@@ -117,9 +127,9 @@ describe('cool-hall.json 几何', () => {
     const toThrone = hall.stations.map((p) => d(p, hall.throne));
     expect(Math.min(...toThrone)).toBe(toThrone[0]);
   });
-  it('08 增补 R2/R7：8 把交椅分列过道两侧（1 号离宝座最近、奇偶分侧），同侧 ≥32、离站位 ≥40；v4g 4 金柱 + 9 外檐柱、客座只画', () => {
+  it('08 增补 R2/R7：8 把交椅分列过道两侧（1 号离宝座最近、奇偶分侧），同侧 ≥32、离站位 ≥40；v4g 4 金柱 + v5p 5 外檐柱、客座只画', () => {
     expect(hall.layers.columns).toHaveLength(4);
-    expect(hall.layers.outerColumns).toHaveLength(9);
+    expect(hall.layers.outerColumns).toHaveLength(5);
     expect(hall.layers.base.file.startsWith('cool/hall4/')).toBe(true);
     expect(hall.chairs).toHaveLength(8);
     const tf = hall.throneFront;

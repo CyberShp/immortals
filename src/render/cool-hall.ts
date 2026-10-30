@@ -55,13 +55,19 @@ export const coolHallSchema = z.object({
     columns: z.array(layer.extend({ foot: point })).min(1),
     /** v4g：外景地面落影（z=-905，与其它建筑落影同层），始终画。 */
     shadow: layer.optional(),
-    /** v4g：外檐柱（z=hallZ-0.5，α 随屋顶）；内景视图不画（柱脚落在殿内地面上）。 */
+    /** v4g：外檐柱（z=hallZ-0.5，α 随屋顶）；内景视图不画（柱脚落在殿内地面上）。v5p 只剩 5 根（v4g 编号 1/3/4/6/9）。 */
     outerColumns: z.array(layer.extend({ foot: point })).optional(),
     /** v4g：红毯延伸（正殿，z=-899.5 贴在内景之上）。 */
     carpet: layer.optional(),
-    /** v4g：台阶层，floors 列出在哪些楼层视图里显示（outside = 屋顶不透明时）。 */
+    /** v4g：台阶层，floors 列出在哪些楼层视图里显示（outside = 屋顶不透明时）。
+     *  v5p：殿内楼梯（正厅上二层楼梯 / 二层下楼口）带 foot，z=foot y 与殿内弟子、金柱互相遮挡；无 foot 的（正面台阶）z=hallZ-1。 */
     stairs: z
-      .array(layer.extend({ floors: z.array(z.enum(COOL_FLOORS)).min(1) }))
+      .array(
+        layer.extend({
+          floors: z.array(z.enum(COOL_FLOORS)).min(1),
+          foot: point.optional(),
+        }),
+      )
       .optional(),
     /** v4g：可替换内景（与 room=正殿同机位同台基）。 */
     rooms: z

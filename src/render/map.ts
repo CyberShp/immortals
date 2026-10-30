@@ -1110,7 +1110,8 @@ export async function createMap(
       if (L.shadow) add(L.shadow, -905);
       add(L.base, coolHall.hallZ - 1);
       for (const s of L.stairs ?? [])
-        if (s.floors.includes(floorNow)) add(s, coolHall.hallZ - 1);
+        if (s.floors.includes(floorNow))
+          add(s, s.foot ? s.foot[1] : coolHall.hallZ - 1);
       if (coolRoofNow < 1 && coolRoomNow !== 'main')
         add(L.rooms?.[coolRoomNow] ?? L.room, -900);
       if (coolRoofNow < 1 && coolRoomNow === 'main') {
