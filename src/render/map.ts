@@ -27,6 +27,32 @@ import {
   type RoofTween,
 } from './roof-fade';
 import { DISCIPLE_HEIGHT } from './world-scale';
+import {
+  ASSEMBLY,
+  DOOR_FADE,
+  addLateJoiner,
+  approachParam,
+  assemblyTick,
+  buildCoolHall,
+  coolRoofAlpha,
+  coolRoofUpdate,
+  dailySeats,
+  detectTriggers,
+  outdoorZ,
+  planHallRoute,
+  retriggerAssembly,
+  roofAnimatingCool,
+  roofClosed,
+  routeStatus,
+  seniorityOrder,
+  snapshotTriggers,
+  startAssembly,
+  type Assembly,
+  type CoolRoof,
+  type HallRoute,
+  type Seat,
+  type TriggerState,
+} from './cool-hall';
 import { relatedEvents } from '../app/ui-model';
 import type { World } from '../sim/world';
 import { buildingDefinitions } from '../sim/catalog';
@@ -65,6 +91,7 @@ import {
   worldMap,
   inPolygon,
   nearestWalkable,
+  spacedLanding,
   walkable,
   inFootprint,
   islandOf,
@@ -128,6 +155,10 @@ type Motion = {
   roofDebug?: string;
   /** roofFade：门口→室内站位这段表现层小路，换目的地时从这里接着走。 */
   roofIndoor?: { from: Point; to: Point; start: number };
+  /** cool 主殿：当前路线的门口位置与殿内/殿外状态（仅表现层）。 */
+  coolRoute?: HallRoute;
+  /** cool 召集：迟暮弟子走速 ×0.7（P6 ③）；其余为 1 / undefined。 */
+  speedFactor?: number;
 };
 declare global {
   interface Window {
@@ -220,6 +251,23 @@ export async function createMap(
   const cool = coolWorld;
   // cool 的地面是 S1 未验收的平面色块占位（Graphics 绘制），不加载底图文件。
   const groundFile = cool ? '' : depth ? DEPTH.world : 'map/world.webp';
+  // cool 主殿 B1/B2 分层与召集全员（纯表现层）。
+  const coolHall = cool ? buildCoolHall() : undefined;
+  let coolRoof: CoolRoof = roofClosed();
+  let coolRoofHold: number | undefined;
+  let coolOccupied = false;
+  let dailyMap = new Map<string, Seat>();
+  let assembly: Assembly | undefined;
+  let assemblyLast: number | undefined;
+  const assemblyLog: { at: number; reasons: string[] }[] = [];
+  let triggerState: TriggerState | undefined;
+  const injected: World['disciples'] = [];
+  let lastCoolSeats: Record<string, unknown>[] = [];
+  const motionDistance = (m: Motion, elapsed: number) =>
+    m.speedFactor === undefined
+      ? (elapsed / 1000) * routeSpeed(m.path) * walkScale
+      : (elapsed / 1000) * routeSpeed(m.path) * walkScale * m.speedFactor;
+  const assemblyEnabled = params.get('assembly') !== '0';
   if (params.get('debug') === '1')
     Object.assign(window, {
       __world: {
@@ -282,6 +330,77 @@ export async function createMap(
         depth,
         roofFade,
       },
+      __coolHall: {
+        geometry: coolHall,
+        state: () => {
+          const now = performance.now();
+          return {
+            roofAlpha: coolRoofHold ?? coolRoofAlpha(coolRoof, now),
+            roof: { ...coolRoof },
+            occupied: coolOccupied,
+            assemblyEnabled,
+            assembly: assembly && {
+              phase: assembly.phase,
+              clock: assembly.clock,
+              phaseStart: assembly.phaseStart,
+              queued: assembly.queued,
+              reasons: [...assembly.reasons],
+              released: [...assembly.released],
+              seats: [...assembly.seats].map(([id, s]) => ({
+                id,
+                kind: s.kind,
+                index: s.index,
+                point: s.point,
+                inside: s.inside,
+              })),
+            },
+            log: assemblyLog.map((e) => ({ ...e })),
+            daily: [...dailyMap].map(([id, s]) => ({
+              id,
+              kind: s.kind,
+              index: s.index,
+              point: s.point,
+            })),
+            disciples: lastCoolSeats.map((e) => ({ ...e })),
+            injected: injected.map((d) => d.id),
+          };
+        },
+        /** 调试：手动触发一次召集（等同事件结算触发，不改 sim）。 */
+        trigger: (reason = '调试召集') => {
+          if (!world) return;
+          const list = world.disciples.filter(
+            (d) =>
+              d.stage !== '坐化' &&
+              !d.state.awayUntil &&
+              d.state.behavior !== '历练',
+          );
+          const join = new Map(world.disciples.map((d, i) => [d.id, i]));
+          beginAssembly([reason], seniorityOrder(list, join));
+          draw(world);
+        },
+        /** 调试注入：表现层复制弟子到总数 n（7.5 #34），不进 sim。 */
+        inject: (n: number) => {
+          if (!world) return;
+          const real = world.disciples.filter((d) => !injected.includes(d));
+          const base = real.filter((d) => d.stage !== '坐化');
+          while (real.length + injected.length < n) {
+            const k = injected.length + 1;
+            const src = base[(k - 1) % base.length];
+            const clone = structuredClone(src);
+            clone.id = `INJ${String(k).padStart(2, '0')}`;
+            clone.name = `注入${k}`;
+            clone.state = { ...clone.state, awayUntil: 0 };
+            injected.push(clone);
+          }
+          draw(world);
+          return injected.map((d) => d.id);
+        },
+        roofHold: (alpha?: number) => {
+          coolRoofHold = alpha;
+          cancelFrame();
+          paint(performance.now());
+        },
+      },
     });
   const app = new Application();
   await app.init({
@@ -307,8 +426,13 @@ export async function createMap(
   const needed = manifest.files.filter(
     (f) => false || f.file.includes('-map@') || f.file.includes('-96@'),
   );
-  const mapEntries = cool
-    ? []
+  const mapEntries = coolHall
+    ? [
+        coolHall.layers.base,
+        coolHall.layers.room,
+        coolHall.layers.roof,
+        ...coolHall.layers.columns,
+      ].map((l) => ({ file: l.file, size: l.size, anchor: { x: 0, y: 0 } }))
     : [
         { file: groundFile, size: [3200, 1400], anchor: { x: 0, y: 0 } },
         {
@@ -775,6 +899,46 @@ export async function createMap(
     }
 
     let breathingGlow = false;
+    // cool 主殿：台基层(z=hallZ-1) / 内景层(z=-900) / 6 柱(z=柱脚 y) / 外观屋顶层(z=hallZ, α=屋顶淡变)。
+    // 屋顶完全不透明时不画内景与柱（被屋顶整盖）；只淡屋顶层（二 #14）。
+    coolRoof = coolRoofUpdate(coolRoof, coolOccupied, now);
+    const coolRoofNow = coolRoofHold ?? coolRoofAlpha(coolRoof, now);
+    const paintCoolHall = (id: string): boolean => {
+      if (!coolHall || id !== 'B_HALL') return false;
+      const L = coolHall.layers;
+      const add = (l: typeof L.base, z: number, alpha = 1) => {
+        const sprite = art(l.file, l.scale);
+        if (!sprite) return false;
+        sprite.position.set(l.x, l.y);
+        sprite.zIndex = z;
+        sprite.alpha = alpha;
+        sprite.eventMode = 'none';
+        scene.addChild(sprite);
+        return true;
+      };
+      if (!textures.has(L.base.file) || !textures.has(L.roof.file))
+        return false;
+      add(L.base, coolHall.hallZ - 1);
+      if (coolRoofNow < 1) {
+        add(L.room, -900);
+        for (const c of L.columns) add(c, c.foot[1]);
+      }
+      if (coolRoofNow > 0) add(L.roof, coolHall.hallZ, coolRoofNow);
+      stats.buildingSprites++;
+      const x0 = L.roof.x,
+        y0 = L.roof.y,
+        w = L.base.x + L.base.size[0] * L.base.scale - x0,
+        h = L.base.y + L.base.size[1] * L.base.scale - y0;
+      stats.buildings.push({
+        id,
+        z: coolHall.hallZ,
+        x: bounds.width / 2 + (x0 - cam.x) * cam.zoom,
+        y: bounds.height / 2 + (y0 - cam.y) * cam.zoom,
+        width: w * cam.zoom,
+        height: h * cam.zoom,
+      });
+      return true;
+    };
     // 屋顶淡出：内景紧贴在原建筑排序层之下（后墙能挡住屋后的弟子），外观在原建筑排序层，
     // 室内弟子抬到两者之上；淡变只改外观 alpha。
     const paintRoofBuilding = (
@@ -842,7 +1006,11 @@ export async function createMap(
       group.position.set(x, y);
       group.zIndex = sortY(def.id, baseY);
       // Empty sites keep their label/click target, without painting fictional stone plots.
-      if (b && !paintRoofBuilding(def.id, b.level, group)) {
+      if (
+        b &&
+        !paintCoolHall(def.id) &&
+        !paintRoofBuilding(def.id, b.level, group)
+      ) {
         const tier =
           (def.id === 'B_GARDEN' ? b.level : Math.min(b.level, def.maxLevel)) >=
           2
@@ -1136,16 +1304,25 @@ export async function createMap(
     const namePoints: (NamePoint & { id: string })[] = [];
     let active = false;
     const roofOccupied = new Set<string>();
+    let hallOccupied = false;
+    const coolSeats: Record<string, unknown>[] = [];
     for (const d of world.disciples) {
       const m = motions.get(d.id);
       if (!m) continue;
       const elapsed = Math.max(0, now - m.start);
       const moving = elapsed < m.duration;
       active ||= moving;
-      const pathFoot = alongPath(
-        m.path,
-        (elapsed / 1000) * routeSpeed(m.path) * walkScale,
-      );
+      const travelledOnPath = motionDistance(m, elapsed);
+      const pathFoot = alongPath(m.path, travelledOnPath);
+      // cool 主殿：门口一个身位内淡出/淡入，门内按殿内排序。
+      const hallStatus = coolHall
+        ? routeStatus(m.coolRoute, travelledOnPath)
+        : undefined;
+      if (
+        hallStatus &&
+        (hallStatus.inside || hallStatus.doorDistance < DOOR_FADE)
+      )
+        hallOccupied = true;
       // roofFade：到门口后不再淡出消失，走一小段表现层路线到室内站位。
       const indoor = roofFade ? roofIndoor(d, m, elapsed, moving) : undefined;
       m.roofIndoor = indoor
@@ -1187,10 +1364,12 @@ export async function createMap(
             s.id === destinationBuilding(d) &&
             Math.hypot(m.toX - s.entrance[0], m.toY - s.entrance[1]) < 0.1,
         );
-      const alpha =
+      const alpha = Math.min(
         entering && !moving && !indoor
           ? Math.max(0, 1 - (elapsed - m.duration) / 350)
-          : 1;
+          : 1,
+        hallStatus?.alpha ?? 1,
+      );
       active ||= !!entering && !moving && alpha > 0 && !indoor;
       if (roofFade)
         for (const [id, roof] of Object.entries(roofFadeBuildings)) {
@@ -1308,7 +1487,7 @@ export async function createMap(
       }
       const mask = masks.get(file);
       // 室内弟子按脚底 y 排在外观之下，不做“露头抬层”。
-      if (mask && !compact && !indoor) {
+      if (mask && !compact && !indoor && !hallStatus?.inside) {
         const facing = flip;
         const key = JSON.stringify([
           file,
@@ -1336,6 +1515,32 @@ export async function createMap(
           stats.minHeadVisibility,
           result.visible,
         );
+      }
+      // cool 主殿排序：殿内按脚底 y（在台基层、屋顶层之下，柱子按柱脚 y 互相遮挡）；
+      // 台阶上画在整座主殿之上；殿外按前缘线规则。
+      if (coolHall && hallStatus) {
+        const foot: Point = [m.x, m.y];
+        const onStairs =
+          !hallStatus.inside &&
+          !walkable(foot) &&
+          approachParam(coolHall, foot).d < 24;
+        group.zIndex = hallStatus.inside
+          ? m.y
+          : onStairs
+            ? coolHall.hallZ + 1
+            : Math.max(group.zIndex, outdoorZ(coolHall, foot));
+        const seat = assembly?.seats.get(d.id) ?? dailyMap.get(d.id);
+        coolSeats.push({
+          id: d.id,
+          inside: hallStatus.inside,
+          onStairs,
+          doorAlpha: hallStatus.alpha,
+          seat: seat && { kind: seat.kind, index: seat.index },
+          arrived: !moving,
+          x: m.x,
+          y: m.y,
+          z: group.zIndex,
+        });
       }
       // roofFade：室内弟子画在内景与外观之上（外观此时正淡出或已隐藏）。
       if (indoor)
@@ -1414,6 +1619,43 @@ export async function createMap(
         group.addChild(dot);
       }
       scene.addChild(group);
+    }
+    if (coolHall) {
+      coolOccupied = hallOccupied;
+      active ||=
+        roofAnimatingCool(coolRoof, now) ||
+        hallOccupied !== (coolRoof.to === 0);
+      lastCoolSeats = coolSeats;
+      if (assembly && assemblyEnabled) {
+        // 召集时钟只在未暂停（未按老板键、页面可见）时走；单帧最多计 100 ms。
+        const dt =
+          paused || assemblyLast === undefined
+            ? 0
+            : Math.min(100, now - assemblyLast);
+        assemblyLast = now;
+        const participants = [...assembly.seats.keys()].filter((id) =>
+          motions.has(id),
+        );
+        const allArrived = participants.every((id) => {
+          const m = motions.get(id)!;
+          const seat = assembly!.seats.get(id)!;
+          return (
+            !!seat.point &&
+            now - m.start >= m.duration &&
+            Math.hypot(m.toX - seat.point[0], m.toY - seat.point[1]) < 0.5
+          );
+        });
+        const before = assembly.released.size;
+        const phase = assembly.phase;
+        assembly = assemblyTick(assembly, dt, allArrived);
+        active = true;
+        if (
+          !assembly ||
+          assembly.released.size !== before ||
+          assembly.phase !== phase
+        )
+          queueMicrotask(() => world && draw(world));
+      }
     }
     if (roofFade)
       for (const id of Object.keys(roofFadeBuildings)) {
@@ -1511,22 +1753,96 @@ export async function createMap(
       frame = requestFrame(paint);
     else frame = 0;
   }
+  // cool：本次 draw 每个可见弟子的目标点（召集席位 / 日常站位 / sim 落点）。
+  function coolPlan(w: World, list: World['disciples'], destinations: Point[]) {
+    const hall = coolHall!;
+    const joinOrder = new Map(w.disciples.map((d, i) => [d.id, i]));
+    const order = () => seniorityOrder(list, joinOrder);
+    // 触发只看真实弟子（调试注入的不算入门）。
+    const realWorld = injected.length
+      ? { ...w, disciples: w.disciples.filter((d) => !injected.includes(d)) }
+      : w;
+    const reasons = assemblyEnabled
+      ? detectTriggers(triggerState, realWorld)
+      : [];
+    triggerState = snapshotTriggers(realWorld);
+    if (reasons.length) beginAssembly(reasons, order());
+    if (assembly) {
+      const ids = new Set(list.map((d) => d.id));
+      // 离山（历练）者不在图上：席位留空不补。
+      for (const id of [...assembly.seats.keys()])
+        if (!ids.has(id)) assembly.seats.delete(id);
+      // 历练归来 / 新入门 / 调试注入：补到最后一个空席位，不整体重排。
+      for (const id of order())
+        if (!assembly.seats.has(id)) addLateJoiner(hall, assembly.seats, id);
+    }
+    const holds = (id: string) =>
+      !!assembly && assembly.seats.has(id) && !assembly.released.has(id);
+    // 日常分流只对没有召集席位的人生效（召集开始即暂停日常规则）。
+    const goers = list
+      .filter(
+        (d) =>
+          w.tick > 0 && !holds(d.id) && destinationBuilding(d) === 'B_HALL',
+      )
+      .map((d) => d.id);
+    dailyMap = dailySeats(hall, dailyMap, goers);
+    const socials = worldMap.spots
+      .filter((s) => s.kind === 'social')
+      .map((s) => s.point as Point)
+      .filter(
+        (p) =>
+          Math.hypot(p[0] - hall.entrance[0], p[1] - hall.entrance[1]) > 84,
+      );
+    const overflow = (k: number) =>
+      spacedLanding(
+        nearestWalkable(socials[k % socials.length]),
+        [],
+        Math.floor(k / socials.length),
+      );
+    return list.map((d, i) => {
+      const held = holds(d.id) ? assembly!.seats.get(d.id) : undefined;
+      const seat = held ?? dailyMap.get(d.id);
+      return {
+        point: seat ? (seat.point ?? overflow(seat.index)) : destinations[i],
+        inside: !!seat?.inside,
+        speedFactor:
+          held && d.stage === '迟暮' ? ASSEMBLY.elderSpeed : undefined,
+      };
+    });
+  }
+  function beginAssembly(reasons: string[], order: string[]) {
+    assemblyLog.push({ at: performance.now(), reasons });
+    if (assembly) for (const r of reasons) retriggerAssembly(assembly, r);
+    else {
+      assembly = startAssembly(coolHall!, order, reasons.join('、'));
+      for (const r of reasons.slice(1)) retriggerAssembly(assembly, r);
+      assemblyLast = undefined;
+    }
+  }
   function draw(w: World) {
     cancelFrame();
     frame = 0;
     paused = host.ownerDocument?.hidden ?? document.hidden;
-    world = w;
+    // cool 调试注入的弟子只在表现层存在（world 的浅拷贝），不进 sim。
+    const real = injected.length
+      ? w.disciples.filter((d) => !injected.includes(d))
+      : w.disciples;
+    world = injected.length ? { ...w, disciples: [...real, ...injected] } : w;
     const now = performance.now(),
       visible = new Set<string>();
-    const visibleDisciples = w.disciples.filter(
+    const visibleDisciples = world.disciples.filter(
       (d) =>
         d.stage !== '坐化' && !d.state.awayUntil && d.state.behavior !== '历练',
     );
     const destinations = discipleDestinations(visibleDisciples, w.tick);
+    const coolTargets = coolHall
+      ? coolPlan(world, visibleDisciples, destinations)
+      : undefined;
     const indoorCounts = new Map<string, number>();
     for (const [i, d] of visibleDisciples.entries()) {
       visible.add(d.id);
-      const [x, y] = destinations[i];
+      const ct = coolTargets?.[i];
+      const [x, y] = ct ? ct.point : destinations[i];
       const row = i > 2 ? 1 : 0;
       const m = motions.get(d.id);
       const roofId = roofFade ? destinationBuilding(d) : undefined;
@@ -1551,6 +1867,9 @@ export async function createMap(
           path: [[x, y]],
           duration: 0,
           indoorIndex,
+          ...(ct?.inside
+            ? { coolRoute: { path: [[x, y]], insideBefore: true } }
+            : {}),
         });
       else {
         m.row = row;
@@ -1559,9 +1878,7 @@ export async function createMap(
           const previousFoot: [number, number] = [m.x, m.y];
           [m.x, m.y] = alongPath(
             m.path,
-            (Math.max(0, now - m.start) / 1000) *
-              routeSpeed(m.path) *
-              walkScale,
+            motionDistance(m, Math.max(0, now - m.start)),
           );
           const indoor = m.roofIndoor;
           if (indoor)
@@ -1572,15 +1889,46 @@ export async function createMap(
           m.pendingDistance =
             (m.pendingDistance ?? 0) +
             Math.hypot(m.x - previousFoot[0], m.y - previousFoot[1]);
-          // 从室内站位先走回门口，再接正常寻路，不瞬移。
-          const outdoor = findPath(indoor ? indoor.from : [m.x, m.y], [x, y]);
-          const path: Point[] =
-            indoor && outdoor.length ? [[m.x, m.y], ...outdoor] : outdoor;
+          let path: Point[];
+          if (coolHall) {
+            // cool 主殿：进出殿走 入口→台阶顶→门→席位 的表现层折线，从当前位置接着走。
+            const foot: Point = [m.x, m.y];
+            const st = routeStatus(
+              m.coolRoute,
+              motionDistance(m, Math.max(0, now - m.start)),
+            );
+            const where = st.inside
+              ? 'inside'
+              : !walkable(foot) && approachParam(coolHall, foot).d < 24
+                ? 'stairs'
+                : 'outdoor';
+            const route = planHallRoute(
+              coolHall,
+              foot,
+              where,
+              [x, y],
+              !!ct?.inside,
+              findPath,
+            );
+            if (!route) continue;
+            path = route.path;
+            m.coolRoute = route;
+            m.speedFactor = ct?.speedFactor;
+          } else {
+            // 从室内站位先走回门口，再接正常寻路，不瞬移。
+            const outdoor = findPath(indoor ? indoor.from : [m.x, m.y], [x, y]);
+            path =
+              indoor && outdoor.length ? [[m.x, m.y], ...outdoor] : outdoor;
+          }
           if (!path.length) continue;
           m.roofIndoor = undefined;
           m.path = path;
           m.duration =
-            (pathLength(path) / (routeSpeed(path) * walkScale)) * 1000;
+            m.speedFactor === undefined
+              ? (pathLength(path) / (routeSpeed(path) * walkScale)) * 1000
+              : (pathLength(path) /
+                  (routeSpeed(path) * walkScale * m.speedFactor)) *
+                1000;
           m.row = row;
           m.fromX = m.x;
           m.fromY = m.y;
