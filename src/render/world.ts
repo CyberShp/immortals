@@ -8,6 +8,8 @@ export const platformWalkables = platform.joints.map((j) => ({
 }));
 import { z } from 'zod';
 import raw from '../../data/world.json';
+import { coolActive, coolWorld } from './cool-world';
+export { coolActive, coolWorld } from './cool-world';
 import type { Disciple } from '../sim/data';
 const point = z.tuple([z.number().finite(), z.number().finite()]);
 const polygon = z.array(point).min(3);
@@ -56,8 +58,13 @@ export const worldSchema = z.object({
   ),
 });
 export const sourceWorldMap = worldSchema.parse(raw);
+type ClassicWorldMap = z.infer<typeof worldSchema>;
+type WorldMap = Omit<ClassicWorldMap, 'width' | 'height'> & {
+  width: number;
+  height: number;
+};
 // Presentation-only overrides. Raw data and simulation remain byte-for-byte untouched.
-export const worldMap = worldSchema.parse({
+const classicWorldMap: ClassicWorldMap = worldSchema.parse({
   ...raw,
   slots: raw.slots.map((slot) => {
     const measured = pedestalGeometry.buildings.find((b) => b.id === slot.id);
@@ -71,6 +78,11 @@ export const worldMap = worldSchema.parse({
       : slot;
   }),
 });
+// ?cool=1：换成单石台几何（cool-world.json，独立 zod 校验）；关闭时即原四岛几何。
+export const worldMap: WorldMap = coolWorld ?? classicWorldMap;
+// 旧四岛专用的走廊切口与圆台连接面，cool 下不参与可走判定与导航。
+const activeCorridorCut: Point[] | null = coolActive ? null : corridorCut;
+const activePlatformWalkables = coolActive ? [] : platformWalkables;
 export type Point = [number, number];
 export { DISCIPLE_SCALE, DISCIPLE_HEIGHT } from './world-scale';
 // Legacy renderer interpolated every trip over 1.2s, not at a constant speed.
@@ -137,11 +149,13 @@ function inRect(p: Point, rect: readonly number[]) {
   );
 }
 export function walkable(p: Point) {
-  if (p[0] < 0 || p[1] < 0 || p[0] >= 3200 || p[1] >= 1400) return false;
+  if (p[0] < 0 || p[1] < 0 || p[0] >= worldMap.width || p[1] >= worldMap.height)
+    return false;
   if (worldMap.slots.some((s) => inFootprint(p, s.footprint))) return false;
-  if (inFootprint(p, { polygon: corridorCut })) return false;
+  if (activeCorridorCut && inFootprint(p, { polygon: activeCorridorCut }))
+    return false;
   return (
-    platformWalkables.some((b) => inPolygon(p, b.polygon)) ||
+    activePlatformWalkables.some((b) => inPolygon(p, b.polygon)) ||
     worldMap.bridges.some((b) => inPolygon(p, b.walkable)) ||
     worldMap.islands.some((d) => {
       const q: Point = [p[0] - d.offset[0], p[1] - d.offset[1]];
@@ -152,14 +166,14 @@ export function walkable(p: Point) {
   );
 }
 const navigationPolygons: Point[][] = [
-  corridorCut,
+  ...(activeCorridorCut ? [activeCorridorCut] : []),
   ...worldMap.islands.flatMap((i) =>
     [i.walkable, ...i.obstacles].map((poly) =>
       poly.map((p) => [p[0] + i.offset[0], p[1] + i.offset[1]] as Point),
     ),
   ),
   ...worldMap.bridges.map((b) => b.walkable),
-  ...platformWalkables.map((b) => b.polygon),
+  ...activePlatformWalkables.map((b) => b.polygon),
   ...worldMap.slots.flatMap((s) => footprintPolygons(s.footprint)),
 ];
 const navigationEdges = navigationPolygons.flatMap((poly) =>
@@ -204,8 +218,8 @@ export function lineClear(a: Point, b: Point) {
   );
 }
 const CELL = 10,
-  COLS = 320,
-  ROWS = 140;
+  COLS = Math.ceil(worldMap.width / CELL),
+  ROWS = Math.ceil(worldMap.height / CELL);
 const grid = Uint8Array.from({ length: COLS * ROWS }, (_, i) =>
   Number(walkable([(i % COLS) * CELL, Math.floor(i / COLS) * CELL])),
 );
@@ -429,10 +443,11 @@ export function destination(d: Disciple, tick: number, index = 0): Point {
         ? 'meditate'
         : 'social';
   if (tick === 0) {
+    const home = coolActive ? 'platform' : 'main';
     const spots = worldMap.spots.filter(
-      (s) => s.island === 'main' && s.kind === 'social',
+      (s) => s.island === home && s.kind === 'social',
     );
-    const main = worldMap.islands.find((s) => s.id === 'main')!;
+    const main = worldMap.islands.find((s) => s.id === home)!;
     const anchors: Point[] = [
       ...spots.map((s): Point => [
         s.point[0] + main.offset[0],
@@ -448,7 +463,7 @@ export function destination(d: Disciple, tick: number, index = 0): Point {
   }
   if (building) return worldMap.slots.find((s) => s.id === building)!.entrance;
   else if (d.state.behavior === '做工' && d.state.location === '采石点')
-    p = nearestWalkable([1720, 752]);
+    p = nearestWalkable(coolWorld ? coolWorld.quarry : [1720, 752]);
   else {
     const spots = worldMap.spots.filter((s) => s.kind === kind),
       s = spots[hash % spots.length],

@@ -1,0 +1,282 @@
+{
+  "$comment": "冷色新场景（?cool=1）占位几何。所有坐标为概念图 scene_concept_cool_v1 的源像素（1152×864），加载时按 k 统一换算到世界坐标；改 k 或 platform.center 即整体缩放/平移，不用逐点改。几何是在概念图上手工估描的占位，待 Iris 正式石台与标注 json 到位后替换。",
+  "k": 0.6,
+  "kNote": "k=0.6 暂定（指挥官未最终拍板），可改；k=1 时石台宽 widthAtK1。",
+  "world": {
+    "width": 3200,
+    "height": 1400
+  },
+  "platform": {
+    "center": [1600, 700],
+    "widthAtK1": 2667,
+    "note": "k=0.6 → 石台视觉宽≈1600、高≈1200（概念图整幅即石台视觉外框，含屋脊与岩体），居中"
+  },
+  "background": {
+    "file": "cool/scene_concept_cool_v1-placeholder.webp",
+    "size": [1152, 864],
+    "placeholder": "占位，待 Iris 正式石台替换",
+    "canvasColor": "#b9c6cf"
+  },
+  "camera": {
+    "start": [1600, 720],
+    "startViewWidth": 1440,
+    "note": "世界坐标，不随 k 换算；startViewWidth 同旧版：默认视野宽 1440 世界 px"
+  },
+  "walkable": [
+    [22, 518],
+    [70, 330],
+    [200, 280],
+    [420, 235],
+    [600, 195],
+    [820, 250],
+    [900, 285],
+    [1100, 385],
+    [1145, 585],
+    [745, 785],
+    [320, 630]
+  ],
+  "obstacles": [
+    {
+      "id": "D_PAGODA",
+      "name": "五层塔（纯装饰预留位）",
+      "polygon": [
+        [110, 330],
+        [250, 395],
+        [345, 345],
+        [205, 285]
+      ]
+    },
+    {
+      "id": "D_POND_N",
+      "name": "莲池（塔旁）",
+      "polygon": [
+        [375, 330],
+        [412, 348],
+        [452, 330],
+        [412, 312]
+      ]
+    },
+    {
+      "id": "D_POND_W",
+      "name": "莲池（居舍旁）",
+      "polygon": [
+        [280, 385],
+        [311, 400],
+        [342, 385],
+        [311, 370]
+      ]
+    },
+    {
+      "id": "D_DORM_MINOR",
+      "name": "居舍小屋（仅视觉）",
+      "polygon": [
+        [255, 535],
+        [390, 605],
+        [540, 540],
+        [405, 470]
+      ]
+    }
+  ],
+  "decor": [
+    {
+      "id": "D_ARENA",
+      "name": "演武场（纯表现，承载 3 个 sword 点；可走）",
+      "polygon": [
+        [455, 460],
+        [640, 550],
+        [770, 470],
+        [600, 395]
+      ]
+    },
+    {
+      "id": "D_PAGODA",
+      "name": "五层塔（纯装饰预留位，不进 sim；碰撞见 obstacles.D_PAGODA）",
+      "polygon": [
+        [110, 330],
+        [250, 395],
+        [345, 345],
+        [205, 285]
+      ]
+    }
+  ],
+  "slots": [
+    {
+      "id": "B_HALL",
+      "sim": "主殿",
+      "concept": "主殿",
+      "mapping": "Lore 06 已定",
+      "footprint": [
+        [430, 295],
+        [640, 400],
+        [850, 300],
+        [640, 195]
+      ],
+      "entrance": [600, 428],
+      "label": [640, 440]
+    },
+    {
+      "id": "B_DORM",
+      "sim": "居舍",
+      "concept": "居舍群（院门为唯一入口）",
+      "mapping": "Lore 06 已定",
+      "footprint": [
+        [45, 470],
+        [190, 545],
+        [320, 480],
+        [175, 405]
+      ],
+      "entrance": [338, 486],
+      "label": [190, 560]
+    },
+    {
+      "id": "B_MEDIT",
+      "sim": "静修室",
+      "concept": "聚灵阵（=静修室）",
+      "mapping": "Lore 06 已定",
+      "footprint": [
+        [680, 680],
+        [735, 706],
+        [790, 680],
+        [735, 654]
+      ],
+      "entrance": [735, 728],
+      "label": [735, 745]
+    },
+    {
+      "id": "B_ALCHEMY",
+      "sim": "炼丹房",
+      "concept": "丹房",
+      "mapping": "Lore 06 已定",
+      "footprint": [
+        [830, 400],
+        [940, 455],
+        [1040, 400],
+        [930, 345]
+      ],
+      "entrance": [905, 478],
+      "label": [1050, 415]
+    },
+    {
+      "id": "B_GARDEN",
+      "sim": "药圃",
+      "concept": "药田（地面层+前缘栅栏条）",
+      "mapping": "Lore 06 已定",
+      "footprint": [
+        [795, 560],
+        [920, 625],
+        [1070, 555],
+        [945, 485]
+      ],
+      "entrance": [778, 585],
+      "label": [930, 640]
+    },
+    {
+      "id": "B_GATE",
+      "sim": "山门",
+      "concept": "山门（前缘台阶口 / 历练进出淡变点）",
+      "mapping": "Lore 06 已定",
+      "footprint": [
+        [292, 628],
+        [300, 632],
+        [308, 628],
+        [300, 624]
+      ],
+      "entrance": [318, 612],
+      "label": [300, 640]
+    }
+  ],
+  "spots": [
+    {
+      "id": "C_SWORD_1",
+      "kind": "sword",
+      "point": [580, 470],
+      "where": "演武场"
+    },
+    {
+      "id": "C_SWORD_2",
+      "kind": "sword",
+      "point": [640, 505],
+      "where": "演武场"
+    },
+    {
+      "id": "C_SWORD_3",
+      "kind": "sword",
+      "point": [700, 468],
+      "where": "演武场"
+    },
+    {
+      "id": "C_MEDITATE_1",
+      "kind": "meditate",
+      "point": [640, 670],
+      "where": "聚灵阵西"
+    },
+    {
+      "id": "C_MEDITATE_2",
+      "kind": "meditate",
+      "point": [735, 632],
+      "where": "聚灵阵北"
+    },
+    {
+      "id": "C_MEDITATE_3",
+      "kind": "meditate",
+      "point": [830, 682],
+      "where": "聚灵阵东"
+    },
+    {
+      "id": "C_SOCIAL_1",
+      "kind": "social",
+      "point": [455, 355],
+      "where": "莲池（塔旁）"
+    },
+    {
+      "id": "C_SOCIAL_2",
+      "kind": "social",
+      "point": [350, 405],
+      "where": "莲池（居舍旁）"
+    },
+    {
+      "id": "C_SOCIAL_3",
+      "kind": "social",
+      "point": [1060, 452],
+      "where": "小亭"
+    },
+    {
+      "id": "C_SOCIAL_4",
+      "kind": "social",
+      "point": [365, 455],
+      "where": "庭院（居舍院门外）"
+    },
+    {
+      "id": "C_SOCIAL_5",
+      "kind": "social",
+      "point": [560, 428],
+      "where": "主殿台阶前"
+    },
+    {
+      "id": "C_SOCIAL_6",
+      "kind": "social",
+      "point": [340, 600],
+      "where": "山门台阶前"
+    },
+    {
+      "id": "C_SOCIAL_7",
+      "kind": "social",
+      "point": [810, 478],
+      "where": "庭院（丹房前）"
+    },
+    {
+      "id": "C_SOCIAL_8",
+      "kind": "social",
+      "point": [575, 640],
+      "where": "聚灵阵西南小径"
+    }
+  ],
+  "quarry": {
+    "point": [1110, 588],
+    "note": "采石点：石台边角岩体露头处（右前角），配石堆道具（未出图）；落点为固定坐标，不消耗任何 sim 随机数"
+  },
+  "gate": {
+    "expeditionPoint": [318, 612],
+    "note": "山门兼历练出/归淡变点（台阶口）；当前渲染仍沿用历练弟子不显示的旧行为，淡变动画留待后续"
+  }
+}

@@ -24,7 +24,6 @@ import {
   roofAlpha,
   roofAnimating,
   roofFadeBuildings,
-  roofFadeEnabled,
   type RoofTween,
 } from './roof-fade';
 import { DISCIPLE_HEIGHT } from './world-scale';
@@ -43,7 +42,8 @@ import {
   buildingArt,
 } from './layout';
 import { attachCamera } from './camera';
-import { DEPTH, depthEnabled, depthFiles } from './depth-config';
+import { DEPTH, depthFiles } from './depth-config';
+import { depthActive, roofFadeActive } from './cool-config';
 import { createDepthLayers } from './depth-layers';
 import {
   visibilityOrder,
@@ -78,12 +78,16 @@ import {
   discipleDestinations,
   destinationBuilding,
   walkTimeSeconds,
+  coolWorld,
   type Point,
 } from './world';
 function plotFoot(id: string): Point {
   const s = worldMap.slots.find((s) => s.id === id)!;
   return [(s.rect[0] + s.rect[2]) / 2, s.rect[3]];
 }
+// ?cool=1：排序 y 直接取冷色槽位脚印前角（plotFoot 的 y）；旧台基 sortY 只对四岛世界有效。
+const sortY = (id: string, baseY: number) =>
+  coolWorld ? baseY : buildingSortY(id, baseY);
 // Layered translucent ellipses give a soft edge without a raster art generator.
 function groundShadow(width: number, y = 3, color = 0x3b2a1a) {
   const g = new Graphics();
@@ -207,10 +211,18 @@ export async function createMap(
       : 1;
   const walkSpeed = WALK_SPEED * walkScale;
   // 开发开关：封闭房屋屋顶淡出。默认关闭，关闭时渲染与改动前一致。
-  const roofFade = roofFadeEnabled(location.search);
+  // ?cool=1 时默认关闭（COOL_SETTINGS.roofFadeWithCool）。
+  const roofFade = roofFadeActive(location.search);
   // 开发开关：场景纵深（天空/远峰/云海/落影/全局光/前景雾）。默认关闭，关闭时不建任何纵深对象、不加载纵深素材。
-  const depth = depthEnabled(location.search);
-  const groundFile = depth ? DEPTH.world : 'map/world.webp';
+  // ?cool=1 优先：cool 打开时纵深默认关闭（COOL_SETTINGS.depthWithCool）。
+  const depth = depthActive(location.search);
+  // 开发开关：冷色单石台骨架。底图换成占位概念图，不画旧四岛 world.webp、山门前景与桥。
+  const cool = coolWorld;
+  const groundFile = cool
+    ? cool.background.file
+    : depth
+      ? DEPTH.world
+      : 'map/world.webp';
   if (params.get('debug') === '1')
     Object.assign(window, {
       __world: {
@@ -259,12 +271,27 @@ export async function createMap(
             .map((b) => b.id),
       },
     });
+  if (params.get('debug') === '1' && cool)
+    Object.assign(window, {
+      __cool: {
+        k: cool.config.k,
+        scale: cool.scale,
+        background: cool.background,
+        slots: cool.slots,
+        spots: cool.spots,
+        quarry: cool.quarry,
+        expeditionPoint: cool.expeditionPoint,
+        platform: cool.islands[0].walkable,
+        depth,
+        roofFade,
+      },
+    });
   const app = new Application();
   await app.init({
     resizeTo: host,
     resolution: devicePixelRatio || 1,
     autoDensity: true,
-    background: 0xf1e8d4,
+    background: cool ? cool.background.color : 0xf1e8d4,
     antialias: true,
     autoStart: false,
   });
@@ -283,11 +310,21 @@ export async function createMap(
   const needed = manifest.files.filter(
     (f) => false || f.file.includes('-map@') || f.file.includes('-96@'),
   );
-  const mapEntries = [
-    { file: groundFile, size: [3200, 1400], anchor: { x: 0, y: 0 } },
-    { file: 'map/world-mini.webp', size: [320, 140], anchor: { x: 0, y: 0 } },
-    { file: gateArt.file, size: gateArt.crop.slice(2), anchor: { x: 0, y: 0 } },
-  ];
+  const mapEntries = cool
+    ? [{ file: groundFile, size: cool.background.size, anchor: { x: 0, y: 0 } }]
+    : [
+        { file: groundFile, size: [3200, 1400], anchor: { x: 0, y: 0 } },
+        {
+          file: 'map/world-mini.webp',
+          size: [320, 140],
+          anchor: { x: 0, y: 0 },
+        },
+        {
+          file: gateArt.file,
+          size: gateArt.crop.slice(2),
+          anchor: { x: 0, y: 0 },
+        },
+      ];
   for (const entry of mapEntries)
     entries.set(entry.file, entry as (typeof manifest.files)[number]);
   Assets.setPreferences({ preferWorkers: false });
@@ -518,10 +555,24 @@ export async function createMap(
     sprite.scale.set(scale);
     return sprite;
   }
-  const camera = attachCamera(host, app.canvas, () => {
-    cancelFrame();
-    paint(performance.now());
-  });
+  const camera = attachCamera(
+    host,
+    app.canvas,
+    () => {
+      cancelFrame();
+      paint(performance.now());
+    },
+    cool
+      ? {
+          width: cool.width,
+          height: cool.height,
+          start: { x: cool.camera.start[0], y: cool.camera.start[1] },
+          startViewWidth: cool.camera.startViewWidth,
+        }
+      : undefined,
+  );
+  const worldWidth = cool ? cool.width : 3200,
+    worldHeight = cool ? cool.height : 1400;
   mini.eventMode = 'static';
   mini.cursor = 'pointer';
   mini.hitArea = {
@@ -530,7 +581,7 @@ export async function createMap(
   const navigateMini = (e: import('pixi.js').FederatedPointerEvent) => {
     const p = e.getLocalPosition(mini);
     e.stopPropagation();
-    camera.set({ x: p.x / (115 / 3200), y: p.y / (115 / 3200) });
+    camera.set({ x: p.x / (115 / worldWidth), y: p.y / (115 / worldWidth) });
   };
   mini.on('pointerdown', (e) => {
     miniDrag = true;
@@ -646,7 +697,13 @@ export async function createMap(
       visibleDisciples: 0,
     };
     const ground =
-      art(groundFile, 1) ??
+      (cool
+        ? (() => {
+            const g = art(groundFile, cool.scale);
+            g?.position.set(cool.background.x, cool.background.y);
+            return g;
+          })()
+        : art(groundFile, 1)) ??
       new Graphics()
         .ellipse(320, 200, 280, 130)
         .fill(0xd1dac3)
@@ -659,7 +716,7 @@ export async function createMap(
 
     scene.addChild(ground);
     // Round platforms are baked below bridges in world.webp.
-    const gate = art(gateArt.file, 1);
+    const gate = cool ? undefined : art(gateArt.file, 1);
     if (gate) {
       gate.position.set(gateArt.crop[0], gateArt.crop[1]);
       gate.zIndex = buildingSortY('B_GATE', gateArt.footY);
@@ -749,7 +806,7 @@ export async function createMap(
       const b = world.buildings.find((b) => b.id === def.id);
       const group = new Container();
       group.position.set(x, y);
-      group.zIndex = buildingSortY(def.id, baseY);
+      group.zIndex = sortY(def.id, baseY);
       // Empty sites keep their label/click target, without painting fictional stone plots.
       if (b && !paintRoofBuilding(def.id, b.level, group)) {
         const tier =
@@ -759,10 +816,11 @@ export async function createMap(
             : 1;
         const file = `building/${buildingArt[b.id]}-t${tier}-map@2x.webp`;
         const placement = worldBuildings.find((b) => b.file === file);
-        drawX = placement?.x ?? x;
-        y = placement?.y ?? baseY;
+        // cool：沿用旧立绘与缩放作占位，但锚到冷色槽位脚印前角，忽略旧四岛的绝对坐标。
+        drawX = cool ? x : (placement?.x ?? x);
+        y = cool ? baseY : (placement?.y ?? baseY);
         group.position.set(drawX, y);
-        group.zIndex = buildingSortY(def.id, baseY);
+        group.zIndex = sortY(def.id, baseY);
         const sprite = art(
           file,
           worldBuildings.find((b) => b.file === file)?.scale ?? 1,
@@ -1387,12 +1445,19 @@ export async function createMap(
     mini.addChild(
       new Graphics()
         .rect(0, 0, 115, 65)
-        .fill({ color: 0xf1e8d4, alpha: 0.9 })
+        .fill({ color: cool ? cool.background.color : 0xf1e8d4, alpha: 0.9 })
         .stroke({ width: 1, color: 0x8a8578 }),
     );
-    const miniArt = art('map/world-mini.webp', 115 / 320);
+    const miniScale = 115 / worldWidth;
+    const miniArt = cool
+      ? art(groundFile, cool.scale * miniScale)
+      : art('map/world-mini.webp', 115 / 320);
+    if (miniArt && cool)
+      miniArt.position.set(
+        cool.background.x * miniScale,
+        cool.background.y * miniScale,
+      );
     if (miniArt) mini.addChild(miniArt);
-    const miniScale = 115 / 3200;
     for (const m of motions.values())
       mini.addChild(
         new Graphics()
@@ -1404,8 +1469,8 @@ export async function createMap(
         .rect(
           Math.max(0, cam.x - bounds.width / 2 / cam.zoom) * miniScale,
           Math.max(0, cam.y - bounds.height / 2 / cam.zoom) * miniScale,
-          Math.min(3200, bounds.width / cam.zoom) * miniScale,
-          Math.min(1400, bounds.height / cam.zoom) * miniScale,
+          Math.min(worldWidth, bounds.width / cam.zoom) * miniScale,
+          Math.min(worldHeight, bounds.height / cam.zoom) * miniScale,
         )
         .stroke({ width: 1, color: 0xffffff }),
     );

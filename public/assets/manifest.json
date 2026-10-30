@@ -1226,6 +1226,22 @@
       ]
     }
   ],
-  "assetBytes": 3474008,
-  "totalBytes": 3514580
+  "assetBytes": 3629940,
+  "totalBytes": 3670992,
+  "groups": {
+    "cool": {
+      "firstScreen": false,
+      "loadedWhen": "?cool=1",
+      "note": "冷色新场景骨架素材；默认首屏不加载、不计入 first-screen-budget",
+      "files": [
+        {
+          "file": "cool/scene_concept_cool_v1-placeholder.webp",
+          "size": [1152, 864],
+          "bytes": 152284,
+          "source": "scene_concept_cool_v1.jpg",
+          "placeholder": "占位，待 Iris 正式石台替换"
+        }
+      ]
+    }
+  }
 }

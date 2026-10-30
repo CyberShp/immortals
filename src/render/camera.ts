@@ -1,25 +1,50 @@
 export type Camera = { zoom: number; x: number; y: number };
-export function clampCamera(c: Camera, width = 640, height = 360): Camera {
+/** 世界尺寸与初始镜头；默认值即旧四岛世界（?cool=1 时由 map.ts 传入冷色石台的值）。 */
+export type CameraWorld = {
+  width: number;
+  height: number;
+  start: { x: number; y: number };
+  startViewWidth: number;
+};
+const CLASSIC_WORLD: CameraWorld = {
+  width: 3200,
+  height: 1400,
+  start: { x: 1500, y: 900 },
+  startViewWidth: 1440,
+};
+export function clampCamera(
+  c: Camera,
+  width = 640,
+  height = 360,
+  world: Pick<CameraWorld, 'width' | 'height'> = CLASSIC_WORLD,
+): Camera {
   const zoom = Math.max(
-    Math.min(width / 3200, height / 1400),
+    Math.min(width / world.width, height / world.height),
     Math.min(1.5, c.zoom),
   );
   const axis = (n: number, span: number, size: number) =>
     span >= size ? size / 2 : Math.max(span / 2, Math.min(size - span / 2, n));
   return {
     zoom,
-    x: axis(c.x, width / zoom, 3200),
-    y: axis(c.y, height / zoom, 1400),
+    x: axis(c.x, width / zoom, world.width),
+    y: axis(c.y, height / zoom, world.height),
   };
 }
 export function attachCamera(
   host: HTMLElement,
   canvas: HTMLCanvasElement,
   repaint: () => void,
+  world: CameraWorld = CLASSIC_WORLD,
 ) {
   const size = () => canvas.getBoundingClientRect();
-  let current = clampCamera(
-    { zoom: size().width / 1440, x: 1500, y: 900 },
+  const clamp = (c: Camera, width: number, height: number) =>
+    clampCamera(c, width, height, world);
+  let current = clamp(
+    {
+      zoom: size().width / world.startViewWidth,
+      x: world.start.x,
+      y: world.start.y,
+    },
     size().width,
     size().height,
   );
@@ -30,8 +55,11 @@ export function attachCamera(
     const r = size(),
       key = `${r.width},${r.height}`;
     if (key !== lastSize) {
-      current = clampCamera(
-        { ...current, zoom: manual ? current.zoom : r.width / 1440 },
+      current = clamp(
+        {
+          ...current,
+          zoom: manual ? current.zoom : r.width / world.startViewWidth,
+        },
         r.width,
         r.height,
       );
@@ -41,15 +69,15 @@ export function attachCamera(
   };
   const set = (patch: Partial<Camera>) => {
     manual = true;
-    current = clampCamera({ ...get(), ...patch }, size().width, size().height);
+    current = clamp({ ...get(), ...patch }, size().width, size().height);
     repaint();
   };
   const panorama = () => {
     followed = undefined;
     set({
-      zoom: Math.min(size().width / 3200, size().height / 1400),
-      x: 1600,
-      y: 700,
+      zoom: Math.min(size().width / world.width, size().height / world.height),
+      x: world.width / 2,
+      y: world.height / 2,
     });
   };
   const controller = {
@@ -116,7 +144,7 @@ export function attachCamera(
       c = get(),
       px = e.clientX - r.left - r.width / 2,
       py = e.clientY - r.top - r.height / 2;
-    const zoom = clampCamera(
+    const zoom = clamp(
       { ...c, zoom: c.zoom - e.deltaY * 0.0003 },
       r.width,
       r.height,
@@ -138,7 +166,7 @@ export function attachCamera(
     track: (x: number, y: number, dt: number) => {
       const c = get(),
         factor = 1 - Math.exp(-dt / 180);
-      current = clampCamera(
+      current = clamp(
         { ...c, x: c.x + (x - c.x) * factor, y: c.y + (y - c.y) * factor },
         size().width,
         size().height,
