@@ -275,6 +275,14 @@ export async function createMap(
   let triggerState: TriggerState | undefined;
   const injected: World['disciples'] = [];
   let lastCoolSeats: Record<string, unknown>[] = [];
+  // 08 增补 R6：重寻路分帧（推荐值每帧 ≤4 人）；replanLog 供调试钩子读最大每帧人数与帧间隔。
+  const COOL_REPLAN_PER_FRAME = 4;
+  let replanBudget = COOL_REPLAN_PER_FRAME;
+  const pendingReplans = new Map<
+    string,
+    { x: number; y: number; ct: CoolTarget | undefined; row: number }
+  >();
+  const replanLog = { maxPerFrame: 0, total: 0, deferred: 0, maxGapMs: 0 };
   const motionDistance = (m: Motion, elapsed: number) =>
     m.speedFactor === undefined
       ? (elapsed / 1000) * routeSpeed(m.path) * walkScale
@@ -367,6 +375,8 @@ export async function createMap(
               })),
             },
             log: assemblyLog.map((e) => ({ ...e })),
+            replans: { ...replanLog, pending: pendingReplans.size },
+            paintedAt: lastPaint,
             daily: [...dailyMap].map(([id, s]) => ({
               id,
               kind: s.kind,
@@ -407,6 +417,14 @@ export async function createMap(
           draw(world);
           return injected.map((d) => d.id);
         },
+        /** 调试：清零分帧寻路统计（N19）。 */
+        replanReset: () =>
+          Object.assign(replanLog, {
+            maxPerFrame: 0,
+            total: 0,
+            deferred: 0,
+            maxGapMs: 0,
+          }),
         roofHold: (alpha?: number) => {
           coolRoofHold = alpha;
           cancelFrame();
@@ -842,6 +860,22 @@ export async function createMap(
   let miniDrag = false;
   function paint(now: number) {
     if (!world) return;
+    if (coolHall) {
+      for (const [id, r] of [...pendingReplans]) {
+        if (replanBudget <= 0) break;
+        pendingReplans.delete(id);
+        const m = motions.get(id);
+        if (!m) continue;
+        replanBudget--;
+        replanMotion(m, r.x, r.y, r.ct, r.row, now);
+      }
+      const used = COOL_REPLAN_PER_FRAME - replanBudget;
+      replanLog.total += used;
+      replanLog.maxPerFrame = Math.max(replanLog.maxPerFrame, used);
+      replanLog.deferred = Math.max(replanLog.deferred, pendingReplans.size);
+      replanLog.maxGapMs = Math.max(replanLog.maxGapMs, now - lastPaint);
+      replanBudget = COOL_REPLAN_PER_FRAME;
+    }
     for (const child of scene.removeChildren())
       if (child !== coolGroundCache) child.destroy({ children: true });
     for (const child of overlay.removeChildren())
@@ -1598,6 +1632,7 @@ export async function createMap(
           doorAlpha: hallStatus.alpha,
           seat: seat && { kind: seat.kind, index: seat.index },
           arrived: !moving,
+          speed: m.speedFactor ?? 1,
           x: m.x,
           y: m.y,
           z: group.zIndex,
@@ -1810,7 +1845,10 @@ export async function createMap(
     callbacks.frame?.();
     app.render();
     window.__mapReady = true;
-    if ((active || breathingGlow || !!followed) && !paused)
+    if (
+      (active || breathingGlow || !!followed || pendingReplans.size > 0) &&
+      !paused
+    )
       frame = requestFrame(paint);
     else frame = 0;
   }
@@ -1880,6 +1918,75 @@ export async function createMap(
       assemblyLast = undefined;
     }
   }
+  type CoolTarget = ReturnType<typeof coolPlan>[number];
+  function replanMotion(
+    m: Motion,
+    x: number,
+    y: number,
+    ct: CoolTarget | undefined,
+    row: number,
+    now: number,
+  ) {
+    const previousFoot: [number, number] = [m.x, m.y];
+    [m.x, m.y] = alongPath(
+      m.path,
+      motionDistance(m, Math.max(0, now - m.start)),
+    );
+    const indoor = m.roofIndoor;
+    if (indoor)
+      [m.x, m.y] = alongPath(
+        [indoor.from, indoor.to],
+        ((now - indoor.start) / 1000) * walkSpeed,
+      );
+    m.pendingDistance =
+      (m.pendingDistance ?? 0) +
+      Math.hypot(m.x - previousFoot[0], m.y - previousFoot[1]);
+    let path: Point[];
+    if (coolHall) {
+      // cool 主殿：进出殿走 入口→台阶顶→门→席位 的表现层折线，从当前位置接着走。
+      const foot: Point = [m.x, m.y];
+      const st = routeStatus(
+        m.coolRoute,
+        motionDistance(m, Math.max(0, now - m.start)),
+      );
+      const where = st.inside
+        ? 'inside'
+        : !walkable(foot) && approachParam(coolHall, foot).d < 24
+          ? 'stairs'
+          : 'outdoor';
+      const route = planHallRoute(
+        coolHall,
+        foot,
+        where,
+        [x, y],
+        !!ct?.inside,
+        findPath,
+      );
+      if (!route) return;
+      path = route.path;
+      m.coolRoute = route;
+      m.speedFactor = ct?.speedFactor;
+    } else {
+      // 从室内站位先走回门口，再接正常寻路，不瞬移。
+      const outdoor = findPath(indoor ? indoor.from : [m.x, m.y], [x, y]);
+      path = indoor && outdoor.length ? [[m.x, m.y], ...outdoor] : outdoor;
+    }
+    if (!path.length) return;
+    m.roofIndoor = undefined;
+    m.path = path;
+    m.duration = coolMotionMs(
+      pathLength(path),
+      routeSpeed(path),
+      walkScale,
+      m.speedFactor,
+    );
+    m.row = row;
+    m.fromX = m.x;
+    m.fromY = m.y;
+    m.toX = x;
+    m.toY = y;
+    m.start = now;
+  }
   function draw(w: World) {
     cancelFrame();
     frame = 0;
@@ -1941,70 +2048,20 @@ export async function createMap(
           (m.speedFactor ?? 1) !== (ct?.speedFactor ?? 1) &&
           now - m.start < m.duration;
         if (m.toX !== x || m.toY !== y || speedChanged) {
-          const previousFoot: [number, number] = [m.x, m.y];
-          [m.x, m.y] = alongPath(
-            m.path,
-            motionDistance(m, Math.max(0, now - m.start)),
-          );
-          const indoor = m.roofIndoor;
-          if (indoor)
-            [m.x, m.y] = alongPath(
-              [indoor.from, indoor.to],
-              ((now - indoor.start) / 1000) * walkSpeed,
-            );
-          m.pendingDistance =
-            (m.pendingDistance ?? 0) +
-            Math.hypot(m.x - previousFoot[0], m.y - previousFoot[1]);
-          let path: Point[];
-          if (coolHall) {
-            // cool 主殿：进出殿走 入口→台阶顶→门→席位 的表现层折线，从当前位置接着走。
-            const foot: Point = [m.x, m.y];
-            const st = routeStatus(
-              m.coolRoute,
-              motionDistance(m, Math.max(0, now - m.start)),
-            );
-            const where = st.inside
-              ? 'inside'
-              : !walkable(foot) && approachParam(coolHall, foot).d < 24
-                ? 'stairs'
-                : 'outdoor';
-            const route = planHallRoute(
-              coolHall,
-              foot,
-              where,
-              [x, y],
-              !!ct?.inside,
-              findPath,
-            );
-            if (!route) continue;
-            path = route.path;
-            m.coolRoute = route;
-            m.speedFactor = ct?.speedFactor;
-          } else {
-            // 从室内站位先走回门口，再接正常寻路，不瞬移。
-            const outdoor = findPath(indoor ? indoor.from : [m.x, m.y], [x, y]);
-            path =
-              indoor && outdoor.length ? [[m.x, m.y], ...outdoor] : outdoor;
+          // 08 增补 R6：cool 召集/讲道相位切换时重寻路分帧，每帧最多 COOL_REPLAN_PER_FRAME 人，其余顺延到后续帧。
+          if (coolHall && replanBudget <= 0) {
+            pendingReplans.set(d.id, { x, y, ct, row });
+            continue;
           }
-          if (!path.length) continue;
-          m.roofIndoor = undefined;
-          m.path = path;
-          m.duration = coolMotionMs(
-            pathLength(path),
-            routeSpeed(path),
-            walkScale,
-            m.speedFactor,
-          );
-          m.row = row;
-          m.fromX = m.x;
-          m.fromY = m.y;
-          m.toX = x;
-          m.toY = y;
-          m.start = now;
-        }
+          pendingReplans.delete(d.id);
+          if (coolHall) replanBudget--;
+          replanMotion(m, x, y, ct, row, now);
+        } else pendingReplans.delete(d.id);
       }
     }
     for (const id of motions.keys()) if (!visible.has(id)) motions.delete(id);
+    for (const id of pendingReplans.keys())
+      if (!visible.has(id)) pendingReplans.delete(id);
     paint(now);
   }
   // depth=1：云海/前景雾缓慢漂移。只在没有整帧重画排队时低频刷新纵深层，再 render 一次。
