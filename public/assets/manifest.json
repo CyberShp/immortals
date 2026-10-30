@@ -1226,20 +1226,187 @@
       ]
     }
   ],
-  "assetBytes": 3629940,
-  "totalBytes": 3670992,
+  "assetBytes": 3830552,
+  "totalBytes": 3878003,
   "groups": {
     "cool": {
       "firstScreen": false,
       "loadedWhen": "?cool=1",
-      "note": "冷色新场景骨架素材；默认首屏不加载、不计入 first-screen-budget",
+      "note": "冷色新场景批次一素材（Iris 已交付件的切层/抠图）；默认首屏不加载、不计入 first-screen-budget。石台 S1 未交付，地面为代码画的带标注色块占位，不在此列。",
       "files": [
         {
-          "file": "cool/scene_concept_cool_v1-placeholder.webp",
-          "size": [1152, 864],
-          "bytes": 152284,
-          "source": "scene_concept_cool_v1.jpg",
-          "placeholder": "占位，待 Iris 正式石台替换"
+          "file": "cool/disciple/f-sit.webp",
+          "size": [128, 192],
+          "bytes": 5584,
+          "source": "disciple-batch1-v1/d2_f_sheet_stand_walk2_sit_v1.jpg（站/坐）+ d2_f_walk_keys4_v1.jpg（走 4 关键帧）"
+        },
+        {
+          "file": "cool/disciple/f-stand.webp",
+          "size": [128, 192],
+          "bytes": 6004,
+          "source": "disciple-batch1-v1/d2_f_sheet_stand_walk2_sit_v1.jpg（站/坐）+ d2_f_walk_keys4_v1.jpg（走 4 关键帧）"
+        },
+        {
+          "file": "cool/disciple/f-walk-1.webp",
+          "size": [128, 192],
+          "bytes": 6288,
+          "source": "disciple-batch1-v1/d2_f_sheet_stand_walk2_sit_v1.jpg（站/坐）+ d2_f_walk_keys4_v1.jpg（走 4 关键帧）"
+        },
+        {
+          "file": "cool/disciple/f-walk-2.webp",
+          "size": [128, 192],
+          "bytes": 6140,
+          "source": "disciple-batch1-v1/d2_f_sheet_stand_walk2_sit_v1.jpg（站/坐）+ d2_f_walk_keys4_v1.jpg（走 4 关键帧）"
+        },
+        {
+          "file": "cool/disciple/f-walk-3.webp",
+          "size": [128, 192],
+          "bytes": 6406,
+          "source": "disciple-batch1-v1/d2_f_sheet_stand_walk2_sit_v1.jpg（站/坐）+ d2_f_walk_keys4_v1.jpg（走 4 关键帧）"
+        },
+        {
+          "file": "cool/disciple/f-walk-4.webp",
+          "size": [128, 192],
+          "bytes": 6010,
+          "source": "disciple-batch1-v1/d2_f_sheet_stand_walk2_sit_v1.jpg（站/坐）+ d2_f_walk_keys4_v1.jpg（走 4 关键帧）"
+        },
+        {
+          "file": "cool/disciple/m-sit.webp",
+          "size": [128, 192],
+          "bytes": 5372,
+          "source": "disciple-batch1-v1/d1_m_sheet_stand_walk2_sit_v1.png（站/坐）+ d1_m_walk_keys4_v1.jpg（走 4 关键帧）"
+        },
+        {
+          "file": "cool/disciple/m-stand.webp",
+          "size": [128, 192],
+          "bytes": 5922,
+          "source": "disciple-batch1-v1/d1_m_sheet_stand_walk2_sit_v1.png（站/坐）+ d1_m_walk_keys4_v1.jpg（走 4 关键帧）"
+        },
+        {
+          "file": "cool/disciple/m-walk-1.webp",
+          "size": [128, 192],
+          "bytes": 6560,
+          "source": "disciple-batch1-v1/d1_m_sheet_stand_walk2_sit_v1.png（站/坐）+ d1_m_walk_keys4_v1.jpg（走 4 关键帧）"
+        },
+        {
+          "file": "cool/disciple/m-walk-2.webp",
+          "size": [128, 192],
+          "bytes": 6148,
+          "source": "disciple-batch1-v1/d1_m_sheet_stand_walk2_sit_v1.png（站/坐）+ d1_m_walk_keys4_v1.jpg（走 4 关键帧）"
+        },
+        {
+          "file": "cool/disciple/m-walk-3.webp",
+          "size": [128, 192],
+          "bytes": 6644,
+          "source": "disciple-batch1-v1/d1_m_sheet_stand_walk2_sit_v1.png（站/坐）+ d1_m_walk_keys4_v1.jpg（走 4 关键帧）"
+        },
+        {
+          "file": "cool/disciple/m-walk-4.webp",
+          "size": [128, 192],
+          "bytes": 6122,
+          "source": "disciple-batch1-v1/d1_m_sheet_stand_walk2_sit_v1.png（站/坐）+ d1_m_walk_keys4_v1.jpg（走 4 关键帧）"
+        },
+        {
+          "file": "cool/hall/hall-base.webp",
+          "size": [997, 343],
+          "bytes": 35042,
+          "source": "hall-final-v1/building_hall_interior_cool_v1.png（分界线以下：台基/栏杆/台阶）"
+        },
+        {
+          "file": "cool/hall/hall-col-1.webp",
+          "size": [33, 159],
+          "bytes": 970,
+          "source": "hall-final-v1/building_hall_interior_cool_v1.png（殿内六柱单切）"
+        },
+        {
+          "file": "cool/hall/hall-col-2.webp",
+          "size": [33, 162],
+          "bytes": 1212,
+          "source": "hall-final-v1/building_hall_interior_cool_v1.png（殿内六柱单切）"
+        },
+        {
+          "file": "cool/hall/hall-col-3.webp",
+          "size": [31, 161],
+          "bytes": 1032,
+          "source": "hall-final-v1/building_hall_interior_cool_v1.png（殿内六柱单切）"
+        },
+        {
+          "file": "cool/hall/hall-col-4.webp",
+          "size": [35, 109],
+          "bytes": 1160,
+          "source": "hall-final-v1/building_hall_interior_cool_v1.png（殿内六柱单切）"
+        },
+        {
+          "file": "cool/hall/hall-col-5.webp",
+          "size": [35, 145],
+          "bytes": 1096,
+          "source": "hall-final-v1/building_hall_interior_cool_v1.png（殿内六柱单切）"
+        },
+        {
+          "file": "cool/hall/hall-col-6.webp",
+          "size": [35, 148],
+          "bytes": 1064,
+          "source": "hall-final-v1/building_hall_interior_cool_v1.png（殿内六柱单切）"
+        },
+        {
+          "file": "cool/hall/hall-roof.webp",
+          "size": [817, 683],
+          "bytes": 97730,
+          "source": "hall-final-v1/building_hall_exterior_cool_v1.png（分界线以上：屋顶/前墙/柱廊）"
+        },
+        {
+          "file": "cool/hall/hall-room.webp",
+          "size": [917, 598],
+          "bytes": 86538,
+          "source": "hall-final-v1/building_hall_interior_cool_v1.png（分界线以上：殿内地面/后墙/宝座）"
+        },
+        {
+          "file": "cool/ui/bar-herb.webp",
+          "size": [438, 69],
+          "bytes": 6472,
+          "source": "ui-batch1-v1/u3_bars_plaque_v2.jpg"
+        },
+        {
+          "file": "cool/ui/bar-pill.webp",
+          "size": [438, 69],
+          "bytes": 5844,
+          "source": "ui-batch1-v1/u3_bars_plaque_v2.jpg"
+        },
+        {
+          "file": "cool/ui/bar-stone.webp",
+          "size": [438, 68],
+          "bytes": 6402,
+          "source": "ui-batch1-v1/u3_bars_plaque_v2.jpg"
+        },
+        {
+          "file": "cool/ui/button-danger.webp",
+          "size": [335, 76],
+          "bytes": 5214,
+          "source": "ui-batch1-v1/u2_buttons_base_v2.jpg"
+        },
+        {
+          "file": "cool/ui/button-primary.webp",
+          "size": [334, 76],
+          "bytes": 5536,
+          "source": "ui-batch1-v1/u2_buttons_base_v2.jpg"
+        },
+        {
+          "file": "cool/ui/button-secondary.webp",
+          "size": [335, 76],
+          "bytes": 5124,
+          "source": "ui-batch1-v1/u2_buttons_base_v2.jpg"
+        },
+        {
+          "file": "cool/ui/panel.webp",
+          "size": [511, 302],
+          "bytes": 15352,
+          "source": "ui-batch1-v1/u1_panel_frame_v1.jpg"
+        },
+        {
+          "file": "cool/ui/plaque.webp",
+          "size": [286, 49],
+          "bytes": 3346,
+          "source": "ui-batch1-v1/u3_bars_plaque_v2.jpg"
         }
       ]
     }

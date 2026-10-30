@@ -218,11 +218,8 @@ export async function createMap(
   const depth = depthActive(location.search);
   // 开发开关：冷色单石台骨架。底图换成占位概念图，不画旧四岛 world.webp、山门前景与桥。
   const cool = coolWorld;
-  const groundFile = cool
-    ? cool.background.file
-    : depth
-      ? DEPTH.world
-      : 'map/world.webp';
+  // cool 的地面是 S1 未验收的平面色块占位（Graphics 绘制），不加载底图文件。
+  const groundFile = cool ? '' : depth ? DEPTH.world : 'map/world.webp';
   if (params.get('debug') === '1')
     Object.assign(window, {
       __world: {
@@ -311,7 +308,7 @@ export async function createMap(
     (f) => false || f.file.includes('-map@') || f.file.includes('-96@'),
   );
   const mapEntries = cool
-    ? [{ file: groundFile, size: cool.background.size, anchor: { x: 0, y: 0 } }]
+    ? []
     : [
         { file: groundFile, size: [3200, 1400], anchor: { x: 0, y: 0 } },
         {
@@ -543,6 +540,49 @@ export async function createMap(
         ...(white ? { stroke: { color: 0x263f34, width: 2 } } : {}),
       },
     });
+  let coolGroundCache: Container | undefined;
+  // S1 石台未验收：平面色块 + 描边 + 区域虚框，均带"占位"文字，不冒充美术。
+  function coolGround(scale: number, labels: boolean) {
+    const c = coolWorld!;
+    const g = new Container();
+    const flat = (p: Point[]) => p.flatMap(([x, y]) => [x * scale, y * scale]);
+    g.addChild(
+      new Graphics()
+        .poly(flat(c.background.polygon))
+        .fill(c.background.platformColor)
+        .stroke({
+          width: Math.max(1, 3 * scale),
+          color: c.background.platformStroke,
+        }),
+    );
+    if (!labels) return g;
+    for (const zone of c.zones) {
+      const box = new Graphics()
+        .poly(flat(zone.polygon))
+        .fill({ color: 0xffffff, alpha: zone.kind === 'reserve' ? 0.12 : 0.22 })
+        .stroke({ width: 1.5, color: c.background.platformStroke, alpha: 0.9 });
+      g.addChild(box);
+      const xs = zone.polygon.map((q) => q[0]),
+        ys = zone.polygon.map((q) => q[1]);
+      const t = label(`${zone.name}（占位）`, 13);
+      t.anchor.set(0.5);
+      t.alpha = 0.7;
+      t.position.set(
+        (Math.min(...xs) + Math.max(...xs)) / 2,
+        (Math.min(...ys) + Math.max(...ys)) / 2,
+      );
+      g.addChild(t);
+    }
+    const note = label(c.background.placeholder, 18);
+    note.anchor.set(0.5, 0);
+    note.alpha = 0.75;
+    note.position.set(
+      c.background.x + c.background.width / 2,
+      c.background.y + c.background.height + 12,
+    );
+    g.addChild(note);
+    return g;
+  }
   function art(file: string, scale: number) {
     const texture = textures.get(file),
       entry = entries.get(file);
@@ -637,7 +677,7 @@ export async function createMap(
   function paint(now: number) {
     if (!world) return;
     for (const child of scene.removeChildren())
-      child.destroy({ children: true });
+      if (child !== coolGroundCache) child.destroy({ children: true });
     for (const child of overlay.removeChildren())
       child.destroy({ children: true });
     for (const child of mini.removeChildren())
@@ -680,7 +720,7 @@ export async function createMap(
       namedDiscipleIds: [] as string[],
       raisedForVisibility: 0,
       minHeadVisibility: 1,
-      baseLoaded: textures.has(groundFile),
+      baseLoaded: cool ? true : textures.has(groundFile),
       buildingSprites: 0,
       discipleSprites: 0,
       fallbacks: 0,
@@ -697,13 +737,7 @@ export async function createMap(
       visibleDisciples: 0,
     };
     const ground =
-      (cool
-        ? (() => {
-            const g = art(groundFile, cool.scale);
-            g?.position.set(cool.background.x, cool.background.y);
-            return g;
-          })()
-        : art(groundFile, 1)) ??
+      (cool ? (coolGroundCache ??= coolGround(1, true)) : art(groundFile, 1)) ??
       new Graphics()
         .ellipse(320, 200, 280, 130)
         .fill(0xd1dac3)
@@ -1450,13 +1484,8 @@ export async function createMap(
     );
     const miniScale = 115 / worldWidth;
     const miniArt = cool
-      ? art(groundFile, cool.scale * miniScale)
+      ? coolGround(miniScale, false)
       : art('map/world-mini.webp', 115 / 320);
-    if (miniArt && cool)
-      miniArt.position.set(
-        cool.background.x * miniScale,
-        cool.background.y * miniScale,
-      );
     if (miniArt) mini.addChild(miniArt);
     for (const m of motions.values())
       mini.addChild(

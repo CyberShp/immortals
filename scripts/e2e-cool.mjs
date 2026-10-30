@@ -117,9 +117,10 @@ const report = {};
   assert.equal(info.stats.buildingLabels, 5);
   const classic = requests.filter((p) => CLASSIC.some((c) => p.includes(c)));
   assert.deepEqual(classic, [], `cool 下请求了旧四岛/纵深素材 ${classic}`);
+  // 批次一：旧概念占位底图已删除，地面改为 Graphics 色块占位（S1 未验收），不应再请求。
   assert.ok(
-    requests.some((p) => p.includes('/assets/cool/scene_concept_cool_v1')),
-    '未请求冷色占位底图',
+    !requests.some((p) => p.includes('/assets/cool/scene_concept_cool_v1')),
+    '仍在请求已删除的冷色概念占位底图',
   );
   const onPlatform = () =>
     page.evaluate(() =>
@@ -178,7 +179,7 @@ const report = {};
   }
   // 点选：回到默认镜头，点第一个可见弟子头部，弟子卡出现。
   await page.evaluate(() =>
-    window.__camera.set({ zoom: innerWidth / 1440, x: 1600, y: 720 }),
+    window.__camera.set({ zoom: innerWidth / 1440, x: 1650, y: 800 }),
   );
   await settle(page, 1500);
   const target = await page.evaluate(() => {

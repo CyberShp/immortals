@@ -3,11 +3,15 @@
 只在地址栏带 `?cool=1` 时加载；默认首屏不加载本目录任何文件（manifest 里单列 `groups.cool`，`firstScreen: false`，
 `scripts/first-screen-budget.mjs` 不统计）。旧四岛素材（map/、building/、disciple/、rebuild/）一律不动。
 
-## 现有文件
+## 现有文件（批次一，`node scripts/cool-assets.mjs` 生成，清单见 manifest `groups.cool`）
 
-| 文件                                     | 说明                                                                                                                                                                                                          |
-| ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `scene_concept_cool_v1-placeholder.webp` | **占位，待 Iris 正式石台替换。** 由 Iris 概念图 `scene_concept_cool_v1.jpg`（1152×864）经 `scripts/cool-placeholder.mjs` 四边羽化到画布底色后转 webp；作为 cool 世界底图，按 `k` 缩放到石台宽 ≈1600 世界 px。 |
+| 目录        | 说明                                                                                                                                                                                                    |
+| ----------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `hall/`     | 主殿 B1/B2 分层：`hall-roof`（外观，分界线以上）、`hall-room`（内景，分界线以上）、`hall-base`（内景台基/栏杆/台阶，常显）、`hall-col-1..6`（殿内六柱）。几何与世界坐标见 `src/render/cool-hall.json`。 |
+| `disciple/` | 弟子 D1（男 `m-`）/D2（女 `f-`）：`stand`、`sit`、`walk-1..4`，128×192，脚底锚点 (64,186)，站立头顶→脚底 168 px。                                                                                       |
+| `ui/`       | UI 第一批：`panel`（九宫格面板）、`button-primary/secondary/danger`、`bar-stone/herb/pill`（资源条框，槽内填充由代码画）、`plaque`（声望牌）。                                                          |
+
+石台 S1 未交付：地面是代码画的**带标注平面色块占位**，不是素材。旧概念图羽化底图已删除。
 
 ## 交付规格（Iris → Forge）
 
@@ -49,7 +53,7 @@
 
 ## 换正式素材的步骤（概要，详见 immortal-qa/art-rebuild/cool-rebuild/xianfu-cool-skeleton-notes.md）
 
-1. 正式石台：抠图后放进本目录（webp），改 `cool-world.json` 的 `background.file / size`；
-   按新石台标注重描 `walkable / obstacles / slots / spots`（仍用石台源像素坐标，k 换算由代码完成）。
+1. 正式石台：抠图后放进本目录（webp）；`cool-world.json` 批次一起为世界坐标（`coords: "world"`），
+   按新石台标注重描 `walkable / obstacles / slots / spots / zones`。
 2. 建筑：按标注 json 把 `baseQuad` 写进对应 slot 的 `footprint`、`entrance`、`label`；立绘接入时再替换 map.ts 里沿用的旧立绘占位。
-3. 跑 `node scripts/cool-placeholder.mjs` 之类的生成脚本后同步 `public/assets/manifest.json` 的字节数（`tests/assets.test.ts` 校验）。
+3. 跑 `node scripts/cool-assets.mjs` 后同步 `public/assets/manifest.json` 的字节数（`tests/assets.test.ts` 校验）。

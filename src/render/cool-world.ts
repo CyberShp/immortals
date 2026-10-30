@@ -1,4 +1,4 @@
-// ?cool=1 的单石台世界几何：读取 cool-world.json（概念图源像素），zod 校验后按 k 换算成世界坐标。
+// ?cool=1 的单石台世界几何：读取 cool-world.json（批次一起全部为世界坐标，coords=world），zod 校验后直接使用。
 // 只被 world.ts / map.ts 等渲染层读取；sim 从不 import render，四组 sim 基线不受影响。
 // 注意：本文件不得 import world.ts（world.ts 在模块初始化时读取这里的结果）。
 import { z } from 'zod';
@@ -8,21 +8,24 @@ import { coolEnabled } from './cool-config';
 type P = [number, number];
 const point = z.tuple([z.number().finite(), z.number().finite()]);
 const polygon = z.array(point).min(3);
+const color = z.string().regex(/^#[0-9a-f]{6}$/i);
 const SIM_SLOTS = ['B_HALL', 'B_DORM', 'B_MEDIT', 'B_ALCHEMY', 'B_GARDEN'];
 export const coolWorldSchema = z
   .object({
+    coords: z.literal('world'),
     k: z.number().positive().max(2),
     world: z.object({
       width: z.number().int().positive(),
       height: z.number().int().positive(),
     }),
-    platform: z.object({ center: point, widthAtK1: z.number().positive() }),
+    // S1 石台未验收：地面是带标注的平面色块占位（不是美术）。
     background: z.object({
-      file: z.string().regex(/^cool\/.+\.webp$/),
-      size: point,
-      placeholder: z.string(),
-      canvasColor: z.string().regex(/^#[0-9a-f]{6}$/i),
+      placeholder: z.string().min(1),
+      canvasColor: color,
+      platformColor: color,
+      platformStroke: color,
     }),
+    platformVisual: polygon,
     camera: z.object({
       start: point,
       startViewWidth: z.number().positive(),
@@ -31,6 +34,15 @@ export const coolWorldSchema = z
     walkable: polygon,
     obstacles: z.array(z.object({ id: z.string(), name: z.string(), polygon })),
     decor: z.array(z.object({ id: z.string(), name: z.string(), polygon })),
+    zones: z.array(
+      z.object({
+        id: z.string(),
+        kind: z.enum(['ground', 'reserve']),
+        name: z.string(),
+        polygon,
+      }),
+    ),
+    arenaSeats: z.array(point).length(6),
     slots: z
       .array(
         z.object({
@@ -76,33 +88,23 @@ export const coolWorldSchema = z
       });
     if (new Set(c.spots.map((s) => s.id)).size !== c.spots.length)
       ctx.addIssue({ code: 'custom', message: 'spot id 重复' });
-    const t = transformOf(c);
-    const [w, h] = c.background.size;
-    const [x0, y0] = t([0, 0]),
-      [x1, y1] = t([w, h]);
-    if (x0 < 0 || y0 < 0 || x1 > c.world.width || y1 > c.world.height)
+    const all = [...c.platformVisual, ...c.walkable];
+    if (
+      all.some(
+        ([x, y]) => x < 0 || y < 0 || x > c.world.width || y > c.world.height,
+      )
+    )
       ctx.addIssue({
         code: 'custom',
-        message: `石台超出世界 ${c.world.width}×${c.world.height}：[${[x0, y0, x1, y1].map(Math.round)}]（k=${c.k}）`,
+        message: `石台超出世界 ${c.world.width}×${c.world.height}`,
       });
   });
 export type CoolWorldConfig = z.infer<typeof coolWorldSchema>;
 
-/** 源像素 → 世界坐标：概念图整幅按 k×widthAtK1 缩放，中心对齐 platform.center。 */
-export function transformOf(
-  c: Pick<CoolWorldConfig, 'k' | 'platform' | 'background'>,
-) {
-  const s = (c.k * c.platform.widthAtK1) / c.background.size[0];
-  const ox = c.platform.center[0] - (c.background.size[0] * s) / 2,
-    oy = c.platform.center[1] - (c.background.size[1] * s) / 2;
-  return ([x, y]: readonly number[]): P => [ox + x * s, oy + y * s];
-}
-
 export function buildCoolWorld(input: unknown) {
   const c = coolWorldSchema.parse(input);
-  const t = transformOf(c);
-  const poly = (p: readonly (readonly number[])[]) => p.map((q) => t(q));
-  const s = (c.k * c.platform.widthAtK1) / c.background.size[0];
+  const pt = (q: readonly number[]): P => [q[0], q[1]];
+  const poly = (p: readonly (readonly number[])[]) => p.map(pt);
   const bbox = (p: P[]): [number, number, number, number] => [
     Math.min(...p.map((q) => q[0])),
     Math.min(...p.map((q) => q[1])),
@@ -111,36 +113,39 @@ export function buildCoolWorld(input: unknown) {
   ];
   const slots = c.slots.map((slot) => {
     const footprint = poly(slot.footprint);
-    const entrance = t(slot.entrance);
+    const entrance = pt(slot.entrance);
     return {
       id: slot.id,
-      // rect = 脚印外框；底边中点即占位立绘锚点与排序 y（脚印前角）。
+      // rect = 脚印外框；底边中点即占位框锚点。
       rect: bbox(footprint),
       front: entrance,
       entrance,
       footprint: { polygon: footprint },
-      label: t(slot.label),
+      label: pt(slot.label),
       sim: slot.sim,
       concept: slot.concept,
     };
   });
-  const [x0, y0] = t([0, 0]);
+  const visual = poly(c.platformVisual);
+  const [x0, y0, x1, y1] = bbox(visual);
   return {
     config: c,
-    scale: s,
+    scale: 1,
     width: c.world.width,
     height: c.world.height,
     background: {
-      ...c.background,
+      placeholder: c.background.placeholder,
+      polygon: visual,
       x: x0,
       y: y0,
-      width: c.background.size[0] * s,
-      height: c.background.size[1] * s,
+      width: x1 - x0,
+      height: y1 - y0,
       color: Number.parseInt(c.background.canvasColor.slice(1), 16),
+      platformColor: Number.parseInt(c.background.platformColor.slice(1), 16),
+      platformStroke: Number.parseInt(c.background.platformStroke.slice(1), 16),
     },
-    // 初始镜头是世界坐标（不随 k 换算），默认对准石台中心。
     camera: {
-      start: c.camera.start as P,
+      start: pt(c.camera.start),
       startViewWidth: c.camera.startViewWidth,
     },
     islands: [
@@ -162,13 +167,19 @@ export function buildCoolWorld(input: unknown) {
       id: spot.id,
       island: 'platform',
       kind: spot.kind,
-      point: t(spot.point),
-      original: t(spot.point),
+      point: pt(spot.point),
+      original: pt(spot.point),
       moved: 0,
     })),
     decor: c.decor.map((d) => ({ ...d, polygon: poly(d.polygon) })),
-    quarry: t(c.quarry.point),
-    expeditionPoint: t(c.gate.expeditionPoint),
+    obstaclesNamed: c.obstacles.map((o) => ({
+      ...o,
+      polygon: poly(o.polygon),
+    })),
+    zones: c.zones.map((z) => ({ ...z, polygon: poly(z.polygon) })),
+    arenaSeats: poly(c.arenaSeats),
+    quarry: pt(c.quarry.point),
+    expeditionPoint: pt(c.gate.expeditionPoint),
   };
 }
 export type CoolWorld = ReturnType<typeof buildCoolWorld>;
