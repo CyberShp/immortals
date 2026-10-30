@@ -164,6 +164,23 @@ export function planHallRoute(
   toInside: boolean,
   outdoorPath: (a: P, b: P) => P[],
 ): HallRoute | undefined {
+  const route = planHallRouteRaw(hall, from, where, to, toInside, outdoorPath);
+  // 门口一个身位内改道且新路线不再过门（如门口被放回殿外/殿内换位）：把门放在“身后”
+  // （doorS 取负的离门距离），α 从当前值接着淡回，不跳变（7.2 #17 / 7.5 #35）。
+  const door = approach(hall)[2];
+  const d = dist(from, door);
+  if (route && route.doorS === undefined && d < DOOR_FADE)
+    return { ...route, doorS: -d, insideBefore: where !== 'inside' };
+  return route;
+}
+function planHallRouteRaw(
+  hall: CoolHall,
+  from: P,
+  where: 'outdoor' | 'stairs' | 'inside',
+  to: P,
+  toInside: boolean,
+  outdoorPath: (a: P, b: P) => P[],
+): HallRoute | undefined {
   const a = approach(hall);
   const doorAt = (path: P[]) => {
     let s = 0;

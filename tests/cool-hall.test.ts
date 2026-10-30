@@ -146,6 +146,24 @@ describe('进出殿路线（无瞬移、门口成批淡出淡入）', () => {
     expect(routeStatus(r, s + 1).inside).toBe(true);
     expect(routeStatus(r, s + DOOR_FADE).alpha).toBe(1);
   });
+  it('门口一个身位内改道、新路线不过门：α 从当前值接着淡回，不跳到 1', () => {
+    const door = hall.door as P;
+    const near: P = [door[0] - 5, door[1] + 5];
+    const d = Math.hypot(5, 5);
+    for (const [where, inside] of [
+      ['stairs', false],
+      ['inside', true],
+    ] as const) {
+      const to: P = inside ? (hall.stations[3] as P) : [1300, 900];
+      const r = planHallRoute(hall, near, where, to, inside, straight)!;
+      const st0 = routeStatus(r, 0);
+      expect(st0.inside).toBe(inside);
+      expect(st0.alpha).toBeCloseTo(d / DOOR_FADE, 6);
+      expect(routeStatus(r, 1).alpha).toBeGreaterThan(st0.alpha);
+      expect(routeStatus(r, DOOR_FADE).alpha).toBe(1);
+      expect(routeStatus(r, DOOR_FADE).inside).toBe(inside);
+    }
+  });
   it('殿内 → 殿外：原路回门口再走 A*；殿内 → 殿内：直线', () => {
     const out = planHallRoute(
       hall,
