@@ -80,6 +80,7 @@ import { attachCamera } from './camera';
 import { DEPTH, depthFiles } from './depth-config';
 import { depthActive, roofFadeActive } from './cool-config';
 import { createDepthLayers } from './depth-layers';
+import { COOL_DEPTH, createCoolDepth } from './cool-depth';
 import {
   visibilityOrder,
   labelOverlaps,
@@ -513,6 +514,15 @@ export async function createMap(
   scene.sortableChildren = true;
   app.stage.addChild(scene);
   const depthLayers = depth ? createDepthLayers(textures) : undefined;
+  // ?cool=1：自有天空/云海层（cool-depth.ts），与 ?depth=1 无关。
+  const coolDepth = cool ? createCoolDepth() : undefined;
+  if (coolDepth) {
+    app.stage.addChildAt(coolDepth.root, 0);
+    if (params.get('debug') === '1')
+      Object.assign(window, {
+        __coolDepth: { config: COOL_DEPTH, stats: coolDepth.stats },
+      });
+  }
   if (depthLayers) {
     app.stage.addChildAt(depthLayers.back, 0);
     app.stage.addChild(depthLayers.front);
@@ -850,6 +860,7 @@ export async function createMap(
       bounds.height / 2 - cam.y * cam.zoom,
     );
     depthLayers?.update(cam, bounds, now);
+    coolDepth?.update(cam, bounds);
     const marker = {
       ...compactMetrics(bounds.width, bounds.height),
       diameter: 14,
