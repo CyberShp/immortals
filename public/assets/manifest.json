@@ -1226,8 +1226,8 @@
       ]
     }
   ],
-  "assetBytes": 4936206,
-  "totalBytes": 5004956,
+  "assetBytes": 4929988,
+  "totalBytes": 4997986,
   "groups": {
     "cool": {
       "firstScreen": false,
@@ -1913,12 +1913,6 @@
           "source": "v5p 外景 hall_ext_v5p_v1.png 切线以上 − 5 根外檐柱"
         },
         {
-          "file": "cool/hall4/hall-room-floor2.webp",
-          "size": [825, 641],
-          "bytes": 68802,
-          "source": "forge_interior_v1/floor2_council_v1.png（ECC 仿射配准到 v5p 外景）切线以上"
-        },
-        {
           "file": "cool/hall4/hall-room-left.webp",
           "size": [797, 671],
           "bytes": 65954,
@@ -1943,22 +1937,10 @@
           "source": "v5p 外景 hall_ext_v5p_v1.png 地面落影（抠图背景族 × 台基外扩/右侧地面）"
         },
         {
-          "file": "cool/hall4/hall-stair-down-floor2.webp",
-          "size": [323, 244],
-          "bytes": 23524,
-          "source": "forge_interior_v1/stair_down_floor2_v2.png 等比缩放 0.40 对位到二层后右角（v5p/stairs.py）"
-        },
-        {
           "file": "cool/hall4/hall-stair-front.webp",
           "size": [160, 131],
           "bytes": 4500,
-          "source": "v5p 外景 hall_ext_v5p_v1.png 正面台阶（各楼层都显示）"
-        },
-        {
-          "file": "cool/hall4/hall-stair-up-main.webp",
-          "size": [216, 238],
-          "bytes": 15220,
-          "source": "forge_interior_v1/stair_up_main_v2.png 等比缩放 0.40 对位到正厅后墙左端（v5p/stairs.py）"
+          "source": "v5p 外景 hall_ext_v5p_v1.png 正面台阶（外观与一层各厅都显示）"
         }
       ]
     }

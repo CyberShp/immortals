@@ -5,22 +5,15 @@ import { z } from 'zod';
 import raw from './cool-hall.json';
 
 export type P = [number, number];
-/** 楼层视图：outside=外观（屋顶不透明）；main=一层正殿；left/right=一层左右厅；floor2=二层议事。三层只有外观，不可选。 */
-export const COOL_FLOORS = [
-  'outside',
-  'main',
-  'left',
-  'right',
-  'floor2',
-] as const;
+/** 楼层视图：outside=外观（屋顶不透明）；main=一层正殿；left/right=一层左右厅。
+ *  v6：指挥官（经 Iris）取消二层/三层，只保留一层两侧厅；二层内景、上下楼梯与楼层切换已撤下。 */
+export const COOL_FLOORS = ['outside', 'main', 'left', 'right'] as const;
 export type CoolFloor = (typeof COOL_FLOORS)[number];
 export type CoolRoom = Exclude<CoolFloor, 'outside'>;
-/** URL ?coolFloor=main|left|right|floor2 → 固定楼层视图（屋顶淡出并保持）；缺省/其它值 = auto（按殿内有人自动淡出，内景为正殿）。 */
+/** URL ?coolFloor=main|left|right → 固定一层厅视图（屋顶淡出并保持）；缺省/其它值（含已取消的 floor2）= auto（按殿内有人自动淡出，内景为正殿）。 */
 export function coolFloorParam(search: string): CoolRoom | 'auto' {
   const v = new URLSearchParams(search).get('coolFloor');
-  return v === 'main' || v === 'left' || v === 'right' || v === 'floor2'
-    ? v
-    : 'auto';
+  return v === 'main' || v === 'left' || v === 'right' ? v : 'auto';
 }
 const point = z.tuple([z.number().finite(), z.number().finite()]);
 const layer = z.object({
@@ -59,20 +52,16 @@ export const coolHallSchema = z.object({
     outerColumns: z.array(layer.extend({ foot: point })).optional(),
     /** v4g：红毯延伸（正殿，z=-899.5 贴在内景之上）。 */
     carpet: layer.optional(),
-    /** v4g：台阶层，floors 列出在哪些楼层视图里显示（outside = 屋顶不透明时）。
-     *  v5p：殿内楼梯（正厅上二层楼梯 / 二层下楼口）带 foot，z=foot y 与殿内弟子、金柱互相遮挡；无 foot 的（正面台阶）z=hallZ-1。 */
+    /** v4g：台阶层（只剩正面台阶，z=hallZ-1），floors 列出在哪些视图里显示（outside = 屋顶不透明时）。
+     *  v6：殿内上二层楼梯 / 二层下楼口已撤下（二层取消），不再有殿内楼梯层。 */
     stairs: z
-      .array(
-        layer.extend({
-          floors: z.array(z.enum(COOL_FLOORS)).min(1),
-          foot: point.optional(),
-        }),
-      )
+      .array(layer.extend({ floors: z.array(z.enum(COOL_FLOORS)).min(1) }))
       .optional(),
-    /** v4g：可替换内景（与 room=正殿同机位同台基）。 */
+    /** v4g：一层左右厅内景（与 room=正殿同机位同台基）。v6：二层内景已撤下。 */
     rooms: z
-      .object({ left: layer, right: layer, floor2: layer })
+      .object({ left: layer, right: layer })
       .partial()
+      .strict()
       .optional(),
   }),
 });

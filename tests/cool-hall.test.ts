@@ -14,6 +14,7 @@ import {
   buildCoolHall,
   coolHallSchema,
   coolFloorParam,
+  COOL_FLOORS,
   coolRoofAlpha,
   coolRoofUpdate,
   dailySeats,
@@ -51,8 +52,8 @@ const inPoly = (p: readonly number[], poly: readonly (readonly number[])[]) => {
   return c;
 };
 
-describe('cool-hall.json v4g 分层与楼层', () => {
-  it('所有层同一坐标系（同 scale）、都在 cool/hall4/；台阶层各楼层都显示；左右厅/二层内景与正殿同框', () => {
+describe('cool-hall.json v4g 分层与一层三厅（v6：二层/三层取消）', () => {
+  it('所有层同一坐标系（同 scale）、都在 cool/hall4/；正面台阶外观与一层各厅都显示；左右厅内景与正殿同框', () => {
     const L = hall.layers;
     const all = [
       L.base,
@@ -65,39 +66,40 @@ describe('cool-hall.json v4g 分层与楼层', () => {
       ...L.stairs!,
       ...Object.values(L.rooms!),
     ];
-    expect(all).toHaveLength(20);
+    expect(all).toHaveLength(17);
     for (const l of all) {
       expect(l.file.startsWith('cool/hall4/')).toBe(true);
       expect(l.scale).toBeCloseTo(L.base.scale, 9);
     }
-    expect(L.stairs![0].floors).toEqual([
-      'outside',
-      'main',
-      'left',
-      'right',
-      'floor2',
-    ]);
-    expect(Object.keys(L.rooms!).sort()).toEqual(['floor2', 'left', 'right']);
+    expect(L.stairs).toHaveLength(1);
+    expect(L.stairs![0].file).toBe('cool/hall4/hall-stair-front.webp');
+    expect(L.stairs![0].floors).toEqual(['outside', 'main', 'left', 'right']);
+    expect(Object.keys(L.rooms!).sort()).toEqual(['left', 'right']);
     // 外檐柱柱脚都在台基前缘附近（≤ 台基底边以下）。
     for (const c of L.outerColumns!)
       expect(c.foot[1]).toBeLessThanOrEqual(hall.hallZ);
-    // v5p：正厅上二层楼梯只在正厅、二层下楼口只在二层显示；都带 foot（z 与殿内弟子/金柱互相遮挡），在台基前缘之后。
-    const [, up, down] = L.stairs!;
-    expect(up.file).toBe('cool/hall4/hall-stair-up-main.webp');
-    expect(up.floors).toEqual(['main']);
-    expect(down.file).toBe('cool/hall4/hall-stair-down-floor2.webp');
-    expect(down.floors).toEqual(['floor2']);
-    for (const s of [up, down]) {
-      expect(s.foot![1]).toBeLessThan(hall.hallZ);
-    }
-    expect(L.stairs![0].foot).toBeUndefined();
-    const bad = JSON.parse(JSON.stringify(raw));
-    bad.layers.stairs[0].floors = ['floor3'];
-    expect(coolHallSchema.safeParse(bad).success).toBe(false);
   });
-  it('?coolFloor= 只接受 main/left/right/floor2，其它（含三层）回 auto', () => {
+  it('v6：二层内景、上二层楼梯、二层下楼口都不再被引用，schema 拒绝 floor2', () => {
+    const text = JSON.stringify(hall);
+    for (const f of [
+      'hall-room-floor2',
+      'hall-stair-up-main',
+      'hall-stair-down-floor2',
+    ])
+      expect(text).not.toContain(f);
+    expect(COOL_FLOORS).toEqual(['outside', 'main', 'left', 'right']);
+    const bad = JSON.parse(JSON.stringify(raw));
+    bad.layers.stairs[0].floors = ['floor2'];
+    expect(coolHallSchema.safeParse(bad).success).toBe(false);
+    const bad2 = JSON.parse(JSON.stringify(raw));
+    bad2.layers.rooms.floor2 = { ...bad2.layers.rooms.left };
+    expect(coolHallSchema.safeParse(bad2).success).toBe(false);
+  });
+  it('?coolFloor= 只接受 main/left/right，其它（含已取消的 floor2 / 三层）回 auto', () => {
+    expect(coolFloorParam('?cool=1&coolFloor=main')).toBe('main');
     expect(coolFloorParam('?cool=1&coolFloor=left')).toBe('left');
-    expect(coolFloorParam('?cool=1&coolFloor=floor2')).toBe('floor2');
+    expect(coolFloorParam('?cool=1&coolFloor=right')).toBe('right');
+    expect(coolFloorParam('?cool=1&coolFloor=floor2')).toBe('auto');
     expect(coolFloorParam('?cool=1&coolFloor=floor3')).toBe('auto');
     expect(coolFloorParam('?cool=1')).toBe('auto');
   });

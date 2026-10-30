@@ -1,12 +1,11 @@
 {
-  "$comment": "主殿几何（世界坐标），v5p 起用 Forge v5p 外景（删外檐柱 2/5/7/8，留 1/3/4/6/9）+ 4 张内景（正厅 hall_int_v4g_v4 / 左会客 / 右藏书议事 / 二层议事，同机位同台基，ECC 仿射重新配准到 v5p 台基）+ 上二层楼梯 / 二层下楼口精灵。由 immortal-qa/art-rebuild/cool-rebuild/batch1-cut/v5p/{key,reg2,cut,carpet2,stairs,gen_world_v5p}.py 生成（v4g 流程沿用）；像素→世界沿用 v2 的 k·p+t。足迹/入口/站位/交椅/queue/lineup 沿用 v4g（v5p 台基差 ≤3 px）。",
+  "$comment": "主殿几何（世界坐标），v5p 起用 Forge v5p 外景（删外檐柱 2/5/7/8，留 1/3/4/6/9）+ 3 张一层内景（正厅 hall_int_v4g_v4 / 左会客 / 右藏书议事，同机位同台基，ECC 仿射重新配准到 v5p 台基）。v6：指挥官（经 Iris）取消二层/三层，二层内景与上二层楼梯 / 二层下楼口精灵已撤下（素材文件未删）。由 immortal-qa/art-rebuild/cool-rebuild/batch1-cut/v5p/{key,reg2,cut,carpet2,stairs,gen_world_v5p}.py 生成（v4g 流程沿用）；像素→世界沿用 v2 的 k·p+t。足迹/入口/站位/交椅/queue/lineup 沿用 v4g（v5p 台基差 ≤3 px）。",
   "source": {
     "exterior": "forge_ext_v5p/hall_ext_v5p_v1.png 1152×864",
     "interiors": {
       "main": "forge_interior_v1/hall_int_v4g_v4.png",
       "left": "forge_interior_v1/side_left_v1.png",
-      "right": "forge_interior_v1/side_right_v1.png",
-      "floor2": "forge_interior_v1/floor2_council_v1.png"
+      "right": "forge_interior_v1/side_right_v1.png"
     },
     "registration": {
       "main": {
@@ -29,23 +28,10 @@
           [0.016298415139317513, 1.021689772605896, -19.77566146850586]
         ],
         "profileMAE": 1.48
-      },
-      "floor2": {
-        "affine": [
-          [1.0124179124832153, 0.03313850611448288, -27.129268646240234],
-          [0.01916409470140934, 1.042973279953003, -38.763187408447266]
-        ],
-        "profileMAE": 1.19
       }
     },
     "k": 1.252587,
-    "t": [887.368, -141.973],
-    "stairs": {
-      "up": "forge_interior_v1/stair_up_main_v2.png 539×595",
-      "down": "forge_interior_v1/stair_down_floor2_v2.png 808×609",
-      "scale": 0.4,
-      "note": "等比缩放 0.40（上楼梯层高 ≈ 2 名弟子身高），只平移对位"
-    }
+    "t": [887.368, -141.973]
   },
   "footprint": [
     [1104.1, 600.8],
@@ -150,7 +136,7 @@
     [1153.6, 654.9]
   ],
   "measured": {
-    "$comment": "v5p 外景/正厅内景实测（像素→世界）。outerColumns: 5 根外檐柱（v4g 编号 1/3/4/6/9；长边 4、短边 1+转角）柱脚=柱础前下沿，按 v5p 外景逐柱模板匹配平移 (-1..+3 px)；goldColumns 按 v4 正厅配准后模板匹配；facadeDoors: 正门门槛中点（外景）；sideDoors: 正厅左右侧门脚（v4 右侧门改为关闭双扇门，门槛中点与 v4g 差 ≤5 px，沿用）/ 左厅门（后墙右端）/ 右厅门（后墙左端）。stairUp/stairDown：上楼梯第一级前脚 / 二层下楼口菱形顶角（z 排序点）。",
+    "$comment": "v5p 外景/正厅内景实测（像素→世界）。outerColumns: 5 根外檐柱（v4g 编号 1/3/4/6/9；长边 4、短边 1+转角）柱脚=柱础前下沿，按 v5p 外景逐柱模板匹配平移 (-1..+3 px)；goldColumns 按 v4 正厅配准后模板匹配；facadeDoors: 正门门槛中点（外景）；sideDoors: 正厅左右侧门脚（v4 右侧门改为关闭双扇门，门槛中点与 v4g 差 ≤5 px，沿用）/ 左厅门（后墙右端）/ 右厅门（后墙左端）。v6：二层取消，原 stairUp/stairDown 实测点随殿内楼梯层一起撤下。",
     "outerColumns": [
       [1343.3, 518.1],
       [1516.2, 589.5],
@@ -174,9 +160,7 @@
       "leftHall": [2015.9, 549.5],
       "rightHall": [1583.8, 339.0]
     },
-    "taiji": [1586.3, 597.1],
-    "stairUp": [1551.2, 424.2],
-    "stairDown": [1845.6, 390.4]
+    "taiji": [1586.3, 597.1]
   },
   "layers": {
     "base": {
@@ -297,25 +281,7 @@
         "x": 1297.0,
         "y": 622.1,
         "scale": 1.252587,
-        "floors": ["outside", "main", "left", "right", "floor2"]
-      },
-      {
-        "file": "cool/hall4/hall-stair-up-main.webp",
-        "size": [216, 238],
-        "x": 1400.9,
-        "y": 136.1,
-        "scale": 1.252587,
-        "floors": ["main"],
-        "foot": [1551.2, 424.2]
-      },
-      {
-        "file": "cool/hall4/hall-stair-down-floor2.webp",
-        "size": [323, 244],
-        "x": 1642.7,
-        "y": 377.9,
-        "scale": 1.252587,
-        "floors": ["floor2"],
-        "foot": [1845.6, 390.4]
+        "floors": ["outside", "main", "left", "right"]
       }
     ],
     "rooms": {
@@ -331,13 +297,6 @@
         "size": [792, 697],
         "x": 1130.4,
         "y": -95.6,
-        "scale": 1.252587
-      },
-      "floor2": {
-        "file": "cool/hall4/hall-room-floor2.webp",
-        "size": [825, 641],
-        "x": 1132.9,
-        "y": -25.5,
         "scale": 1.252587
       }
     }

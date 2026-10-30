@@ -510,7 +510,7 @@ export async function createMap(
           cancelFrame();
           paint(performance.now());
         },
-        /** 调试/楼层切换：'main' | 'left' | 'right' | 'floor2' 固定楼层（屋顶淡出并保持），'auto' 恢复按殿内有人淡出。三层只有外观。 */
+        /** 调试/一层厅切换：'main' | 'left' | 'right' 固定该厅（屋顶淡出并保持），'auto' 恢复按殿内有人淡出。v6 起没有二层/三层。 */
         view: (floor: CoolRoom | 'auto' = 'auto') => {
           if (!coolHall) return;
           const rooms = coolHall.layers.rooms ?? {};
@@ -1110,8 +1110,7 @@ export async function createMap(
       if (L.shadow) add(L.shadow, -905);
       add(L.base, coolHall.hallZ - 1);
       for (const s of L.stairs ?? [])
-        if (s.floors.includes(floorNow))
-          add(s, s.foot ? s.foot[1] : coolHall.hallZ - 1);
+        if (s.floors.includes(floorNow)) add(s, coolHall.hallZ - 1);
       if (coolRoofNow < 1 && coolRoomNow !== 'main')
         add(L.rooms?.[coolRoomNow] ?? L.room, -900);
       if (coolRoofNow < 1 && coolRoomNow === 'main') {
@@ -1827,7 +1826,7 @@ export async function createMap(
         stats.fallbacks++;
       }
       group.alpha = alpha;
-      // v4g 楼层视图：殿内弟子都在一层正殿；看左右厅/二层时不画（sim 不变，只是不显示）。
+      // v4g 厅视图：殿内弟子都在一层正殿；看左右厅时不画（sim 不变，只是不显示）。
       if (
         coolHall &&
         hallStatus?.inside &&
