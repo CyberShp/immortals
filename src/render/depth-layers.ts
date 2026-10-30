@@ -173,7 +173,7 @@ export function createDepthLayers(textures: Map<string, Texture>) {
   const csTex = csRaw
     ? cs.placeholder
       ? screenToAlpha(csRaw, { mirrorX: true, fadeY: 0.18 })
-      : mirrored(csRaw, true, true)
+      : mirrored(saturated(csRaw, cs.saturation), true, true)
     : undefined;
   const cloudSea = csTex
     ? new TilingSprite({ texture: csTex, width: 1, height: 1 })

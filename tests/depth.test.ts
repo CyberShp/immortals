@@ -275,6 +275,8 @@ describe('纵深第二轮素材', () => {
   });
   it('天空饱和度参数默认 0.85，公式保持亮度', () => {
     expect(DEPTH.backdrop.skySaturation).toBe(0.85);
+    // 云海饱和度键：试过 0.85 效果不明显，保持 1（原样）。
+    expect(DEPTH.cloudSea.saturation).toBe(1);
     expect(saturateColor(0x808080, 0.85)).toBe(0x808080);
     expect(saturateColor(0x6fb5e5, 1)).toBe(0x6fb5e5);
     const g = saturateColor(0x6fb5e5, 0);
