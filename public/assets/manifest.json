@@ -1226,8 +1226,8 @@
       ]
     }
   ],
-  "assetBytes": 4887684,
-  "totalBytes": 4956713,
+  "assetBytes": 4887698,
+  "totalBytes": 4956767,
   "groups": {
     "cool": {
       "firstScreen": false,
@@ -1848,9 +1848,9 @@
         },
         {
           "file": "cool/hall4/hall-carpet.webp",
-          "size": [69, 33],
-          "bytes": 416,
-          "source": "hall_int_v4g_v3.png 红毯沿轴向挤出到宝座台阶脚（脚本色块，v4g/carpet.py）"
+          "size": [45, 37],
+          "bytes": 466,
+          "source": "hall_int_v4g_v3.png 原红毯像素沿轴向平移裁切一级踏跺深，铺满最下一级到第二级立面脚（v4g/carpet2.py）"
         },
         {
           "file": "cool/hall4/hall-col-01.webp",
@@ -1867,7 +1867,7 @@
         {
           "file": "cool/hall4/hall-col-03.webp",
           "size": [57, 289],
-          "bytes": 3576,
+          "bytes": 3540,
           "source": "forge_interior_v1/hall_int_v4g_v3.png 4 根金柱（柱头/柱身/柱础矩形 − 地面色）"
         },
         {

@@ -31,7 +31,7 @@ const SOURCE = {
   'hall-col':
     'forge_interior_v1/hall_int_v4g_v3.png 4 根金柱（柱头/柱身/柱础矩形 − 地面色）',
   'hall-carpet':
-    'hall_int_v4g_v3.png 红毯沿轴向挤出到宝座台阶脚（脚本色块，v4g/carpet.py）',
+    'hall_int_v4g_v3.png 原红毯像素沿轴向平移裁切一级踏跺深，铺满最下一级到第二级立面脚（v4g/carpet2.py）',
 };
 const sourceOf = (name) =>
   SOURCE[name] ?? SOURCE[name.replace(/-\d+$/, '')] ?? '';

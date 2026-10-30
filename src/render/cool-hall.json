@@ -1,5 +1,5 @@
 {
-  "$comment": "主殿几何（世界坐标），v4g 起用 Forge/Iris v4g 外景 + 4 张内景（正殿/左会客/右藏书议事/二层议事，同机位同台基，可替换）。由 immortal-qa/art-rebuild/cool-rebuild/batch1-cut/v4g/{key,reg2,cut,carpet,seats,gen_world_v4g}.py 生成；像素→世界沿用 v2 的 k·p+t。queue/lineup 沿用 v2（足迹变化 ≤5 px，测试校验可走）。",
+  "$comment": "主殿几何（世界坐标），v4g 起用 Forge/Iris v4g 外景 + 4 张内景（正殿/左会客/右藏书议事/二层议事，同机位同台基，可替换）。由 immortal-qa/art-rebuild/cool-rebuild/batch1-cut/v4g/{key,reg2,cut,carpet2,seats,gen_world_v4g}.py 生成；像素→世界沿用 v2 的 k·p+t。queue/lineup 沿用 v2（足迹变化 ≤5 px，测试校验可走）。",
   "source": {
     "exterior": "forge_roof_v1/hall_ext_v4g_roof_v1.png 1152×864",
     "interiors": {
@@ -313,9 +313,9 @@
     ],
     "carpet": {
       "file": "cool/hall4/hall-carpet.webp",
-      "size": [69, 33],
-      "x": 1655.2,
-      "y": 493.1,
+      "size": [45, 37],
+      "x": 1700.3,
+      "y": 496.8,
       "scale": 1.252587
     },
     "stairs": [
