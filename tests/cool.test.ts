@@ -272,4 +272,80 @@ describe('cool 打开时的可走区域与寻路', () => {
         ).toBeGreaterThanOrEqual(w.FOOT_SPACING);
     }
   });
+  it('多人同站铺开背离入口：社交站位 5 第 2~4 人离所有进主殿 A* 通道 > 脚距', () => {
+    const hall = cool.slots.find((s) => s.id === 'B_HALL')!.entrance;
+    const anchor = w.nearestWalkable(
+      cool.spots.find((s) => s.id === 'C_SOCIAL_5')!.point,
+    );
+    // 与上一条同一通道口径（独立重算，不依赖 spreadChannel）：其余槽位入口、其余站位、
+    // 采石点、外出点到主殿入口的 A* 路径。
+    const sources: P[] = [
+      ...cool.slots.filter((s) => s.id !== 'B_HALL').map((s) => s.entrance),
+      ...cool.spots.filter((s) => s.id !== 'C_SOCIAL_5').map((s) => s.point),
+      cool.quarry,
+      cool.expeditionPoint,
+    ];
+    const paths = sources.map((from) => w.findPath(from, hall));
+    const occupied: P[] = [];
+    for (let i = 0; i < 4; i++)
+      occupied.push(w.spacedLanding(anchor, occupied));
+    expect(occupied[0]).toEqual(anchor);
+    for (const p of occupied.slice(1)) {
+      expect(w.walkable(p)).toBe(true);
+      expect(w.channelClearance(p, paths), `${p}`).toBeGreaterThan(
+        w.FOOT_SPACING,
+      );
+    }
+  });
+  it('多人同站铺开：所有站位 6 人都在可走区内、不进脚印、互相 ≥ 脚距、结果确定；无通道站位保持原顺序', () => {
+    const FS = w.FOOT_SPACING;
+    const original = (anchor: P, occupied: P[]): P => {
+      for (let ring = 0; ring <= 100; ring++)
+        for (let dy = -ring; dy <= ring; dy++)
+          for (let dx = -ring; dx <= ring; dx++) {
+            if (Math.max(Math.abs(dx), Math.abs(dy)) !== ring) continue;
+            const p: P = [anchor[0] + dx * FS, anchor[1] + dy * FS];
+            if (!w.walkable(p) || !w.lineClear(anchor, p)) continue;
+            if (occupied.some((q) => Math.hypot(p[0] - q[0], p[1] - q[1]) < FS))
+              continue;
+            return p;
+          }
+      throw Error('none');
+    };
+    const spread = (anchor: P, f: (a: P, o: P[]) => P) => {
+      const occ: P[] = [];
+      for (let i = 0; i < 6; i++) occ.push(f(anchor, occ));
+      return occ;
+    };
+    const withChannel: string[] = [];
+    for (const s of cool.spots) {
+      const anchor = w.nearestWalkable(s.point);
+      const got = spread(anchor, w.spacedLanding);
+      expect(spread(anchor, w.spacedLanding)).toEqual(got);
+      for (const [i, p] of got.entries()) {
+        expect(w.walkable(p), s.id).toBe(true);
+        for (const slot of cool.slots)
+          expect(w.inFootprint(p, slot.footprint), `${s.id} ${slot.id}`).toBe(
+            false,
+          );
+        for (const q of got.slice(0, i))
+          expect(Math.hypot(p[0] - q[0], p[1] - q[1])).toBeGreaterThanOrEqual(
+            FS - 1e-9,
+          );
+      }
+      const channel = w.spreadChannel(anchor);
+      if (channel) {
+        withChannel.push(s.id);
+        for (const p of got.slice(1))
+          expect(w.channelClearance(p, channel), s.id).toBeGreaterThan(FS);
+      } else expect(got, s.id).toEqual(spread(anchor, original));
+    }
+    // 离最近建筑入口 ≤ 3 个脚距的站位才有入口通道概念。
+    expect(withChannel).toEqual([
+      'C_SOCIAL_1',
+      'C_SOCIAL_4',
+      'C_SOCIAL_5',
+      'C_SOCIAL_6',
+    ]);
+  });
 });

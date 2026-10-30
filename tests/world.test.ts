@@ -272,3 +272,17 @@ it('meditation alpha overlaps only its own slot', () => {
     expect(b.overlapNeighborSlots).toBe(0);
   }
 });
+
+it('旧四岛世界（?cool 关）多人同站铺开保持原顺序：没有站位启用背离入口', async () => {
+  const w = await import('../src/render/world');
+  expect(w.spreadAwayActive).toBe(false);
+  for (const s of w.worldMap.spots) {
+    const o = w.worldMap.islands.find((i) => i.id === s.island)!.offset;
+    expect(
+      w.spreadChannel(
+        w.nearestWalkable([s.point[0] + o[0], s.point[1] + o[1]]),
+      ),
+      s.id,
+    ).toBeNull();
+  }
+});

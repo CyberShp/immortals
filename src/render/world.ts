@@ -474,6 +474,81 @@ export function destination(d: Disciple, tick: number, index = 0): Point {
 }
 
 export const FOOT_SPACING = 28;
+// 多人同站铺开（仅表现层，不进 sim）：第 1 人站锚点；从第 2 人起若锚点离最近建筑入口
+// ≤ SPREAD_CHANNEL_RADIUS（有"入口通道"概念），只取离该入口全部 A* 通道 > 脚距的格子，
+// 同一环内离通道越远越先（稳定排序，无随机，结果确定）。没有通道概念的站位保持原顺序。
+// 只在 ?cool=1 打开：旧四岛世界保持原排列，保证开关关闭时逐像素不变。
+export const SPREAD_CHANNEL_RADIUS = 3 * FOOT_SPACING;
+const SPREAD_CHANNEL_RINGS = 4;
+export const spreadAwayActive = coolActive;
+/** 点到一组折线的最近距离。 */
+export function channelClearance(p: Point, paths: Point[][]) {
+  let best = Infinity;
+  for (const path of paths)
+    for (let i = 1; i < path.length; i++)
+      best = Math.min(best, segmentDistance(p, path[i - 1], path[i]));
+  return best;
+}
+const entranceChannels = new Map<string, { from: Point; path: Point[] }[]>();
+function channelsInto(slot: (typeof worldMap.slots)[number]) {
+  const hit = entranceChannels.get(slot.id);
+  if (hit) return hit;
+  const e = slot.entrance as Point;
+  const sources: Point[] = [
+    ...worldMap.slots.map((s) => s.entrance as Point),
+    ...worldMap.spots.map((s): Point => {
+      const o = worldMap.islands.find((i) => i.id === s.island)!.offset;
+      return [s.point[0] + o[0], s.point[1] + o[1]];
+    }),
+    ...(coolWorld ? [coolWorld.quarry, coolWorld.expeditionPoint] : []),
+  ];
+  const result = sources
+    .filter((p) => Math.hypot(p[0] - e[0], p[1] - e[1]) > 1e-6)
+    .map((from) => ({ from, path: findPath(from, e) }))
+    .filter((c) => c.path.length >= 2);
+  entranceChannels.set(slot.id, result);
+  return result;
+}
+const spreadCache = new Map<string, Point[][] | null>();
+/** 锚点对应的入口通道（最近建筑入口的全部来向 A* 路径，不含从锚点自身出发的那条）；无通道概念时为 null。 */
+export function spreadChannel(anchor: Point): Point[][] | null {
+  if (!spreadAwayActive) return null;
+  const key = anchor.join(',');
+  const hit = spreadCache.get(key);
+  if (hit !== undefined) return hit;
+  let best = Infinity,
+    slot: (typeof worldMap.slots)[number] | undefined;
+  for (const s of worldMap.slots) {
+    const d = Math.hypot(anchor[0] - s.entrance[0], anchor[1] - s.entrance[1]);
+    if (d < best) {
+      best = d;
+      slot = s;
+    }
+  }
+  const result =
+    slot && best > 1e-6 && best <= SPREAD_CHANNEL_RADIUS
+      ? channelsInto(slot)
+          .filter(
+            (c) =>
+              Math.hypot(c.from[0] - anchor[0], c.from[1] - anchor[1]) >=
+              FOOT_SPACING,
+          )
+          .map((c) => c.path)
+      : null;
+  spreadCache.set(key, result);
+  return result;
+}
+function ringCells(anchor: Point, ring: number): Point[] {
+  const cells: Point[] = [];
+  for (let dy = -ring; dy <= ring; dy++)
+    for (let dx = -ring; dx <= ring; dx++)
+      if (Math.max(Math.abs(dx), Math.abs(dy)) === ring)
+        cells.push([
+          anchor[0] + dx * FOOT_SPACING,
+          anchor[1] + dy * FOOT_SPACING,
+        ]);
+  return cells;
+}
 // Search actual walkable grid candidates; projecting blocked offsets back onto
 // an edge can collapse several occupants to the same point.
 export function spacedLanding(
@@ -481,26 +556,38 @@ export function spacedLanding(
   occupied: Point[],
   skip = 0,
 ): Point {
-  for (let ring = 0; ring <= 100; ring++) {
-    for (let dy = -ring; dy <= ring; dy++) {
-      for (let dx = -ring; dx <= ring; dx++) {
-        if (Math.max(Math.abs(dx), Math.abs(dy)) !== ring) continue;
-        const p: Point = [
-          anchor[0] + dx * FOOT_SPACING,
-          anchor[1] + dy * FOOT_SPACING,
-        ];
-        if (!walkable(p) || !lineClear(anchor, p)) continue;
-        if (
-          occupied.some(
-            (q) => Math.hypot(p[0] - q[0], p[1] - q[1]) < FOOT_SPACING - 1e-9,
-          )
-        )
-          continue;
-        if (skip-- > 0) continue;
+  const free = (p: Point) =>
+    walkable(p) &&
+    lineClear(anchor, p) &&
+    !occupied.some(
+      (q) => Math.hypot(p[0] - q[0], p[1] - q[1]) < FOOT_SPACING - 1e-9,
+    );
+  const channel = spreadChannel(anchor);
+  if (channel) {
+    let left = skip;
+    for (let ring = 0; ring <= SPREAD_CHANNEL_RINGS; ring++) {
+      const cells = ringCells(anchor, ring);
+      const order = ring
+        ? cells
+            .map((p) => ({ p, d: channelClearance(p, channel) }))
+            .filter((c) => c.d > FOOT_SPACING)
+            .sort((a, b) => b.d - a.d)
+            .map((c) => c.p)
+        : cells;
+      for (const p of order) {
+        if (!free(p)) continue;
+        if (left-- > 0) continue;
         return p;
       }
     }
+    // 附近没有离通道足够远的空格：退回原顺序（极端拥挤时才会走到）。
   }
+  for (let ring = 0; ring <= 100; ring++)
+    for (const p of ringCells(anchor, ring)) {
+      if (!free(p)) continue;
+      if (skip-- > 0) continue;
+      return p;
+    }
   throw Error('No spaced walkable landing near ' + anchor.join(','));
 }
 
