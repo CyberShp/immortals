@@ -31,6 +31,26 @@ export const coolAllFrameFiles = () =>
 
 /** 走路槽表（8 槽）。 */
 export const COOL_WALK_TABLE = frames.actions.walk.slots;
+/** 道具贴图（P7 椅、P8 蒲团、P9 讲道位）：文件、尺寸、锚点都来自 cool-frames.json。 */
+export const COOL_PROPS = frames.props;
+export const coolChairFile = (face: 'left' | 'right') =>
+  `${face === 'left' ? frames.props.chair.faceLeft : frames.props.chair.faceRight}.webp`;
+export function coolPropEntries() {
+  const p = frames.props;
+  const e = (file: string, size: number[], anchor: number[]) => ({
+    file: `${file}.webp`,
+    size: [size[0], size[1]],
+    anchor: { x: anchor[0], y: anchor[1] },
+  });
+  return [
+    e(p.chair.faceLeft, p.chair.size, p.chair.anchor),
+    e(p.chair.faceRight, p.chair.size, p.chair.anchor),
+    e(p.chairGuest.file, p.chairGuest.size, p.chairGuest.anchor),
+    e(p.cushionJade.file, p.cushionJade.size, p.cushionJade.anchor),
+    e(p.cushionSermon.file, p.cushionSermon.size, p.cushionSermon.anchor),
+    e(p.sermonSpot.file, p.sermonSpot.size, p.sermonSpot.anchor),
+  ];
+}
 
 /** 坐姿判据（08 增补 4.1-2）：坐椅帧只在椅坐点、坐蒲团帧只在蒲团上；其余一律站/走。 */
 export function coolAction(
@@ -38,10 +58,14 @@ export function coolAction(
   seat?: { kind: string; arrived: boolean; offset: number },
 ): CoolAction {
   if (pose.startsWith('walk-')) return 'walk';
-  if (seat?.arrived && seat.offset <= 0.5) {
-    if (seat.kind === 'chair') return 'sitChair';
-    if (seat.kind === 'cushion') return 'sitCushion';
+  if (seat?.kind === 'chair' || seat?.kind === 'cushion') {
+    if (seat.arrived && seat.offset <= 0.5)
+      return seat.kind === 'chair' ? 'sitChair' : 'sitCushion';
+    return 'stand';
   }
+  // 召集/日常的站位、排队位、列队位：一律站（08 增补 4.1-4 殿内不放蒲团；坐姿只在椅/蒲团上）。
+  if (seat?.kind) return 'stand';
+  // 拍板 #3：打坐处一律垫 P8 常态色蒲团——坐蒲团帧自带玉色蒲团（batch2 帧内含），蒲团中心对齐落点。
   return pose === 'meditate' ? 'sitCushion' : 'stand';
 }
 

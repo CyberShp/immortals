@@ -8,6 +8,8 @@ import {
   DOOR_FADE,
   HALL_CAPACITY,
   addLateJoiner,
+  chairEligible,
+  HALL_CHAIRS,
   assemblyTick,
   buildCoolHall,
   coolHallSchema,
@@ -307,6 +309,61 @@ describe('召集全员（4.6，P6 推荐口径）', () => {
     expect(line).toHaveLength(8);
     expect(new Set(line.map((s) => s.index)).size).toBe(8);
     expect(a.seats.get('D1')).toMatchObject({ kind: 'station', index: 0 });
+  });
+  it('N8 身份：筑基 ≤8 全坐椅、第 9 名筑基进站位且在全部炼气之前；炼气不坐；空椅不补；会客座从不分配', () => {
+    expect(chairEligible({ realm: { major: '筑基' } })).toBe(true);
+    expect(chairEligible({ realm: { major: '炼气' } })).toBe(false);
+    const zj = Array.from({ length: 9 }, (_, i) => `Z${i + 1}`);
+    const lq = Array.from({ length: 6 }, (_, i) => `L${i + 1}`);
+    const seated = (id: string) => id.startsWith('Z');
+    const a = startAssembly(hall, [...zj, ...lq], 't', seated);
+    for (let i = 0; i < HALL_CHAIRS; i++)
+      expect(a.seats.get(zj[i])).toMatchObject({
+        kind: 'chair',
+        index: i,
+        face: hall.chairs[i].face,
+        point: hall.chairs[i].point,
+      });
+    expect(a.seats.get('Z9')).toMatchObject({ kind: 'station', index: 0 });
+    expect(a.seats.get('L1')).toMatchObject({ kind: 'station', index: 1 });
+    for (const id of lq) expect(a.seats.get(id)!.kind).toBe('station');
+    // 开局口径：1 名筑基 + 5 炼气 → 椅 1 有人，椅 2–8 空，站位 1–5。
+    const b = startAssembly(
+      hall,
+      ['LSZ', 'a', 'b', 'c', 'd', 'e'],
+      't',
+      (id) => id === 'LSZ',
+    );
+    expect(b.seats.get('LSZ')).toMatchObject({ kind: 'chair', index: 0 });
+    expect(
+      ['a', 'b', 'c', 'd', 'e'].map((id) => b.seats.get(id)!.index),
+    ).toEqual([0, 1, 2, 3, 4]);
+    expect(
+      [...b.seats.values()].filter((s) => s.kind === 'chair'),
+    ).toHaveLength(1);
+    // 中途补位：炼气不补空椅；筑基补号最大的空椅；椅满按站位规则。
+    expect(addLateJoiner(hall, b.seats, 'x')).toMatchObject({
+      kind: 'station',
+      index: 15,
+    });
+    expect(addLateJoiner(hall, b.seats, 'Zx', true)).toMatchObject({
+      kind: 'chair',
+      index: 7,
+    });
+    const full = startAssembly(hall, zj.slice(0, 8), 't', seated);
+    expect(addLateJoiner(hall, full.seats, 'Zy', true)).toMatchObject({
+      kind: 'station',
+      index: 15,
+    });
+    // 会客座从不出现在任何席位里。
+    const gs = new Set(hall.guests.map((g) => g.join()));
+    for (const s of [...a.seats.values(), ...b.seats.values()])
+      expect(gs.has(s.point?.join() ?? '')).toBe(false);
+    // 散开：列队区 → 站位 16→1 → 椅 8→1。
+    expect(releaseOrder(a.seats).at(-1)).toBe('Z1');
+    expect(releaseOrder(a.seats).slice(-8)).toEqual(
+      [...zj.slice(0, 8)].reverse(),
+    );
   });
   it('补位：补到号最大的空站位；殿内满则列队区末尾；不挪其他人', () => {
     const order = Array.from({ length: 10 }, (_, i) => `D${i + 1}`);

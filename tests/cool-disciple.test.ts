@@ -100,6 +100,14 @@ describe('cool 弟子帧（08 增补 R3）', () => {
     expect(coolAction('work')).toBe('stand');
     // 打坐（拍板 #3）：坐蒲团帧，帧内自带蒲团
     expect(coolAction('meditate')).toBe('sitCushion');
+    // 08 增补 4.1-4：殿内站位/排队/列队不坐（含 sim 在打坐的人）；未到椅点不坐。
+    for (const kind of ['station', 'queue', 'lineup', 'overflow'])
+      expect(coolAction('meditate', { kind, arrived: true, offset: 0 })).toBe(
+        'stand',
+      );
+    expect(
+      coolAction('meditate', { kind: 'chair', arrived: true, offset: 3 }),
+    ).toBe('stand');
   });
   it('朝向：走/站画右前，坐椅画左前，坐蒲团正面不翻', () => {
     expect(coolActionFlip('walk', 1)).toBe(1);

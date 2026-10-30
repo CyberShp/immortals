@@ -11,6 +11,8 @@ import {
   coolAction,
   coolActionFlip,
   coolAllFrameFiles,
+  coolChairFile,
+  coolPropEntries,
   coolCushionFootOffset,
   coolDiscipleScale,
   coolFrame,
@@ -59,6 +61,7 @@ import {
   roofClosed,
   routeStatus,
   seniorityOrder,
+  chairEligible,
   snapshotTriggers,
   startAssembly,
   type Assembly,
@@ -205,6 +208,7 @@ declare global {
       poses: Record<string, number>;
       coolFrames: Record<string, number>;
       coolActions: Record<string, number>;
+      coolChairs: number;
       disciples: {
         id: string;
         x: number;
@@ -406,7 +410,7 @@ export async function createMap(
               d.state.behavior !== '历练',
           );
           const join = new Map(world.disciples.map((d, i) => [d.id, i]));
-          beginAssembly([reason], seniorityOrder(list, join));
+          beginAssembly([reason], seniorityOrder(list, join), seatedSet(list));
           draw(world);
         },
         /** 调试注入：表现层复制弟子到总数 n（7.5 #34），不进 sim。 */
@@ -509,6 +513,8 @@ export async function createMap(
         anchor: { x: COOL_FRAME_ANCHOR[0], y: COOL_FRAME_ANCHOR[1] },
       }))
     : [];
+  // 08 增补 R2/R5：P7 椅、P8 蒲团、P9 讲道位道具（锚点见 cool-frames.json props）。
+  if (cool) coolDiscipleEntries.push(...coolPropEntries());
   for (const entry of coolDiscipleEntries)
     entries.set(entry.file, entry as (typeof manifest.files)[number]);
   const loadList = [
@@ -939,6 +945,7 @@ export async function createMap(
       poses: {} as Record<string, number>,
       coolFrames: {} as Record<string, number>,
       coolActions: {} as Record<string, number>,
+      coolChairs: 0,
       disciples: [] as Window['__mapStats']['disciples'],
       buildings: [] as Window['__mapStats']['buildings'],
       discipleScale: DISCIPLE_SCALE,
@@ -1012,6 +1019,17 @@ export async function createMap(
       if (coolRoofNow < 1) {
         add(L.room, -900);
         for (const c of L.columns) add(c, c.foot[1]);
+        // 08 增补 R2：8 把交椅是殿内道具，只在屋顶淡出时随内景画；z 按坐点 y，略在坐者之下。
+        for (const c of coolHall.chairs) {
+          const chair = art(coolChairFile(c.face), coolDiscipleScale(height));
+          if (!chair) continue;
+          chair.position.set(c.point[0], c.point[1]);
+          chair.zIndex = c.point[1] - 0.25;
+          chair.eventMode = 'none';
+          chair.label = 'cool-chair';
+          scene.addChild(chair);
+          stats.coolChairs++;
+        }
       }
       if (coolRoofNow > 0) add(L.roof, coolHall.hallZ, coolRoofNow);
       stats.buildingSprites++;
@@ -1547,6 +1565,13 @@ export async function createMap(
             offset: Math.hypot(m.x - m.toX, m.y - m.toY),
           })
         : undefined;
+      // 坐椅者朝向跟椅子（08 增补 2.3：两侧面向通道，无背面帧）。
+      const coolFacing =
+        coolAct === 'sitChair' && coolSeat?.face
+          ? coolSeat.face === 'left'
+            ? -1
+            : 1
+          : m.facing;
       const coolFile = coolAct
         ? coolFrame(
             d.gender === '女' ? 'f' : 'm',
@@ -1610,7 +1635,7 @@ export async function createMap(
       const mask = masks.get(coolFile ?? file);
       // 室内弟子按脚底 y 排在外观之下，不做“露头抬层”。
       if (mask && !compact && !indoor && !hallStatus?.inside) {
-        const facing = coolAct ? coolActionFlip(coolAct, m.facing) : flip;
+        const facing = coolAct ? coolActionFlip(coolAct, coolFacing) : flip;
         const key = JSON.stringify([
           coolFile ?? file,
           m.x,
@@ -1677,7 +1702,7 @@ export async function createMap(
       stats.disciples.at(-1)!.z = group.zIndex;
       if (compact) stats.markers++;
       if (sprite) {
-        sprite.scale.x *= coolAct ? coolActionFlip(coolAct, m.facing) : flip;
+        sprite.scale.x *= coolAct ? coolActionFlip(coolAct, coolFacing) : flip;
         // 坐蒲团帧（帧内含蒲团）：蒲团中心对齐脚点。
         if (coolAct === 'sitCushion') sprite.y += coolCushionFootOffset(height);
         // 仍为占位的动作槽：仅 ?debug=1 角标「占位」（槽表 placeholder 字段）。
@@ -1907,15 +1932,17 @@ export async function createMap(
       ? detectTriggers(triggerState, realWorld)
       : [];
     triggerState = snapshotTriggers(realWorld);
-    if (reasons.length) beginAssembly(reasons, order());
+    if (reasons.length) beginAssembly(reasons, order(), seatedSet(list));
     if (assembly) {
       const ids = new Set(list.map((d) => d.id));
       // 离山（历练）者不在图上：席位留空不补。
       for (const id of [...assembly.seats.keys()])
         if (!ids.has(id)) assembly.seats.delete(id);
       // 历练归来 / 新入门 / 调试注入：补到最后一个空席位，不整体重排。
+      const seated = seatedSet(list);
       for (const id of order())
-        if (!assembly.seats.has(id)) addLateJoiner(hall, assembly.seats, id);
+        if (!assembly.seats.has(id))
+          addLateJoiner(hall, assembly.seats, id, seated(id));
     }
     const holds = (id: string) =>
       !!assembly && assembly.seats.has(id) && !assembly.released.has(id);
@@ -1951,11 +1978,20 @@ export async function createMap(
       };
     });
   }
-  function beginAssembly(reasons: string[], order: string[]) {
+  // 08 增补 2.1：有座资格（demo = 筑基）。
+  function seatedSet(list: readonly World['disciples'][number][]) {
+    const ids = new Set(list.filter(chairEligible).map((d) => d.id));
+    return (id: string) => ids.has(id);
+  }
+  function beginAssembly(
+    reasons: string[],
+    order: string[],
+    seated: (id: string) => boolean,
+  ) {
     assemblyLog.push({ at: performance.now(), reasons });
     if (assembly) for (const r of reasons) retriggerAssembly(assembly, r);
     else {
-      assembly = startAssembly(coolHall!, order, reasons.join('、'));
+      assembly = startAssembly(coolHall!, order, reasons.join('、'), seated);
       for (const r of reasons.slice(1)) retriggerAssembly(assembly, r);
       assemblyLast = undefined;
     }

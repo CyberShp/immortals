@@ -248,13 +248,19 @@ export function routeStatus(route: HallRoute | undefined, s: number) {
 
 // ---------- 席位 ----------
 export type Seat = {
-  kind: 'station' | 'queue' | 'lineup' | 'overflow';
-  /** 站位/排队位/列队位序号（0 起）；station 序号 + 1 即 1–16 资历号（1 号近宝座）。 */
+  kind: 'chair' | 'station' | 'queue' | 'lineup' | 'overflow';
+  /** 椅/站位/排队位/列队位序号（0 起）；chair/station 序号 + 1 即椅号 1–8 / 站位号 1–16（1 号近宝座）。 */
   index: number;
   point?: P;
   inside: boolean;
+  /** 坐椅者朝向（chairs[i].face）：left = 面朝左前（P7 原朝向 chair-r），right = 面朝右前。 */
+  face?: 'left' | 'right';
 };
 export const HALL_CAPACITY = 16;
+export const HALL_CHAIRS = 8;
+/** 08 增补 2.1：有座资格（demo 只看境界 ≥ 筑基；执事/长老/宗主代理身份字段待定）。 */
+export const chairEligible = (d: { realm: { major: string } }) =>
+  d.realm.major === '筑基';
 /** 日常站位：先到先得，按离门由近到远取空站位；第 17–20 人排队位；第 21 人起交回调用方去其他社交站位。不整体重排。 */
 export function dailySeats(
   hall: CoolHall,
@@ -365,16 +371,52 @@ const seatOf = (hall: CoolHall, rank: number): Seat =>
           inside: false,
         }
       : { kind: 'overflow', index: rank - HALL_CAPACITY, inside: false };
-/** 召集席位表：资历 1–16 进殿（1 号近宝座），第 17 人起列队区续排。 */
-export function assemblySeats(hall: CoolHall, order: readonly string[]) {
-  return new Map(order.map((id, i) => [id, seatOf(hall, i)]));
+const chairOf = (hall: CoolHall, i: number): Seat => ({
+  kind: 'chair',
+  index: i,
+  point: hall.chairs[i].point as P,
+  inside: true,
+  face: hall.chairs[i].face,
+});
+/**
+ * 召集席位表（08 增补 2.2）：有座资格者按资历取前 8 坐椅 1–8；其余（含第 9 名起的有座资格者）
+ * 按资历从站位 1 号排起，站满 16 去列队区。空椅保持空着，无座者不补坐；会客座从不分配。
+ */
+export function assemblySeats(
+  hall: CoolHall,
+  order: readonly string[],
+  seated: (id: string) => boolean = () => false,
+) {
+  const seats = new Map<string, Seat>();
+  let chairs = 0;
+  for (const id of order)
+    if (chairs < HALL_CHAIRS && seated(id))
+      seats.set(id, chairOf(hall, chairs++));
+  let rank = 0;
+  for (const id of order)
+    if (!seats.has(id)) seats.set(id, seatOf(hall, rank++));
+  return new Map(order.map((id) => [id, seats.get(id)!]));
 }
-/** 召集中途补位：殿内有空位补最后一个空位（号最大的空站位），殿内满则排到列队区末尾。不整体重排。 */
+/**
+ * 召集中途补位：有座资格者坐号最大的空椅，椅满按站位规则；站位规则 = 殿内有空位补号最大的空站位，
+ * 殿内满则排到列队区末尾。不整体重排。
+ */
 export function addLateJoiner(
   hall: CoolHall,
   seats: Map<string, Seat>,
   id: string,
+  seated = false,
 ) {
+  if (seated) {
+    const taken = new Set(
+      [...seats.values()].filter((s) => s.kind === 'chair').map((s) => s.index),
+    );
+    for (let i = HALL_CHAIRS - 1; i >= 0; i--)
+      if (!taken.has(i)) {
+        seats.set(id, chairOf(hall, i));
+        return seats.get(id)!;
+      }
+  }
   const used = new Set(
     [...seats.values()].filter((s) => s.kind === 'station').map((s) => s.index),
   );
@@ -386,7 +428,7 @@ export function addLateJoiner(
   const tail = Math.max(
     HALL_CAPACITY - 1,
     ...[...seats.values()]
-      .filter((s) => s.kind !== 'station')
+      .filter((s) => s.kind !== 'station' && s.kind !== 'chair')
       .map((s) => HALL_CAPACITY + s.index),
   );
   seats.set(id, seatOf(hall, tail + 1));
@@ -436,20 +478,26 @@ export function startAssembly(
   hall: CoolHall,
   order: readonly string[],
   reason: string,
+  seated?: (id: string) => boolean,
 ): Assembly {
   return {
     phase: 'gather',
     clock: 0,
     phaseStart: 0,
-    seats: assemblySeats(hall, order),
+    seats: assemblySeats(hall, order, seated),
     released: new Set(),
     queued: 0,
     reasons: [reason],
   };
 }
+/** 散开顺序：列队区先（列队号小的先），再殿内站位 16 → 1，最后椅 8 → 1。 */
 export function releaseOrder(seats: ReadonlyMap<string, Seat>) {
   const rank = (s: Seat) =>
-    s.kind === 'station' ? 1000 + (HALL_CAPACITY - 1 - s.index) : s.index;
+    s.kind === 'chair'
+      ? 2000 + (HALL_CHAIRS - 1 - s.index)
+      : s.kind === 'station'
+        ? 1000 + (HALL_CAPACITY - 1 - s.index)
+        : s.index;
   return [...seats].sort((a, b) => rank(a[1]) - rank(b[1])).map(([id]) => id);
 }
 /** 推进召集时钟。allArrived：所有参加者都已到席位。返回 undefined 表示召集结束、恢复日常。 */
