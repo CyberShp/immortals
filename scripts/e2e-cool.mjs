@@ -175,7 +175,8 @@ const report = {};
           ).length,
       ),
     };
-    assert.ok(shots[name].black < 0.01, `${path} 疑似黑屏`);
+    // v4g 主殿外景的门扇/屋面暗部本身就有约 1.04% 像素 RGB 和 <30（center 镜头实测），阈值 1%→3%；真黑屏远高于此。
+    assert.ok(shots[name].black < 0.03, `${path} 疑似黑屏`);
   }
   // 点选：回到默认镜头，点第一个可见弟子头部，弟子卡出现。
   await page.evaluate(() =>
