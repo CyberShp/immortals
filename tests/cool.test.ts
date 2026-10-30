@@ -348,4 +348,39 @@ describe('cool 打开时的可走区域与寻路', () => {
       'C_SOCIAL_6',
     ]);
   });
+  it.each([
+    ['C_SOCIAL_4', 'B_DORM'],
+    ['C_SOCIAL_6', 'B_GATE'],
+  ])(
+    '%s 站位本身离 %s 入口通道约一个身位（28–56 px），靠近入口、可走、不进脚印',
+    (id, slotId) => {
+      const FS = w.FOOT_SPACING;
+      const e = cool.slots.find((s) => s.id === slotId)!.entrance;
+      const spot = cool.spots.find((s) => s.id === id)!.point;
+      expect(w.walkable(spot)).toBe(true);
+      for (const slot of cool.slots)
+        expect(w.inFootprint(spot, slot.footprint), slot.id).toBe(false);
+      // 独立重算通道：其余槽位入口、其余站位、采石点、外出点到该入口的 A* 路径。
+      const sources: P[] = [
+        ...cool.slots.map((s) => s.entrance),
+        ...cool.spots.filter((s) => s.id !== id).map((s) => s.point),
+        cool.quarry,
+        cool.expeditionPoint,
+      ].filter((p) => Math.hypot(p[0] - e[0], p[1] - e[1]) > 1e-6);
+      const paths = sources.map((from) => w.findPath(from, e));
+      const d = w.channelClearance(spot, paths);
+      expect(d).toBeGreaterThanOrEqual(FS);
+      expect(d).toBeLessThanOrEqual(2 * FS);
+      // 仍靠近入口，且保留入口通道概念（铺开背离入口仍生效）。
+      expect(Math.hypot(spot[0] - e[0], spot[1] - e[1])).toBeLessThanOrEqual(
+        w.SPREAD_CHANNEL_RADIUS,
+      );
+      expect(w.spreadChannel(w.nearestWalkable(spot))).not.toBeNull();
+      for (const other of cool.spots.filter((s) => s.id !== id))
+        expect(
+          Math.hypot(spot[0] - other.point[0], spot[1] - other.point[1]),
+          other.id,
+        ).toBeGreaterThanOrEqual(2 * FS);
+    },
+  );
 });
