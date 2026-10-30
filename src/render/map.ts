@@ -12,6 +12,8 @@ import {
   coolActionFlip,
   coolAllFrameFiles,
   coolChairFile,
+  coolMasterFile,
+  coolPropFile,
   coolPropEntries,
   coolCushionFootOffset,
   coolDiscipleScale,
@@ -70,6 +72,19 @@ import {
   type Seat,
   type TriggerState,
 } from './cool-hall';
+import {
+  SERMON,
+  addSermonJoiner,
+  cushionAlpha,
+  handoffSermon,
+  leaveSermon,
+  sermonMasterAction,
+  sermonMasterAlpha,
+  sermonSeat,
+  sermonTick,
+  startSermon,
+  type Sermon,
+} from './cool-sermon';
 import { relatedEvents } from '../app/ui-model';
 import type { World } from '../sim/world';
 import { buildingDefinitions } from '../sim/catalog';
@@ -285,6 +300,11 @@ export async function createMap(
   let assembly: Assembly | undefined;
   let assemblyLast: number | undefined;
   const assemblyLog: { at: number; reasons: string[] }[] = [];
+  // 08 增补 R5：大能讲道 demo（只由调试钩子触发）。
+  let sermon: Sermon | undefined;
+  let sermonLast: number | undefined;
+  let pendingSermon: number | undefined;
+  const sermonLog: { at: number; event: string }[] = [];
   let triggerState: TriggerState | undefined;
   const injected: World['disciples'] = [];
   let lastCoolSeats: Record<string, unknown>[] = [];
@@ -388,6 +408,26 @@ export async function createMap(
               })),
             },
             log: assemblyLog.map((e) => ({ ...e })),
+            sermon: sermon && {
+              phase: sermon.phase,
+              clock: sermon.clock,
+              phaseStart: sermon.phaseStart,
+              durationMs: sermon.durationMs,
+              queuedAssembly: [...sermon.queuedAssembly],
+              masterAlpha: sermonMasterAlpha(sermon),
+              masterAction: sermonMasterAction(sermon),
+              master: coolHall!.stairTop,
+              cushions: [...sermon.cushions].map(([id, c]) => ({
+                id,
+                index: c.index,
+                point: c.point,
+                at: c.at,
+                releasedAt: c.releasedAt,
+                alpha: cushionAlpha(sermon!, c),
+              })),
+            },
+            pendingSermon,
+            sermonLog: sermonLog.map((e) => ({ ...e })),
             replans: { ...replanLog, pending: pendingReplans.size },
             paintedAt: lastPaint,
             daily: [...dailyMap].map(([id, s]) => ({
@@ -403,15 +443,27 @@ export async function createMap(
         /** 调试：手动触发一次召集（等同事件结算触发，不改 sim）。 */
         trigger: (reason = '调试召集') => {
           if (!world) return;
-          const list = world.disciples.filter(
-            (d) =>
-              d.stage !== '坐化' &&
-              !d.state.awayUntil &&
-              d.state.behavior !== '历练',
-          );
+          const list = presentDisciples(world);
           const join = new Map(world.disciples.map((d, i) => [d.id, i]));
           beginAssembly([reason], seniorityOrder(list, join), seatedSet(list));
           draw(world);
+        },
+        /**
+         * 调试：大能讲道 demo（08 增补 4.4，R5）。ms 缺省 20 s。召集中调用返回 'queued'
+         * （召集散场结束后开始）；讲道已在进行返回 'running'。不改 sim、不写存档。
+         */
+        sermon: (ms?: number) => {
+          if (!world || !coolHall) return;
+          const durationMs = Math.max(0, ms ?? SERMON.defaultMs);
+          if (sermon) return 'running';
+          if (assembly) {
+            pendingSermon = durationMs;
+            sermonLog.push({ at: performance.now(), event: 'queued' });
+            return 'queued';
+          }
+          beginSermon(durationMs);
+          draw(world);
+          return 'started';
         },
         /** 调试注入：表现层复制弟子到总数 n（7.5 #34），不进 sim。 */
         inject: (n: number) => {
@@ -1556,7 +1608,9 @@ export async function createMap(
       // ?cool=1：精灵换新帧（身高比例不变：站立头顶→脚底 169 px 缩到 DISCIPLE_HEIGHT）；
       // 动作按坐姿判据（坐椅只在椅坐点、坐蒲团只在蒲团上），遮挡掩码按新帧轮廓。
       const coolSeat = coolHall
-        ? (assembly?.seats.get(d.id) ?? dailyMap.get(d.id))
+        ? (assembly?.seats.get(d.id) ??
+          (sermon && sermonSeat(sermon, d.id)) ??
+          dailyMap.get(d.id))
         : undefined;
       const coolAct = cool
         ? coolAction(pose, {
@@ -1783,6 +1837,51 @@ export async function createMap(
       }
       scene.addChild(group);
     }
+    if (coolHall && sermon) {
+      // 08 增补 R5：P9 讲道位淡光 + 大能 D5 站台阶顶（面向广场 = 正面 3/4，不翻转），
+      // 都在屋顶层之上（台阶顶在外观立面之前）；听众蒲团在广场，z 同殿外弟子排序、略在坐者之下。
+      const k = coolDiscipleScale(height);
+      const ma = sermonMasterAlpha(sermon);
+      const st = coolHall.stairTop;
+      const spot = art(coolPropFile('sermonSpot'), k);
+      if (spot && ma > 0) {
+        spot.position.set(st[0], st[1]);
+        spot.zIndex = coolHall.hallZ + 0.25;
+        spot.alpha = ma;
+        spot.eventMode = 'none';
+        spot.label = 'cool-sermon-spot';
+        scene.addChild(spot);
+      }
+      const act = sermonMasterAction(sermon);
+      const master = art(
+        coolMasterFile(
+          act,
+          act === 'flick' ? sermon.clock - sermon.phaseStart : sermon.clock,
+        ),
+        k,
+      );
+      if (master && ma > 0) {
+        master.position.set(st[0], st[1]);
+        master.zIndex = coolHall.hallZ + 0.5;
+        master.alpha = ma;
+        master.eventMode = 'none';
+        master.label = 'cool-sermon-master';
+        scene.addChild(master);
+      }
+      for (const c of sermon.cushions.values()) {
+        const alpha = cushionAlpha(sermon, c);
+        if (alpha <= 0) continue;
+        const cushion = art(coolPropFile('cushionSermon'), k);
+        if (!cushion) continue;
+        cushion.position.set(c.point[0], c.point[1]);
+        cushion.zIndex = outdoorZ(coolHall, c.point) - 0.25;
+        cushion.alpha = alpha;
+        cushion.eventMode = 'none';
+        cushion.label = 'cool-cushion';
+        scene.addChild(cushion);
+      }
+      active = true;
+    }
     if (coolHall) {
       coolOccupied = hallOccupied;
       active ||=
@@ -1818,6 +1917,60 @@ export async function createMap(
           assembly.phase !== phase
         )
           queueMicrotask(() => world && draw(world));
+        // 召集中调用的讲道：召集散场结束后开始。
+        if (!assembly && pendingSermon !== undefined) {
+          const ms = pendingSermon;
+          pendingSermon = undefined;
+          queueMicrotask(() => {
+            if (!sermon && !assembly) beginSermon(ms);
+            if (world) draw(world);
+          });
+        }
+      }
+      if (sermon) {
+        const dt =
+          paused || sermonLast === undefined
+            ? 0
+            : Math.min(100, now - sermonLast);
+        sermonLast = now;
+        const s = sermon;
+        const allArrived = [...s.cushions.keys()].every((id) => {
+          const m = motions.get(id);
+          const seat = sermonSeat(s, id);
+          if (!m || !seat) return true;
+          return (
+            now - m.start >= m.duration &&
+            Math.hypot(m.toX - seat.point![0], m.toY - seat.point![1]) < 0.5
+          );
+        });
+        const phase = s.phase,
+          released = s.releasedCount;
+        sermon = sermonTick(s, dt, allArrived);
+        active = true;
+        if (
+          sermon &&
+          phase === 'lecture' &&
+          sermon.phase === 'disperse' &&
+          sermon.queuedAssembly.length
+        ) {
+          handoffSermon(sermon);
+          const reasons = sermon.queuedAssembly.splice(0);
+          sermonLog.push({ at: now, event: 'handoff' });
+          queueMicrotask(() => {
+            if (!world) return;
+            const list = presentDisciples(world);
+            const join = new Map(world.disciples.map((d, i) => [d.id, i]));
+            beginAssembly(reasons, seniorityOrder(list, join), seatedSet(list));
+            draw(world);
+          });
+        } else if (
+          !sermon ||
+          sermon.phase !== phase ||
+          sermon.releasedCount !== released
+        ) {
+          if (!sermon) sermonLog.push({ at: now, event: 'end' });
+          queueMicrotask(() => world && draw(world));
+        }
       }
     }
     if (roofFade)
@@ -1944,8 +2097,20 @@ export async function createMap(
         if (!assembly.seats.has(id))
           addLateJoiner(hall, assembly.seats, id, seated(id));
     }
+    if (sermon) {
+      const ids = new Set(list.map((d) => d.id));
+      for (const id of sermon.cushions.keys())
+        if (!ids.has(id)) leaveSermon(sermon, id);
+      // 讲道期间新入门 / 历练归来 / 注入：补下一个空蒲团，不重排（4.6）。
+      if (sermon.phase === 'gather' || sermon.phase === 'lecture')
+        for (const id of order())
+          if (!sermon.cushions.has(id)) addSermonJoiner(hall, sermon, id);
+    }
+    const sermonHeld = (id: string) =>
+      sermon ? sermonSeat(sermon, id) : undefined;
     const holds = (id: string) =>
-      !!assembly && assembly.seats.has(id) && !assembly.released.has(id);
+      (!!assembly && assembly.seats.has(id) && !assembly.released.has(id)) ||
+      !!sermonHeld(id);
     // 日常分流只对没有召集席位的人生效（召集开始即暂停日常规则）。
     const goers = list
       .filter(
@@ -1968,7 +2133,9 @@ export async function createMap(
         Math.floor(k / socials.length),
       );
     return list.map((d, i) => {
-      const held = holds(d.id) ? assembly!.seats.get(d.id) : undefined;
+      const held = holds(d.id)
+        ? (sermonHeld(d.id) ?? assembly!.seats.get(d.id))
+        : undefined;
       const seat = held ?? dailyMap.get(d.id);
       return {
         point: seat ? (seat.point ?? overflow(seat.index)) : destinations[i],
@@ -1983,12 +2150,34 @@ export async function createMap(
     const ids = new Set(list.filter(chairEligible).map((d) => d.id));
     return (id: string) => ids.has(id);
   }
+  function presentDisciples(w: World) {
+    return w.disciples.filter(
+      (d) =>
+        d.stage !== '坐化' && !d.state.awayUntil && d.state.behavior !== '历练',
+    );
+  }
+  function beginSermon(durationMs: number) {
+    if (!world || !coolHall) return;
+    const list = presentDisciples(world);
+    const join = new Map(world.disciples.map((d, i) => [d.id, i]));
+    sermon = startSermon(coolHall, seniorityOrder(list, join), durationMs);
+    sermonLast = undefined;
+    sermonLog.push({ at: performance.now(), event: 'start' });
+  }
   function beginAssembly(
     reasons: string[],
     order: string[],
     seated: (id: string) => boolean,
   ) {
     assemblyLog.push({ at: performance.now(), reasons });
+    // 讲道中触发召集：讲道结束后直接聚集（从蒲团出发，不先散开）；已在散场则立即交接。
+    if (sermon && sermon.phase !== 'outro') {
+      sermon.queuedAssembly.push(...reasons);
+      if (sermon.phase !== 'disperse') return;
+      handoffSermon(sermon);
+      reasons = sermon.queuedAssembly.splice(0);
+      sermonLog.push({ at: performance.now(), event: 'handoff' });
+    }
     if (assembly) for (const r of reasons) retriggerAssembly(assembly, r);
     else {
       assembly = startAssembly(coolHall!, order, reasons.join('、'), seated);

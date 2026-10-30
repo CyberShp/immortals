@@ -248,7 +248,7 @@ export function routeStatus(route: HallRoute | undefined, s: number) {
 
 // ---------- 席位 ----------
 export type Seat = {
-  kind: 'chair' | 'station' | 'queue' | 'lineup' | 'overflow';
+  kind: 'chair' | 'station' | 'queue' | 'lineup' | 'overflow' | 'cushion';
   /** 椅/站位/排队位/列队位序号（0 起）；chair/station 序号 + 1 即椅号 1–8 / 站位号 1–16（1 号近宝座）。 */
   index: number;
   point?: P;

@@ -29,6 +29,24 @@ export const coolAllFrameFiles = () =>
     ),
   ].filter((f, i, all) => all.indexOf(f) === i);
 
+/** 讲道大能 D5 帧：stand/lecture 按时间循环；flick 按相位内时间播一遍（停在末帧）。 */
+export function coolMasterFile(
+  action: 'stand' | 'lecture' | 'flick',
+  tMs: number,
+) {
+  const a = frames.master[action];
+  const k = a.slots.length;
+  const i =
+    action === 'flick'
+      ? Math.min(k - 1, Math.floor((Math.max(0, tMs) / a.periodMs) * k))
+      : Math.floor(
+          (((tMs % a.periodMs) + a.periodMs) % a.periodMs) / (a.periodMs / k),
+        );
+  return fileOf(a.slots[Math.min(k - 1, i)]);
+}
+export const coolPropFile = (
+  key: 'cushionJade' | 'cushionSermon' | 'sermonSpot' | 'chairGuest',
+) => `${frames.props[key].file}.webp`;
 /** 走路槽表（8 槽）。 */
 export const COOL_WALK_TABLE = frames.actions.walk.slots;
 /** 道具贴图（P7 椅、P8 蒲团、P9 讲道位）：文件、尺寸、锚点都来自 cool-frames.json。 */
