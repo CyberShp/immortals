@@ -1,0 +1,104 @@
+{
+  "note": "?cool=1 动作→帧槽表（08 增补 3.3 硬要求：与素材 manifest 分离；换图只改本表与 manifest，不改逻辑）。{g} = m（D1 男）/ f（D2 女）。",
+  "frame": {
+    "size": [192, 192],
+    "anchor": [96, 186],
+    "body": 169
+  },
+  "dir": "cool/frames/",
+  "actions": {
+    "walk": {
+      "slots": [
+        "{g}-walk-1",
+        "{g}-walk-2",
+        "{g}-walk-3",
+        "{g}-walk-4",
+        "{g}-walk-5",
+        "{g}-walk-6",
+        "{g}-walk-7",
+        "{g}-walk-8"
+      ],
+      "drive": "distance",
+      "drawn": "right",
+      "placeholder": false
+    },
+    "stand": {
+      "slots": ["{g}-stand-1", "{g}-stand-2", "{g}-stand-3", "{g}-stand-4"],
+      "drive": "time",
+      "periodMs": 3200,
+      "drawn": "right",
+      "placeholder": false
+    },
+    "sitChair": {
+      "slots": [
+        "{g}-sitchair-1",
+        "{g}-sitchair-2",
+        "{g}-sitchair-3",
+        "{g}-sitchair-4"
+      ],
+      "drive": "time",
+      "periodMs": 4000,
+      "drawn": "left",
+      "includesProp": "chair",
+      "placeholder": false
+    },
+    "sitCushion": {
+      "slots": [
+        "{g}-sitcushion-1",
+        "{g}-sitcushion-2",
+        "{g}-sitcushion-3",
+        "{g}-sitcushion-4"
+      ],
+      "drive": "time",
+      "periodMs": 4000,
+      "drawn": "front",
+      "includesProp": "cushion",
+      "placeholder": false,
+      "propCentre": [96, 163]
+    }
+  },
+  "master": {
+    "stand": {
+      "slots": ["d5-stand-1", "d5-stand-2", "d5-stand-3", "d5-stand-4"],
+      "periodMs": 3200
+    },
+    "lecture": {
+      "slots": ["d5-lecture-1", "d5-lecture-2", "d5-lecture-3", "d5-lecture-4"],
+      "periodMs": 3200
+    },
+    "flick": {
+      "slots": ["d5-flick-1", "d5-flick-2"],
+      "periodMs": 800
+    },
+    "drawn": "right",
+    "placeholder": false
+  },
+  "props": {
+    "chair": {
+      "faceLeft": "cool/props/chair-r",
+      "faceRight": "cool/props/chair-l",
+      "size": [192, 192],
+      "anchor": [96, 186]
+    },
+    "chairGuest": {
+      "file": "cool/props/chair-guest",
+      "size": [256, 192],
+      "anchor": [128, 186]
+    },
+    "cushionJade": {
+      "file": "cool/props/cushion-jade",
+      "size": [128, 64],
+      "anchor": [64, 33]
+    },
+    "cushionSermon": {
+      "file": "cool/props/cushion-sermon",
+      "size": [128, 64],
+      "anchor": [64, 33]
+    },
+    "sermonSpot": {
+      "file": "cool/props/p9-sermon-spot",
+      "size": [216, 146],
+      "anchor": [106, 71]
+    }
+  }
+}

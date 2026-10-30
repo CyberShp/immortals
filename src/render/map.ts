@@ -6,12 +6,16 @@ import { groundedLayer, insideGroundedBody } from './grounded-layers';
 import { discipleArtFile } from './world-scale';
 import {
   COOL_CONTACT_SHADOW,
-  COOL_DISCIPLE_POSES,
-  coolDiscipleFile,
+  COOL_FRAME_ANCHOR,
+  COOL_FRAME_SIZE,
+  coolAction,
+  coolActionFlip,
+  coolAllFrameFiles,
+  coolCushionFootOffset,
   coolDiscipleScale,
-  coolPose,
+  coolFrame,
+  coolFramePlaceholder,
   coolRootColors,
-  coolSpriteFlip,
 } from './cool-disciple';
 import {
   Application,
@@ -200,6 +204,7 @@ declare global {
       fallbacks: number;
       poses: Record<string, number>;
       coolFrames: Record<string, number>;
+      coolActions: Record<string, number>;
       disciples: {
         id: string;
         x: number;
@@ -234,6 +239,10 @@ declare global {
     };
   }
 }
+/** 弟子 id → 稳定小整数（站/坐呼吸相位错开用，不碰 sim RNG）。 */
+const seedOf = (id: string) =>
+  [...id].reduce((h, c) => (h * 31 + c.charCodeAt(0)) % 9973, 7);
+
 export async function createMap(
   host: HTMLElement,
   callbacks: {
@@ -491,15 +500,14 @@ export async function createMap(
         .filter((file) => file !== groundFile)
         .map((file) => ({ file }))
     : [];
-  // ?cool=1：弟子 D1/D2 新帧（128×192，脚底锚点 64,186）；旧帧仍加载，供遮挡掩码与回退。
+  // ?cool=1：弟子 D1/D2 帧（batch2：192×192，脚底锚点 96,186；槽表见 cool-frames.json）；
+  // 遮挡掩码按新帧轮廓重算（08 增补 R3），旧帧仍加载供名牌宽度与回退。
   const coolDiscipleEntries = cool
-    ? ['m', 'f'].flatMap((g) =>
-        COOL_DISCIPLE_POSES.map((pose) => ({
-          file: coolDiscipleFile(g, pose),
-          size: [128, 192],
-          anchor: { x: 64, y: 186 },
-        })),
-      )
+    ? coolAllFrameFiles().map((file) => ({
+        file,
+        size: [...COOL_FRAME_SIZE],
+        anchor: { x: COOL_FRAME_ANCHOR[0], y: COOL_FRAME_ANCHOR[1] },
+      }))
     : [];
   for (const entry of coolDiscipleEntries)
     entries.set(entry.file, entry as (typeof manifest.files)[number]);
@@ -597,13 +605,16 @@ export async function createMap(
     if (
       !file.includes('-map@') &&
       !file.includes('-96@') &&
+      !file.startsWith('cool/frames/') &&
       file !== gateArt.file
     )
       continue;
     const entry = entries.get(file)!;
-    const scale = file.startsWith('disciple/')
-      ? height / 96
-      : (worldBuildings.find((b) => b.file === file)?.scale ?? 1);
+    const scale = file.startsWith('cool/frames/')
+      ? coolDiscipleScale(height)
+      : file.startsWith('disciple/')
+        ? height / 96
+        : (worldBuildings.find((b) => b.file === file)?.scale ?? 1);
     const resource = texture.source?.resource;
     if (!resource) continue;
     const canvas = document.createElement('canvas');
@@ -927,6 +938,7 @@ export async function createMap(
       fallbacks: 0,
       poses: {} as Record<string, number>,
       coolFrames: {} as Record<string, number>,
+      coolActions: {} as Record<string, number>,
       disciples: [] as Window['__mapStats']['disciples'],
       buildings: [] as Window['__mapStats']['buildings'],
       discipleScale: DISCIPLE_SCALE,
@@ -1523,14 +1535,29 @@ export async function createMap(
         ? coolRootColors(d.root.elements)
         : rootRingColors(d.root.elements);
       const file = discipleArtFile(d.gender, pose);
-      // ?cool=1：精灵换新帧（身高比例不变：站立头顶→脚底 168 px 缩到 DISCIPLE_HEIGHT）；
-      // 遮挡掩码与名牌宽度仍按旧帧算。
-      const coolFile = cool
-        ? coolDiscipleFile(
+      // ?cool=1：精灵换新帧（身高比例不变：站立头顶→脚底 169 px 缩到 DISCIPLE_HEIGHT）；
+      // 动作按坐姿判据（坐椅只在椅坐点、坐蒲团只在蒲团上），遮挡掩码按新帧轮廓。
+      const coolSeat = coolHall
+        ? (assembly?.seats.get(d.id) ?? dailyMap.get(d.id))
+        : undefined;
+      const coolAct = cool
+        ? coolAction(pose, {
+            kind: coolSeat?.kind ?? '',
+            arrived: !moving,
+            offset: Math.hypot(m.x - m.toX, m.y - m.toY),
+          })
+        : undefined;
+      const coolFile = coolAct
+        ? coolFrame(
             d.gender === '女' ? 'f' : 'm',
-            coolPose(pose, gait.cycles),
+            coolAct,
+            gait.cycles,
+            now,
+            seedOf(d.id),
           )
         : undefined;
+      if (coolAct)
+        stats.coolActions[coolAct] = (stats.coolActions[coolAct] ?? 0) + 1;
       const sprite = compact
         ? undefined
         : coolFile
@@ -1580,12 +1607,12 @@ export async function createMap(
         group.addChild(ring);
         stats.rings++;
       }
-      const mask = masks.get(file);
+      const mask = masks.get(coolFile ?? file);
       // 室内弟子按脚底 y 排在外观之下，不做“露头抬层”。
       if (mask && !compact && !indoor && !hallStatus?.inside) {
-        const facing = flip;
+        const facing = coolAct ? coolActionFlip(coolAct, m.facing) : flip;
         const key = JSON.stringify([
-          file,
+          coolFile ?? file,
           m.x,
           m.y,
           facing,
@@ -1624,7 +1651,7 @@ export async function createMap(
           : onStairs
             ? coolHall.hallZ + 1
             : Math.max(group.zIndex, outdoorZ(coolHall, foot));
-        const seat = assembly?.seats.get(d.id) ?? dailyMap.get(d.id);
+        const seat = coolSeat;
         coolSeats.push({
           id: d.id,
           inside: hallStatus.inside,
@@ -1633,6 +1660,9 @@ export async function createMap(
           seat: seat && { kind: seat.kind, index: seat.index },
           arrived: !moving,
           speed: m.speedFactor ?? 1,
+          action: coolAct,
+          frame: coolFile,
+          cycles: gait.cycles,
           x: m.x,
           y: m.y,
           z: group.zIndex,
@@ -1647,7 +1677,19 @@ export async function createMap(
       stats.disciples.at(-1)!.z = group.zIndex;
       if (compact) stats.markers++;
       if (sprite) {
-        sprite.scale.x *= coolFile ? coolSpriteFlip(coolFile, m.facing) : flip;
+        sprite.scale.x *= coolAct ? coolActionFlip(coolAct, m.facing) : flip;
+        // 坐蒲团帧（帧内含蒲团）：蒲团中心对齐脚点。
+        if (coolAct === 'sitCushion') sprite.y += coolCushionFootOffset(height);
+        // 仍为占位的动作槽：仅 ?debug=1 角标「占位」（槽表 placeholder 字段）。
+        if (
+          coolAct &&
+          coolFramePlaceholder(coolAct) &&
+          params.get('debug') === '1'
+        ) {
+          const badge = label('占位', 10);
+          badge.position.set(0, -height - 4);
+          group.addChild(badge);
+        }
         group.addChild(sprite);
         stats.discipleSprites++;
       } else if (!compact) {

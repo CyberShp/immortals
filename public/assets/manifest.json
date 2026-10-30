@@ -1226,8 +1226,8 @@
       ]
     }
   ],
-  "assetBytes": 3830552,
-  "totalBytes": 3878003,
+  "assetBytes": 4176746,
+  "totalBytes": 4236630,
   "groups": {
     "cool": {
       "firstScreen": false,
@@ -1307,6 +1307,306 @@
           "source": "disciple-batch1-v1/d1_m_sheet_stand_walk2_sit_v1.png（站/坐）+ d1_m_walk_keys4_v1.jpg（走 4 关键帧）"
         },
         {
+          "file": "cool/frames/d5-flick-1.webp",
+          "size": [192, 192],
+          "bytes": 8044,
+          "source": "batch2-v1/d5_master/<动作>_NN.png（站 4/讲道手势 4/甩袖 2）"
+        },
+        {
+          "file": "cool/frames/d5-flick-2.webp",
+          "size": [192, 192],
+          "bytes": 9504,
+          "source": "batch2-v1/d5_master/<动作>_NN.png（站 4/讲道手势 4/甩袖 2）"
+        },
+        {
+          "file": "cool/frames/d5-lecture-1.webp",
+          "size": [192, 192],
+          "bytes": 5968,
+          "source": "batch2-v1/d5_master/<动作>_NN.png（站 4/讲道手势 4/甩袖 2）"
+        },
+        {
+          "file": "cool/frames/d5-lecture-2.webp",
+          "size": [192, 192],
+          "bytes": 6866,
+          "source": "batch2-v1/d5_master/<动作>_NN.png（站 4/讲道手势 4/甩袖 2）"
+        },
+        {
+          "file": "cool/frames/d5-lecture-3.webp",
+          "size": [192, 192],
+          "bytes": 6164,
+          "source": "batch2-v1/d5_master/<动作>_NN.png（站 4/讲道手势 4/甩袖 2）"
+        },
+        {
+          "file": "cool/frames/d5-lecture-4.webp",
+          "size": [192, 192],
+          "bytes": 5626,
+          "source": "batch2-v1/d5_master/<动作>_NN.png（站 4/讲道手势 4/甩袖 2）"
+        },
+        {
+          "file": "cool/frames/d5-stand-1.webp",
+          "size": [192, 192],
+          "bytes": 5780,
+          "source": "batch2-v1/d5_master/<动作>_NN.png（站 4/讲道手势 4/甩袖 2）"
+        },
+        {
+          "file": "cool/frames/d5-stand-2.webp",
+          "size": [192, 192],
+          "bytes": 5702,
+          "source": "batch2-v1/d5_master/<动作>_NN.png（站 4/讲道手势 4/甩袖 2）"
+        },
+        {
+          "file": "cool/frames/d5-stand-3.webp",
+          "size": [192, 192],
+          "bytes": 5750,
+          "source": "batch2-v1/d5_master/<动作>_NN.png（站 4/讲道手势 4/甩袖 2）"
+        },
+        {
+          "file": "cool/frames/d5-stand-4.webp",
+          "size": [192, 192],
+          "bytes": 5700,
+          "source": "batch2-v1/d5_master/<动作>_NN.png（站 4/讲道手势 4/甩袖 2）"
+        },
+        {
+          "file": "cool/frames/f-sitchair-1.webp",
+          "size": [192, 192],
+          "bytes": 5266,
+          "source": "batch2-v1/d2_f/<动作>_NN.png（同上）"
+        },
+        {
+          "file": "cool/frames/f-sitchair-2.webp",
+          "size": [192, 192],
+          "bytes": 5274,
+          "source": "batch2-v1/d2_f/<动作>_NN.png（同上）"
+        },
+        {
+          "file": "cool/frames/f-sitchair-3.webp",
+          "size": [192, 192],
+          "bytes": 5250,
+          "source": "batch2-v1/d2_f/<动作>_NN.png（同上）"
+        },
+        {
+          "file": "cool/frames/f-sitchair-4.webp",
+          "size": [192, 192],
+          "bytes": 5108,
+          "source": "batch2-v1/d2_f/<动作>_NN.png（同上）"
+        },
+        {
+          "file": "cool/frames/f-sitcushion-1.webp",
+          "size": [192, 192],
+          "bytes": 5540,
+          "source": "batch2-v1/d2_f/<动作>_NN.png（同上）"
+        },
+        {
+          "file": "cool/frames/f-sitcushion-2.webp",
+          "size": [192, 192],
+          "bytes": 5558,
+          "source": "batch2-v1/d2_f/<动作>_NN.png（同上）"
+        },
+        {
+          "file": "cool/frames/f-sitcushion-3.webp",
+          "size": [192, 192],
+          "bytes": 5644,
+          "source": "batch2-v1/d2_f/<动作>_NN.png（同上）"
+        },
+        {
+          "file": "cool/frames/f-sitcushion-4.webp",
+          "size": [192, 192],
+          "bytes": 5624,
+          "source": "batch2-v1/d2_f/<动作>_NN.png（同上）"
+        },
+        {
+          "file": "cool/frames/f-stand-1.webp",
+          "size": [192, 192],
+          "bytes": 5884,
+          "source": "batch2-v1/d2_f/<动作>_NN.png（同上）"
+        },
+        {
+          "file": "cool/frames/f-stand-2.webp",
+          "size": [192, 192],
+          "bytes": 6626,
+          "source": "batch2-v1/d2_f/<动作>_NN.png（同上）"
+        },
+        {
+          "file": "cool/frames/f-stand-3.webp",
+          "size": [192, 192],
+          "bytes": 6036,
+          "source": "batch2-v1/d2_f/<动作>_NN.png（同上）"
+        },
+        {
+          "file": "cool/frames/f-stand-4.webp",
+          "size": [192, 192],
+          "bytes": 5816,
+          "source": "batch2-v1/d2_f/<动作>_NN.png（同上）"
+        },
+        {
+          "file": "cool/frames/f-walk-1.webp",
+          "size": [192, 192],
+          "bytes": 6976,
+          "source": "batch2-v1/d2_f/<动作>_NN.png（同上）"
+        },
+        {
+          "file": "cool/frames/f-walk-2.webp",
+          "size": [192, 192],
+          "bytes": 6398,
+          "source": "batch2-v1/d2_f/<动作>_NN.png（同上）"
+        },
+        {
+          "file": "cool/frames/f-walk-3.webp",
+          "size": [192, 192],
+          "bytes": 6254,
+          "source": "batch2-v1/d2_f/<动作>_NN.png（同上）"
+        },
+        {
+          "file": "cool/frames/f-walk-4.webp",
+          "size": [192, 192],
+          "bytes": 7320,
+          "source": "batch2-v1/d2_f/<动作>_NN.png（同上）"
+        },
+        {
+          "file": "cool/frames/f-walk-5.webp",
+          "size": [192, 192],
+          "bytes": 7420,
+          "source": "batch2-v1/d2_f/<动作>_NN.png（同上）"
+        },
+        {
+          "file": "cool/frames/f-walk-6.webp",
+          "size": [192, 192],
+          "bytes": 6988,
+          "source": "batch2-v1/d2_f/<动作>_NN.png（同上）"
+        },
+        {
+          "file": "cool/frames/f-walk-7.webp",
+          "size": [192, 192],
+          "bytes": 6192,
+          "source": "batch2-v1/d2_f/<动作>_NN.png（同上）"
+        },
+        {
+          "file": "cool/frames/f-walk-8.webp",
+          "size": [192, 192],
+          "bytes": 7172,
+          "source": "batch2-v1/d2_f/<动作>_NN.png（同上）"
+        },
+        {
+          "file": "cool/frames/m-sitchair-1.webp",
+          "size": [192, 192],
+          "bytes": 5604,
+          "source": "batch2-v1/d1_m/<动作>_NN.png（走 8/站 4/坐椅 4/坐蒲团 4；坐椅帧含椅、坐蒲团帧含蒲团）"
+        },
+        {
+          "file": "cool/frames/m-sitchair-2.webp",
+          "size": [192, 192],
+          "bytes": 5732,
+          "source": "batch2-v1/d1_m/<动作>_NN.png（走 8/站 4/坐椅 4/坐蒲团 4；坐椅帧含椅、坐蒲团帧含蒲团）"
+        },
+        {
+          "file": "cool/frames/m-sitchair-3.webp",
+          "size": [192, 192],
+          "bytes": 5592,
+          "source": "batch2-v1/d1_m/<动作>_NN.png（走 8/站 4/坐椅 4/坐蒲团 4；坐椅帧含椅、坐蒲团帧含蒲团）"
+        },
+        {
+          "file": "cool/frames/m-sitchair-4.webp",
+          "size": [192, 192],
+          "bytes": 5510,
+          "source": "batch2-v1/d1_m/<动作>_NN.png（走 8/站 4/坐椅 4/坐蒲团 4；坐椅帧含椅、坐蒲团帧含蒲团）"
+        },
+        {
+          "file": "cool/frames/m-sitcushion-1.webp",
+          "size": [192, 192],
+          "bytes": 5702,
+          "source": "batch2-v1/d1_m/<动作>_NN.png（走 8/站 4/坐椅 4/坐蒲团 4；坐椅帧含椅、坐蒲团帧含蒲团）"
+        },
+        {
+          "file": "cool/frames/m-sitcushion-2.webp",
+          "size": [192, 192],
+          "bytes": 5666,
+          "source": "batch2-v1/d1_m/<动作>_NN.png（走 8/站 4/坐椅 4/坐蒲团 4；坐椅帧含椅、坐蒲团帧含蒲团）"
+        },
+        {
+          "file": "cool/frames/m-sitcushion-3.webp",
+          "size": [192, 192],
+          "bytes": 5650,
+          "source": "batch2-v1/d1_m/<动作>_NN.png（走 8/站 4/坐椅 4/坐蒲团 4；坐椅帧含椅、坐蒲团帧含蒲团）"
+        },
+        {
+          "file": "cool/frames/m-sitcushion-4.webp",
+          "size": [192, 192],
+          "bytes": 5648,
+          "source": "batch2-v1/d1_m/<动作>_NN.png（走 8/站 4/坐椅 4/坐蒲团 4；坐椅帧含椅、坐蒲团帧含蒲团）"
+        },
+        {
+          "file": "cool/frames/m-stand-1.webp",
+          "size": [192, 192],
+          "bytes": 6230,
+          "source": "batch2-v1/d1_m/<动作>_NN.png（走 8/站 4/坐椅 4/坐蒲团 4；坐椅帧含椅、坐蒲团帧含蒲团）"
+        },
+        {
+          "file": "cool/frames/m-stand-2.webp",
+          "size": [192, 192],
+          "bytes": 6330,
+          "source": "batch2-v1/d1_m/<动作>_NN.png（走 8/站 4/坐椅 4/坐蒲团 4；坐椅帧含椅、坐蒲团帧含蒲团）"
+        },
+        {
+          "file": "cool/frames/m-stand-3.webp",
+          "size": [192, 192],
+          "bytes": 6332,
+          "source": "batch2-v1/d1_m/<动作>_NN.png（走 8/站 4/坐椅 4/坐蒲团 4；坐椅帧含椅、坐蒲团帧含蒲团）"
+        },
+        {
+          "file": "cool/frames/m-stand-4.webp",
+          "size": [192, 192],
+          "bytes": 6340,
+          "source": "batch2-v1/d1_m/<动作>_NN.png（走 8/站 4/坐椅 4/坐蒲团 4；坐椅帧含椅、坐蒲团帧含蒲团）"
+        },
+        {
+          "file": "cool/frames/m-walk-1.webp",
+          "size": [192, 192],
+          "bytes": 7772,
+          "source": "batch2-v1/d1_m/<动作>_NN.png（走 8/站 4/坐椅 4/坐蒲团 4；坐椅帧含椅、坐蒲团帧含蒲团）"
+        },
+        {
+          "file": "cool/frames/m-walk-2.webp",
+          "size": [192, 192],
+          "bytes": 7014,
+          "source": "batch2-v1/d1_m/<动作>_NN.png（走 8/站 4/坐椅 4/坐蒲团 4；坐椅帧含椅、坐蒲团帧含蒲团）"
+        },
+        {
+          "file": "cool/frames/m-walk-3.webp",
+          "size": [192, 192],
+          "bytes": 6342,
+          "source": "batch2-v1/d1_m/<动作>_NN.png（走 8/站 4/坐椅 4/坐蒲团 4；坐椅帧含椅、坐蒲团帧含蒲团）"
+        },
+        {
+          "file": "cool/frames/m-walk-4.webp",
+          "size": [192, 192],
+          "bytes": 7632,
+          "source": "batch2-v1/d1_m/<动作>_NN.png（走 8/站 4/坐椅 4/坐蒲团 4；坐椅帧含椅、坐蒲团帧含蒲团）"
+        },
+        {
+          "file": "cool/frames/m-walk-5.webp",
+          "size": [192, 192],
+          "bytes": 7606,
+          "source": "batch2-v1/d1_m/<动作>_NN.png（走 8/站 4/坐椅 4/坐蒲团 4；坐椅帧含椅、坐蒲团帧含蒲团）"
+        },
+        {
+          "file": "cool/frames/m-walk-6.webp",
+          "size": [192, 192],
+          "bytes": 6934,
+          "source": "batch2-v1/d1_m/<动作>_NN.png（走 8/站 4/坐椅 4/坐蒲团 4；坐椅帧含椅、坐蒲团帧含蒲团）"
+        },
+        {
+          "file": "cool/frames/m-walk-7.webp",
+          "size": [192, 192],
+          "bytes": 6634,
+          "source": "batch2-v1/d1_m/<动作>_NN.png（走 8/站 4/坐椅 4/坐蒲团 4；坐椅帧含椅、坐蒲团帧含蒲团）"
+        },
+        {
+          "file": "cool/frames/m-walk-8.webp",
+          "size": [192, 192],
+          "bytes": 7256,
+          "source": "batch2-v1/d1_m/<动作>_NN.png（走 8/站 4/坐椅 4/坐蒲团 4；坐椅帧含椅、坐蒲团帧含蒲团）"
+        },
+        {
           "file": "cool/hall/hall-base.webp",
           "size": [997, 343],
           "bytes": 35042,
@@ -1359,6 +1659,42 @@
           "size": [917, 598],
           "bytes": 86538,
           "source": "hall-final-v1/building_hall_interior_cool_v1.png（分界线以上：殿内地面/后墙/宝座）"
+        },
+        {
+          "file": "cool/props/chair-guest.webp",
+          "size": [256, 192],
+          "bytes": 5124,
+          "source": "batch2-v1/props/p7_chair_*.png（P7 弟子椅左右向、客椅）"
+        },
+        {
+          "file": "cool/props/chair-l.webp",
+          "size": [192, 192],
+          "bytes": 3016,
+          "source": "batch2-v1/props/p7_chair_*.png（P7 弟子椅左右向、客椅）"
+        },
+        {
+          "file": "cool/props/chair-r.webp",
+          "size": [192, 192],
+          "bytes": 3056,
+          "source": "batch2-v1/props/p7_chair_*.png（P7 弟子椅左右向、客椅）"
+        },
+        {
+          "file": "cool/props/cushion-jade.webp",
+          "size": [128, 64],
+          "bytes": 1856,
+          "source": "batch2-v1/props/p8_cushion_*.png（P8 蒲团玉色/讲道色）"
+        },
+        {
+          "file": "cool/props/cushion-sermon.webp",
+          "size": [128, 64],
+          "bytes": 1902,
+          "source": "batch2-v1/props/p8_cushion_*.png（P8 蒲团玉色/讲道色）"
+        },
+        {
+          "file": "cool/props/p9-sermon-spot.webp",
+          "size": [216, 146],
+          "bytes": 16264,
+          "source": "p9-v1/p9_sermon_spot.png（P9 台阶顶讲道位，锚点 106,71）"
         },
         {
           "file": "cool/ui/bar-herb.webp",
