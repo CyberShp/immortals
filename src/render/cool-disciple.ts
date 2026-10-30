@@ -47,3 +47,14 @@ export const coolDiscipleScale = (height = 96 * DISCIPLE_SCALE) =>
 /** 新帧走路朝左（3/4 正面），站/坐正面不翻。 */
 export const coolSpriteFlip = (file: string, facing: number) =>
   file.includes('walk-') ? -facing || 1 : 1;
+
+/** 灵根五色（[UIP] --root-*），只用于脚下彩环。 */
+export const COOL_ROOT_COLORS: Record<string, string> = {
+  金: '#8F7220',
+  木: '#26774F',
+  水: '#2F73B8',
+  火: '#B24A36',
+  土: '#7A6548',
+};
+export const coolRootColors = (elements: readonly string[]) =>
+  elements.map((e) => COOL_ROOT_COLORS[e] ?? '#808080');

@@ -597,3 +597,104 @@ th {
   flex-direction: column;
   gap: 4px;
 }
+
+/* ===== ?cool=1 冷色 UI 皮肤（色值 [UIP] ui-cool-palette-v1；九宫格 cool/ui/）。只在 html.cool 下生效。 ===== */
+html.cool {
+  --c-canvas: #dce8ec;
+  --c-panel: #eef4f5;
+  --c-panel2: #dde9eb;
+  --c-stroke: #9db4ba;
+  --c-stroke2: #6f8f98;
+  --c-text: #1f3338;
+  --c-text2: #4a656b;
+  --c-accent: #247a76;
+  --c-gold: #b8964a;
+  --c-focus: #5fc2b8;
+  --dis-text: #7e959a;
+  --red: #a5443c;
+  color: var(--c-text);
+  background: var(--c-canvas);
+}
+html.cool body {
+  background: var(--c-canvas);
+}
+html.cool button {
+  color: var(--c-text);
+  border-style: solid;
+  border-width: 6px 14px;
+  border-image: var(--ui-secondary) 22 40 fill / 6px 14px stretch;
+  background: none;
+  border-radius: 0;
+  min-height: 32px;
+  padding: 2px 4px;
+}
+html.cool button:hover {
+  background: none;
+  filter: brightness(0.97) saturate(1.1);
+}
+html.cool button:active {
+  filter: brightness(0.9);
+}
+html.cool button:disabled {
+  opacity: 1;
+  color: var(--dis-text);
+  filter: grayscale(0.6) brightness(1.02);
+}
+html.cool button:focus-visible,
+html.cool input:focus-visible,
+html.cool select:focus-visible,
+html.cool textarea:focus-visible {
+  outline: 2px solid var(--c-focus);
+}
+html.cool #offline-ok,
+html.cool #import,
+html.cool #settings-form > button,
+html.cool .button-primary {
+  color: #fff;
+  border-image-source: var(--ui-primary);
+}
+html.cool .button-danger {
+  color: #fff;
+  border-image-source: var(--ui-danger);
+}
+html.cool dialog .close {
+  border: 0;
+  border-image: none;
+  min-height: 0;
+  color: var(--c-text2);
+}
+html.cool .topbar {
+  background: color-mix(in srgb, var(--c-panel) 94%, transparent);
+  border-bottom: 1px solid var(--c-stroke);
+}
+html.cool #resources > div {
+  border-style: solid;
+  border-width: 4px 12px;
+  border-image: var(--ui-plaque) 14 34 fill / 4px 12px stretch;
+  padding: 0 2px;
+}
+html.cool #resources strong {
+  color: var(--c-text);
+}
+html.cool #resources small {
+  color: var(--c-text2);
+}
+html.cool .event-hint {
+  color: var(--c-text);
+}
+html.cool dialog,
+html.cool #disciple-card {
+  color: var(--c-text);
+  background: none;
+  border-style: solid;
+  border-width: 18px;
+  border-image: var(--ui-panel) 52 fill / 18px stretch;
+  box-shadow: 0 12px 60px #1f333830;
+}
+html.cool dialog::backdrop {
+  background: #1f333855;
+}
+html.cool meter,
+html.cool progress {
+  accent-color: var(--c-accent);
+}

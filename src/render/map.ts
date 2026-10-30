@@ -10,6 +10,7 @@ import {
   coolDiscipleFile,
   coolDiscipleScale,
   coolPose,
+  coolRootColors,
   coolSpriteFlip,
 } from './cool-disciple';
 import {
@@ -686,9 +687,12 @@ export async function createMap(
       style: {
         fontSize: size,
         lineHeight: size * 1.25,
-        fill: white ? 0xffffff : 0x263f34,
+        // ?cool=1：文字/名牌描边用 [UIP] 主文字色 #1F3338。
+        fill: white ? 0xffffff : cool ? 0x1f3338 : 0x263f34,
         fontFamily: 'serif',
-        ...(white ? { stroke: { color: 0x263f34, width: 2 } } : {}),
+        ...(white
+          ? { stroke: { color: cool ? 0x1f3338 : 0x263f34, width: 2 } }
+          : {}),
       },
     });
   let coolGroundCache: Container | undefined;
@@ -1469,7 +1473,9 @@ export async function createMap(
           y >= -hitHeight - 6 &&
           y <= 12,
       };
-      const colors = rootRingColors(d.root.elements);
+      const colors = cool
+        ? coolRootColors(d.root.elements)
+        : rootRingColors(d.root.elements);
       const file = discipleArtFile(d.gender, pose);
       // ?cool=1：精灵换新帧（身高比例不变：站立头顶→脚底 168 px 缩到 DISCIPLE_HEIGHT）；
       // 遮挡掩码与名牌宽度仍按旧帧算。
