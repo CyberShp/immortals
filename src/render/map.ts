@@ -107,6 +107,11 @@ import { depthActive, roofFadeActive } from './cool-config';
 import { createDepthLayers } from './depth-layers';
 import { COOL_DEPTH, createCoolDepth } from './cool-depth';
 import {
+  coolBuildingLayers,
+  coolBuildingsFor,
+  coolBuildingZ,
+} from './cool-buildings';
+import {
   visibilityOrder,
   labelOverlaps,
   type LabelOverlap,
@@ -599,6 +604,15 @@ export async function createMap(
     : [];
   // 08 增补 R2/R5：P7 椅、P8 蒲团、P9 讲道位道具（锚点见 cool-frames.json props）。
   if (cool) coolDiscipleEntries.push(...coolPropEntries());
+  // ?cool=1：B5–B9 建筑立绘（cool-buildings.json，左上角锚点）。
+  if (cool)
+    coolDiscipleEntries.push(
+      ...coolBuildingLayers.map((l) => ({
+        file: l.file,
+        size: [...l.size],
+        anchor: { x: 0, y: 0 },
+      })),
+    );
   for (const entry of coolDiscipleEntries)
     entries.set(entry.file, entry as (typeof manifest.files)[number]);
   const loadList = [
@@ -1055,6 +1069,37 @@ export async function createMap(
 
     scene.addChild(ground);
     // Round platforms are baked below bridges in world.webp.
+    // ?cool=1：B5–B9 立绘（地面层 z=-900；其余按最低足迹角 y 与弟子排序）。门楼不属 sim 建筑，常显。
+    const paintCoolBuilding = (id: string, alpha = 1): boolean => {
+      if (!cool) return false;
+      const layers = coolBuildingsFor(id);
+      if (!layers.length || layers.some((l) => !textures.has(l.file)))
+        return false;
+      for (const l of layers) {
+        const sprite = art(l.file, l.scale)!;
+        sprite.position.set(l.x, l.y);
+        sprite.zIndex = coolBuildingZ(l);
+        sprite.alpha = alpha;
+        sprite.eventMode = 'none';
+        sprite.label = `cool-building:${l.id}`;
+        scene.addChild(sprite);
+        stats.buildingSprites++;
+      }
+      const x0 = Math.min(...layers.map((l) => l.x)),
+        y0 = Math.min(...layers.map((l) => l.y)),
+        x1 = Math.max(...layers.map((l) => l.x + l.size[0] * l.scale)),
+        y1 = Math.max(...layers.map((l) => l.y + l.size[1] * l.scale));
+      stats.buildings.push({
+        id,
+        z: Math.max(...layers.map(coolBuildingZ)),
+        x: bounds.width / 2 + (x0 - cam.x) * cam.zoom,
+        y: bounds.height / 2 + (y0 - cam.y) * cam.zoom,
+        width: (x1 - x0) * cam.zoom,
+        height: (y1 - y0) * cam.zoom,
+      });
+      return true;
+    };
+    if (cool) paintCoolBuilding('B_GATE');
     const gate = cool ? undefined : art(gateArt.file, 1);
     if (gate) {
       gate.position.set(gateArt.crop[0], gateArt.crop[1]);
@@ -1219,6 +1264,7 @@ export async function createMap(
       if (
         b &&
         !paintCoolHall(def.id) &&
+        !paintCoolBuilding(def.id, b.level === 0 ? 0.45 : 1) &&
         !paintRoofBuilding(def.id, b.level, group)
       ) {
         const tier =

@@ -351,11 +351,13 @@ describe('cool 打开时的可走区域与寻路', () => {
       } else expect(got, s.id).toEqual(spread(anchor, original));
     }
     // 离最近建筑入口 ≤ 3 个脚距的站位才有入口通道概念。
+    // B5–B9 按 Lore 布局落位后：居舍门改朝左下（前墙外），C_SOCIAL_1（莲池东岸）不再靠任何入口；
+    // C_SOCIAL_8 靠近新的 B_MEDIT 入口（48 px）。
     expect(withChannel).toEqual([
-      'C_SOCIAL_1',
       'C_SOCIAL_4',
       'C_SOCIAL_5',
       'C_SOCIAL_6',
+      'C_SOCIAL_8',
     ]);
   });
   it.each([
