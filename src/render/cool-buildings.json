@@ -1,0 +1,114 @@
+{
+  "$comment": "cool B5–B9 立绘的世界放置（scripts/cool-b5b9-assets.mjs 由 batch3-b5b9/out/layout.json 生成）。x/y=精灵左上角世界坐标，scale=0.5（2x 素材）；layer=ground 画在地面层(z=-900)，sort 按 sortY（最低足迹角世界 y）与弟子排序。footprintUV 为立绘实测台基四角（左/前/右/后），碰撞以 cool-world.json 为准。",
+  "k": {
+    "B5": 0.32849844814981827,
+    "B6": 0.37374245201262607,
+    "B7": 0.27068022900676475,
+    "B9": 0.2903329279910586,
+    "B8": 0.16370418006430867
+  },
+  "layers": [
+    {
+      "id": "gate",
+      "slot": "B_GATE",
+      "file": "cool/b5b9/gate.webp",
+      "size": [610, 697],
+      "x": 1168.75,
+      "y": 727.21,
+      "scale": 0.5,
+      "layer": "sort",
+      "sortY": 1068.1,
+      "footprintUV": [
+        [30.7, 8.17],
+        [33.82, 7.26],
+        [33.98, 5.67],
+        [30.86, 6.58]
+      ]
+    },
+    {
+      "id": "dorm",
+      "slot": "B_DORM",
+      "file": "cool/b5b9/dorm.webp",
+      "size": [1236, 833],
+      "x": 791.13,
+      "y": 538.49,
+      "scale": 0.5,
+      "layer": "sort",
+      "sortY": 952.9,
+      "footprintUV": [
+        [22.8, 7.55],
+        [29.31, 7.34],
+        [28.79, 1.95],
+        [22.28, 2.16]
+      ]
+    },
+    {
+      "id": "medit",
+      "slot": "B_MEDIT",
+      "file": "cool/b5b9/medit.webp",
+      "size": [514, 309],
+      "x": 1873.49,
+      "y": 1094.36,
+      "scale": 0.5,
+      "layer": "ground",
+      "sortY": 1259,
+      "footprintUV": [
+        [40, 4.96],
+        [43.46, 4.96],
+        [43.46, 1.5],
+        [40, 1.5]
+      ]
+    },
+    {
+      "id": "garden",
+      "slot": "B_GARDEN",
+      "file": "cool/b5b9/garden.webp",
+      "size": [1017, 622],
+      "x": 1447.77,
+      "y": 898.93,
+      "scale": 0.5,
+      "layer": "ground",
+      "sortY": 1206.7,
+      "footprintUV": [
+        [34.32, 6.42],
+        [39.68, 6.73],
+        [39.3, 1.75],
+        [33.94, 1.44]
+      ]
+    },
+    {
+      "id": "alchemy-house",
+      "slot": "B_ALCHEMY",
+      "file": "cool/b5b9/alchemy-house.webp",
+      "size": [434, 517],
+      "x": 2097.48,
+      "y": 640.7,
+      "scale": 0.5,
+      "layer": "sort",
+      "sortY": 897.8,
+      "footprintUV": [
+        [36.52, -3.93],
+        [38.35, -3.82],
+        [38.4, -6.06],
+        [36.57, -6.17]
+      ]
+    },
+    {
+      "id": "alchemy-yard",
+      "slot": "B_ALCHEMY",
+      "file": "cool/b5b9/alchemy-yard.webp",
+      "size": [886, 397],
+      "x": 2094.48,
+      "y": 754.2,
+      "scale": 0.5,
+      "layer": "ground",
+      "sortY": 951.7,
+      "footprintUV": [
+        [37.48, -4.4],
+        [40.95, -4.35],
+        [40.86, -7.9],
+        [37.39, -7.95]
+      ]
+    }
+  ]
+}

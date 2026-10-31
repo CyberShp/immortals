@@ -57,3 +57,12 @@
    按新石台标注重描 `walkable / obstacles / slots / spots / zones`。
 2. 建筑：按标注 json 把 `baseQuad` 写进对应 slot 的 `footprint`、`entrance`、`label`；立绘接入时再替换 map.ts 里沿用的旧立绘占位。
 3. 跑 `node scripts/cool-assets.mjs` 后同步 `public/assets/manifest.json` 的字节数（`tests/assets.test.ts` 校验）。
+
+## B5–B9 立绘（批次三，`b5b9/`）
+
+- `gate`（B5 门楼，镜像使门朝左下）、`dorm`（B6 居舍院落）、`alchemy-house` / `alchemy-yard`（B7 丹房本体 / 炉院地面，按丹房多边形切开）、
+  `medit`（B8 聚灵阵，360×180 不放大）、`garden`（B9 药田）。只做抠图、几何缩放、裁切、alpha；没有重画像素。
+- 由 `node scripts/cool-b5b9-assets.mjs` 从 review 产物（2x alpha PNG）转 webp q90，并写 manifest 的 `anchor`（最低足迹角，px）/`baseQuad`（四角）
+  与 `src/render/cool-buildings.json`（位置、缩放 0.5、层：B8/B9/炉院 = 地面层 z −900，B5/B6/丹房 = 按最低足迹角 y 与弟子排序）。
+- 碰撞与入口在 `src/render/cool-world.json`（按 Lore 10-b5-b9-layout-v1；B7 丹房按立绘实测），核对脚本 `node --import tsx scripts/cool-b5b9-check.ts`。
+- 默认模式不请求 `cool/` 任何素材；cool 组 `firstScreen: false`。
