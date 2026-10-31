@@ -3,7 +3,7 @@
   "source": {
     "exterior": "forge_ext_v5p/hall_ext_v5p_v1.png 1152×864",
     "interiors": {
-      "main": "forge_interior_v1/hall_int_v4g_v4.png",
+      "main": "forge_interior_v1/hall_int_v4g_v5.png",
       "left": "forge_interior_v1/side_left_v1.png",
       "right": "forge_interior_v1/side_right_v1.png"
     },
@@ -136,7 +136,7 @@
     [1153.6, 654.9]
   ],
   "measured": {
-    "$comment": "v5p 外景/正厅内景实测（像素→世界）。outerColumns: 5 根外檐柱（v4g 编号 1/3/4/6/9；长边 4、短边 1+转角）柱脚=柱础前下沿，按 v5p 外景逐柱模板匹配平移 (-1..+3 px)；goldColumns 按 v4 正厅配准后模板匹配；facadeDoors: 正门门槛中点（外景）；sideDoors: 正厅左右侧门脚（v4 右侧门改为关闭双扇门，门槛中点与 v4g 差 ≤5 px，沿用）/ 左厅门（后墙右端）/ 右厅门（后墙左端）。v6：二层取消，原 stairUp/stairDown 实测点随殿内楼梯层一起撤下。",
+    "$comment": "v5p 外景/正厅内景实测（像素→世界）。outerColumns: 5 根外檐柱（v4g 编号 1/3/4/6/9；长边 4、短边 1+转角）柱脚=柱础前下沿，按 v5p 外景逐柱模板匹配平移 (-1..+3 px)；goldColumns 按 v4 正厅配准后模板匹配；facadeDoors: 正门门槛中点（外景）；sideDoors: 正厅左右侧门脚（v4 右侧门改为关闭双扇门，v5（2026-10-31，指挥官“主殿右门保持开”）仅重绘该门门洞为开门：门框/门槛不变，门槛中点沿用）/ 左厅门（后墙右端）/ 右厅门（后墙左端）。v6：二层取消，原 stairUp/stairDown 实测点随殿内楼梯层一起撤下。",
     "outerColumns": [
       [1343.3, 518.1],
       [1516.2, 589.5],

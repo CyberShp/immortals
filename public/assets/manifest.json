@@ -1226,8 +1226,8 @@
       ]
     }
   ],
-  "assetBytes": 4929988,
-  "totalBytes": 4997986,
+  "assetBytes": 4929502,
+  "totalBytes": 4997571,
   "groups": {
     "cool": {
       "firstScreen": false,
@@ -1921,8 +1921,8 @@
         {
           "file": "cool/hall4/hall-room-main.webp",
           "size": [827, 708],
-          "bytes": 73192,
-          "source": "forge_interior_v1/hall_int_v4g_v4.png（ECC 仿射配准到 v5p 外景）切线以上"
+          "bytes": 72706,
+          "source": "forge_interior_v1/hall_int_v4g_v5.png（v4 仅重绘右墙门洞为开门，其余像素同 v4；沿用 v4 的 ECC 仿射配准到 v5p 外景）切线以上"
         },
         {
           "file": "cool/hall4/hall-room-right.webp",

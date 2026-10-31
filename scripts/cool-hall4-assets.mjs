@@ -24,7 +24,7 @@ const SOURCE = {
   'hall-ocol':
     'v5p 外景 hall_ext_v5p_v1.png 外檐柱（v4g 编号 1/3/4/6/9；柱身+箍，柱础留在屋顶层）',
   'hall-room-main':
-    'forge_interior_v1/hall_int_v4g_v4.png（ECC 仿射配准到 v5p 外景）切线以上',
+    'forge_interior_v1/hall_int_v4g_v5.png（v4 仅重绘右墙门洞为开门，其余像素同 v4；沿用 v4 的 ECC 仿射配准到 v5p 外景）切线以上',
   'hall-room-left':
     'forge_interior_v1/side_left_v1.png（ECC 仿射配准到 v5p 外景）切线以上',
   'hall-room-right':
