@@ -4,7 +4,9 @@ import { v4Cushions } from './v4-spots';
 /** Geometry for existing assembly state machine only; never draws or enters an interior. */
 export function outdoorHall() {
   const base = buildCoolHall();
-  const entrance = v4Nearest(uv(...(v4Layout.doors.hall as P)));
+  const entrance =
+    v4Nearest(uv(...(v4Layout.doors.hall as P)), 'outdoor-hall', 16) ??
+    v4Queue[0];
   return {
     ...base,
     entrance,

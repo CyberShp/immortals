@@ -1,5 +1,12 @@
 import raw from './spots-v2.json';
-import { uv, v4Walkable, v4Spawn, v4Layout, type P } from './world-v4';
+import {
+  uv,
+  v4Walkable,
+  v4Spawn,
+  v4Layout,
+  v4Island,
+  type P,
+} from './world-v4';
 import {
   worldMap,
   destination,
@@ -33,20 +40,29 @@ export const v4Cushions = [
   ...v4Layout.cushion_block.east_centers,
 ].map((p) => uv(...(p as P)));
 /** Screen-grid orthonormal axes: horizontal (u,v)=(.7071,-.7071), vertical=(.7071,.7071). */
-export function musterPositions(count = 99): P[] {
+export function musterPositions(count = 6, walkable = v4Walkable): P[] {
   const center = raw.spots.find((s) => s.id === 'S_MUSTER')!.uv;
-  const points: P[] = [];
-  for (let ring = 1; points.length < count && ring < 200; ring++) {
-    for (let i = 0; i < 6 && points.length < count; i++) {
-      const a = (i * Math.PI) / 3,
-        x = 0.3 * ring * Math.cos(a),
-        y = 0.3 * ring * Math.sin(a);
-      const p = uv(center[0] + 0.7071 * (x + y), center[1] + 0.7071 * (-x + y));
-      if (v4Walkable(p)) points.push(p);
-    }
-  }
-  if (points.length !== count) throw Error('南台集合环位不足');
-  return points;
+  return Array.from({ length: Math.min(6, count) }, (_, i) => {
+    const a = (i * Math.PI) / 3,
+      x = 0.6 * Math.cos(a),
+      y = 0.6 * Math.sin(a);
+    return uv(center[0] + 0.7071 * (x + y), center[1] + 0.7071 * (-x + y));
+  }).filter(walkable);
+}
+/** First six main-platform departures reserve distinct landings; satellite/overflow stay put. */
+export function expeditionLanding(
+  from: P,
+  reserved: readonly P[],
+  walkable = v4Walkable,
+  slot = reserved.length,
+): P {
+  if (v4Island(from) !== 'main') return from;
+  const point = musterPositions(6, () => true)[slot];
+  return point &&
+    walkable(point) &&
+    reserved.every((q) => Math.hypot(point[0] - q[0], point[1] - q[1]) >= 45.92)
+    ? point
+    : from;
 }
 export function subpositions(spot: Spot): P[] {
   if (spot.id === 'S_MUSTER') return musterPositions(spot.cap);
@@ -133,19 +149,25 @@ export class SpotPlanner {
       this.assignments.clear();
     }
     this.lastTick = world.tick;
-    const main: Spot[] = worldMap.spots.map((s) => ({
-      id: s.id,
-      island: 'main',
-      point: s.point,
-      cat: s.kind === 'social' ? 'social' : 'train',
-      cap: 1,
-      prefer:
-        s.kind === 'sword'
-          ? ['T_SWORD', 'T_PROUD']
-          : s.kind === 'meditate'
-            ? ['T_ALOOF', 'T_DILIGENT']
-            : ['T_KIND', 'T_AMOROUS'],
-    }));
+    list = list.filter(
+      (d) =>
+        !d.state.awayUntil && d.state.behavior !== '历练' && d.stage !== '坐化',
+    );
+    const main: Spot[] = worldMap.spots
+      .filter((s) => s.island === 'main')
+      .map((s) => ({
+        id: s.id,
+        island: 'main',
+        point: s.point,
+        cat: s.kind === 'social' ? 'social' : 'train',
+        cap: 1,
+        prefer:
+          s.kind === 'sword'
+            ? ['T_SWORD', 'T_PROUD']
+            : s.kind === 'meditate'
+              ? ['T_ALOOF', 'T_DILIGENT']
+              : ['T_KIND', 'T_AMOROUS'],
+      }));
     const keys = new Map(
       list.map((d) => [
         d.id,
@@ -237,6 +259,7 @@ export function bridgeTransfer(
   const path = findPath(from, target);
   if (
     !['east', 'south'].includes(island) ||
+    v4Island(from) === island ||
     pathLength(path) / speed <= steps * 10
   )
     return undefined;

@@ -148,6 +148,39 @@ check(
     w.coolWorld!.quarry,
   ].every(reachable),
 );
+check(
+  'spots_v2 preserve coordinates and island; no required spot relocation',
+  [...spots.satelliteSpots, ...spots.stages].every((s) => {
+    const actual = w.worldMap.spots.find((p) => p.id === s.id);
+    return (
+      actual &&
+      actual.moved === 0 &&
+      actual.point[0] === s.point[0] &&
+      actual.point[1] === s.point[1] &&
+      actual.island === ('island' in s ? s.island : 'south')
+    );
+  }),
+);
+const muster = spots.musterPositions(99);
+check(
+  'decision17 only six slots with >=45.92px separation',
+  muster.length === 6 &&
+    muster.every((p, i) =>
+      muster
+        .slice(i + 1)
+        .every((q) => Math.hypot(p[0] - q[0], p[1] - q[1]) >= 45.92),
+    ),
+  muster,
+);
+check(
+  'bounded adaptations are explicit; satellite spots never rejected',
+  v.v4AdaptationReports.every((r) =>
+    r.status === 'rejected'
+      ? r.id.startsWith('C_')
+      : r.distance! <= r.limit && r.limit <= 16,
+  ),
+  v.v4AdaptationReports,
+);
 console.log(
   JSON.stringify(
     {

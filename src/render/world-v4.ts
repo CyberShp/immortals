@@ -6,6 +6,7 @@ import east from './world-v4-placement/east_bridge_v3_placement.json';
 import south from './world-v4-placement/south_bridge_placement.json';
 import covers from './world-v4-placement/south_gate_end_cover_v2_placement.json';
 import platforms from './world-v4-placement/placement.json';
+import rawSpots from './spots-v2.json';
 import type { CoolWorld } from './cool-world';
 export { layout as v4Layout, assets as v4Assets };
 export const v4ForegroundBounds = new Map(
@@ -117,6 +118,66 @@ for (const id of ['R2_bridge', 'R3_back_trail']) {
     );
   }
 }
+const roadSegments = layout.roads
+  .filter((r) => ['R2_bridge', 'R3_back_trail'].includes(r.id))
+  .flatMap((r) => {
+    const ps = r.walk_centerline ?? r.centerline,
+      radius = (r.walk_width ?? r.width ?? 0.7) / 2;
+    return ps.slice(1).map((b, i) => ({ a: ps[i], b, radius }));
+  });
+const roadContains = (p: P) => {
+  const q = toUV(p);
+  return roadSegments.some(({ a, b, radius }) => {
+    const dx = b[0] - a[0],
+      dy = b[1] - a[1];
+    const t = Math.max(
+      0,
+      Math.min(
+        1,
+        ((q[0] - a[0]) * dx + (q[1] - a[1]) * dy) / (dx * dx + dy * dy || 1),
+      ),
+    );
+    return (
+      Math.hypot(q[0] - a[0] - t * dx, q[1] - a[1] - t * dy) <= radius + 1e-9
+    );
+  });
+};
+/** Exact capsule boundary cuts keep lineClear from skipping the newly closed road corners. */
+export function v4RoadCuts(from: P, to: P): number[] {
+  const a = toUV(from),
+    b = toUV(to),
+    dx = b[0] - a[0],
+    dy = b[1] - a[1],
+    A = dx * dx + dy * dy;
+  if (!A) return [];
+  const cuts: number[] = [];
+  for (const r of roadSegments) {
+    for (const c of [r.a, r.b]) {
+      const x = a[0] - c[0],
+        y = a[1] - c[1],
+        B = 2 * (x * dx + y * dy),
+        C = x * x + y * y - r.radius * r.radius,
+        D = B * B - 4 * A * C;
+      if (D >= 0)
+        cuts.push((-B - Math.sqrt(D)) / (2 * A), (-B + Math.sqrt(D)) / (2 * A));
+    }
+    const ex = r.b[0] - r.a[0],
+      ey = r.b[1] - r.a[1],
+      length = Math.hypot(ex, ey),
+      cross = ex * dy - ey * dx;
+    if (cross)
+      for (const k of [-1, 1])
+        cuts.push(
+          (k * r.radius * length -
+            ex * (a[1] - r.a[1]) +
+            ey * (a[0] - r.a[0])) /
+            cross,
+        );
+  }
+  return cuts.filter((t) => t >= 0 && t <= 1);
+}
+const carveContains = (p: P) =>
+  corridors.slice(0, 3).some((g) => contains(p, g)) || roadContains(p);
 export const v4Ground: P[][] = [
   poly(c.walkable_polygon_px),
   ...Object.values(wa.east.walk_px).map(poly),
@@ -137,14 +198,18 @@ const furnace = wa.east.blocked_uv.furnace_circle;
 export function v4Walkable(p: P) {
   if (p[0] < 0 || p[1] < 0 || p[0] >= V4.width || p[1] >= V4.height)
     return false;
-  if (!v4Ground.some((g) => contains(p, g))) return false;
+  if (
+    !v4Ground.some((g) => !corridors.slice(3).includes(g) && contains(p, g)) &&
+    !roadContains(p)
+  )
+    return false;
   const passage = contains(p, rect(layout.gate_passage_uv));
   if (
     v4Blocked.some(
       (b) =>
         contains(p, b.polygon) &&
         !(passage && b.id.startsWith('gate_pier')) &&
-        !(b.id === 'east_grove' && corridors.some((g) => contains(p, g))),
+        !(b.id === 'east_grove' && carveContains(p)),
     )
   )
     return false;
@@ -176,17 +241,44 @@ export const v4Navigation = [
     ),
   ),
 ];
-export function v4Nearest(p: P): P {
+export const v4AdaptationReports: {
+  id: string;
+  from: P;
+  to?: P;
+  distance?: number;
+  limit: number;
+  status: 'snapped' | 'rejected';
+}[] = [];
+/** Invalid input is reported and rejected, never silently moved to another island. */
+export function v4Nearest(p: P, id = 'unnamed', limit = 2): P | undefined {
   if (v4Walkable(p)) return p;
-  for (let r = 2; r < 600; r += 2)
+  const bound = Math.min(16, Math.max(0, limit));
+  for (let r = 0.25; r <= bound; r += 0.25)
     for (let i = 0; i < 128; i++) {
       const q: P = [
         p[0] + r * Math.cos((i * Math.PI) / 64),
         p[1] + r * Math.sin((i * Math.PI) / 64),
       ];
-      if (v4Walkable(q)) return q;
+      if (v4Walkable(q) && v4Island(q) === v4Island(p)) {
+        v4AdaptationReports.push({
+          id,
+          from: p,
+          to: q,
+          distance: r,
+          limit: bound,
+          status: 'snapped',
+        });
+        return q;
+      }
     }
-  throw Error(`No v4 landing near ${p}`);
+  v4AdaptationReports.push({ id, from: p, limit: bound, status: 'rejected' });
+  return undefined;
+}
+export function v4Island(p: P): 'main' | 'east' | 'south' {
+  const [u, v] = toUV(p);
+  if (u >= layout.walk_areas_v14.east.walk_uv.top[0]) return 'east';
+  if (v >= layout.walk_areas_v14.south.walk_uv.top[2]) return 'south';
+  return 'main';
 }
 export const v4Fade = offset(wa.fade.point_px);
 export const v4Route = [
@@ -200,10 +292,10 @@ export const v4FadeContains = (p: P) =>
 // Presentation overrides pending Lore synchronisation; authoritative layout is untouched.
 export const v4Queue = (
   [
-    [30.2, 0.25],
-    [30.85, 0.7],
-    [30.4, 1.55],
-    [30.45, 2.1],
+    [31.152825894187462, 0.04096808994287571],
+    [31.31807714700169, 1.942649016498077],
+    [30.537100551571193, 1.9335552373200375],
+    [31.164298756265325, 2.427012821517131],
   ] as P[]
 ).map((p) => uv(...p));
 export const v4Spawn = uv(...(layout.spawn_main_uv.uv as P));
@@ -245,11 +337,13 @@ export function adaptV4(base: CoolWorld): CoolWorld {
     const entrance =
       s.id === 'B_ALCHEMY'
         ? uv(...(layout.b_alchemy_anchor.stand_uv as P))
-        : v4Nearest(
+        : (v4Nearest(
             offset(
               c.door_points_px[names[s.id] as keyof typeof c.door_points_px],
             ),
-          );
+            s.id,
+            16,
+          ) ?? v4Spawn);
     const footprint = {
       polygon:
         s.id === 'B_ALCHEMY'
@@ -278,16 +372,34 @@ export function adaptV4(base: CoolWorld): CoolWorld {
       ] as [number, number, number, number],
     };
   });
-  // Preserve existing main-platform spots; satellite work spots are allocated separately.
-  const spots = base.spots.map((s, i) => {
-    const choices = [
-      ...layout.cushion_block.west_centers,
-      ...layout.cushion_block.east_centers,
-      ...layout.queue_spots,
-    ];
-    const p = v4Nearest(uv(...(choices[i % choices.length] as P)));
-    return { ...s, point: p, original: p, island: 'platform' };
+  // Keep coordinates. Legacy v3 points that cannot be corrected within 2px are excluded and reported.
+  const spots: CoolWorld['spots'] = base.spots.flatMap((s) => {
+    const p = v4Nearest(s.point, s.id);
+    return p
+      ? [
+          {
+            ...s,
+            point: p,
+            original: s.point,
+            moved: Math.hypot(p[0] - s.point[0], p[1] - s.point[1]),
+            island: v4Island(p),
+          },
+        ]
+      : [];
   });
+  for (const s of [...rawSpots.spots, ...rawSpots.stages]) {
+    const original = uv(...(s.uv as P)),
+      p = v4Nearest(original, s.id);
+    if (p)
+      spots.push({
+        id: s.id,
+        kind: s.id.includes('SWORD') || s.id === 'S_RING' ? 'sword' : 'social',
+        point: p,
+        original,
+        moved: Math.hypot(p[0] - original[0], p[1] - original[1]),
+        island: 'island' in s ? s.island : 'south',
+      });
+  }
   return {
     ...base,
     width: V4.width,
@@ -296,16 +408,60 @@ export function adaptV4(base: CoolWorld): CoolWorld {
     background: { ...base.background, placeholder: '', polygon: v4Ground[0] },
     slots,
     spots,
-    quarry: v4Nearest(offset(c.door_points_px.quarry)),
+    quarry: v4Nearest(offset(c.door_points_px.quarry), 'quarry', 16) ?? v4Spawn,
     expeditionPoint: v4Fade,
-    islands: v4Ground.map((walkable, i) => ({
-      id: i ? 'area-' + i : 'platform',
-      offset: [0, 0] as P,
-      walkable,
-      obstacles: [],
+    islands: [
+      {
+        id: 'main',
+        offset: [0, 0] as P,
+        walkable: v4Ground[0],
+        obstacles: v4Blocked.map((b) => b.polygon),
+      },
+      {
+        id: 'east',
+        offset: [0, 0] as P,
+        walkable: rect(wa.east.walk_uv.top),
+        obstacles: [rect(wa.east.blocked_uv.room_walls)],
+      },
+      {
+        id: 'south',
+        offset: [0, 0] as P,
+        walkable: rect(wa.south.walk_uv.top),
+        obstacles: [],
+      },
+    ],
+    bridges: (['east', 'south'] as const).map((id) => {
+      const r = wa[id].walk_uv.bridge,
+        polygon = rect(r);
+      const points =
+        id === 'east'
+          ? [uv(r[0], (r[2] + r[3]) / 2), uv(r[1], (r[2] + r[3]) / 2)]
+          : [uv((r[0] + r[1]) / 2, r[2]), uv((r[0] + r[1]) / 2, r[3])];
+      const a = polygon[0],
+        b = polygon[1],
+        c = polygon[3];
+      const area = Math.abs(
+        (b[0] - a[0]) * (c[1] - a[1]) - (b[1] - a[1]) * (c[0] - a[0]),
+      );
+      return {
+        id,
+        points,
+        width:
+          area /
+          Math.hypot(points[1][0] - points[0][0], points[1][1] - points[0][1]),
+        walkable: polygon,
+      };
+    }),
+    zones: (['east', 'south'] as const).map((id) => ({
+      id: id + '-joint',
+      name: id + '接缝',
+      kind: 'ground' as const,
+      polygon: rect(
+        layout.walk_joints_v15[
+          id === 'east' ? 'east_joint_uv' : 'south_joint_uv'
+        ],
+      ),
     })),
-    bridges: [],
-    zones: [],
     decor: [],
     arenaSeats: v4ArenaSeats.map((s) => s.point),
   };
@@ -330,15 +486,7 @@ export const v4Layers = (() => {
   const gate = fg.objects.find((f) => f.filename === 'gate.png')!;
   // Gate and covers participate in actor sorting; their forced ordering forms one stable block.
   for (const f of fg.objects)
-    layers.push(
-      layer(
-        'fg/' + f.filename,
-        V4.offset,
-        f.filename.startsWith('main_east_mouth_post')
-          ? 100000
-          : f.sort_baseline_y_world,
-      ),
-    );
+    layers.push(layer('fg/' + f.filename, V4.offset, f.sort_baseline_y_world));
   covers.parts.forEach((p, i) =>
     layers.push(
       layer(

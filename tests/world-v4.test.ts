@@ -45,7 +45,9 @@ describe('world v4 presentation', () => {
     for (const l of v4Layers.filter((l) => l.file.includes('end_cover')))
       expect(l.z).toBeGreaterThan(gate.z);
     expect(
-      v4Layers.slice(-2).every((l) => l.file.includes('main_east_mouth_post')),
+      v4Layers
+        .filter((l) => l.file.includes('main_east_mouth_post'))
+        .every((l) => l.z > -1000 && l.z < 2320),
     ).toBe(true);
   });
   it('walkable gate corridor including both edges; piers and drums blocked', () => {

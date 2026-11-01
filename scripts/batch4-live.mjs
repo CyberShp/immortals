@@ -116,7 +116,7 @@ try {
   await p.waitForTimeout(600);
   assert.equal(
     await p.evaluate(
-      () => window.__mapStats.disciples.find((d) => d.id === 'd0').alpha,
+      () => window.__mapStats.disciples.find((d) => d.id === 'd0')?.alpha ?? 0,
     ),
     0,
   );

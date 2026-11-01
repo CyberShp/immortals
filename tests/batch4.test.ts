@@ -93,7 +93,7 @@ describe('v1.5 游戏网格与岗位选择', () => {
     vi.unstubAllGlobals();
     vi.resetModules();
   });
-  it('全部点/容量子位/99 环位/stages/对剑位可走且从 dorm 出生点可达', () => {
+  it('全部点/容量子位/6 环位/stages/对剑位可走且从 dorm 出生点可达', () => {
     const points = [
       ...s.satelliteSpots.flatMap((p) => [p.point, ...s.subpositions(p)]),
       ...s.stages.map((p) => p.point),
@@ -103,8 +103,87 @@ describe('v1.5 游戏网格与岗位选择', () => {
       expect(w.walkable(p), `${p}`).toBe(true);
       expect(w.findPath(v.v4Spawn, p).length, `${p}`).toBeGreaterThan(1);
     }
-    expect(s.musterPositions()).toHaveLength(99);
+    expect(s.musterPositions()).toHaveLength(6);
   }, 30000);
+  it('第17条仅六席且两两至少45.92px；溢出与卫星台原地退场，阻挡席跳过', () => {
+    const seats = s.musterPositions(99);
+    expect(seats).toHaveLength(6);
+    seats.forEach((p, i) =>
+      seats
+        .slice(i + 1)
+        .forEach((q) =>
+          expect(Math.hypot(p[0] - q[0], p[1] - q[1])).toBeGreaterThanOrEqual(
+            45.92,
+          ),
+        ),
+    );
+    expect(s.expeditionLanding(v.v4Spawn, seats)).toEqual(v.v4Spawn);
+    expect(s.musterPositions(6, () => false)).toEqual([]);
+    expect(s.expeditionLanding(v.v4Spawn, [], () => false)).toEqual(v.v4Spawn);
+    for (const spot of s.satelliteSpots)
+      expect(s.expeditionLanding(spot.point, [])).toEqual(spot.point);
+  });
+  it('被挡的第1席不会把该弟子递补到第2席；第2人仍用第2席', () => {
+    const seats = s.musterPositions();
+    const blockedFirst = (p: [number, number]) =>
+      Math.hypot(p[0] - seats[0][0], p[1] - seats[0][1]) > 0.01;
+    expect(s.expeditionLanding(v.v4Spawn, [], blockedFirst, 0)).toEqual(
+      v.v4Spawn,
+    );
+    expect(s.expeditionLanding(v.v4Spawn, [], blockedFirst, 1)).toEqual(
+      seats[1],
+    );
+    expect(s.expeditionLanding(v.v4Spawn, [seats[0]], undefined, 0)).toEqual(
+      v.v4Spawn,
+    );
+    expect(w.worldMap.islands.map((i) => i.id)).toEqual([
+      'main',
+      'east',
+      'south',
+    ]);
+    expect(w.worldMap.bridges.map((i) => i.id)).toEqual(['east', 'south']);
+    expect(w.worldMap.bridges.every((b) => b.width > 45.92)).toBe(true);
+  });
+  it('spots_v2 坐标原样保留，吸附仅限2px且显式报告，坏点不抛模块异常', () => {
+    for (const spot of [...s.satelliteSpots, ...s.stages]) {
+      const adapted = w.worldMap.spots.find((p) => p.id === spot.id)!;
+      expect(adapted.point).toEqual(spot.point);
+      expect(adapted.island).toBe('island' in spot ? spot.island : 'south');
+      expect(adapted.moved).toBe(0);
+    }
+    expect(v.v4Nearest([-1000, -1000], 'bad', 600)).toBeUndefined();
+    expect(v.v4AdaptationReports.at(-1)).toMatchObject({
+      id: 'bad',
+      limit: 16,
+      status: 'rejected',
+    });
+    const p = v.uv(30.262, 7.761);
+    expect(v.v4Nearest(p, 'valid')).toEqual(p);
+    const edge = v.uv(47.8, -5.7);
+    const invalid: [number, number] = [edge[0], edge[1] - 0.5];
+    expect(v.v4Walkable(invalid)).toBe(false);
+    {
+      const result = v.v4Nearest(invalid, 'edge');
+      expect(result).toBeDefined();
+      expect(v.v4AdaptationReports.at(-1)).toMatchObject({
+        id: 'edge',
+        status: 'snapped',
+      });
+    }
+  });
+  it('away不占岗位，清除旧分配，不推进sim随机数', () => {
+    const world = create(),
+      planner = new s.SpotPlanner();
+    planner.plan(world, world.disciples, new Map());
+    world.disciples[0].state.awayUntil = 100;
+    world.disciples[1].state.behavior = '历练';
+    const before = JSON.stringify(world);
+    const points = planner.plan(world, world.disciples, new Map());
+    expect(points).toHaveLength(4);
+    expect(planner.assignments.has('d0')).toBe(false);
+    expect(planner.assignments.has('d1')).toBe(false);
+    expect(JSON.stringify(world)).toBe(before);
+  });
   it('EV_A2 两当事人及 22 观战者不在阻挡内，间距至少45.92', () => {
     const points = s.duelPositions(24);
     expect(points).toHaveLength(24);

@@ -7,6 +7,7 @@ import {
   stages,
   subpositions,
   musterPositions,
+  expeditionLanding,
   ringPair,
 } from './v4-spots';
 import { outdoorHall, outdoorSeats } from './v4-outdoor';
@@ -22,6 +23,8 @@ import {
   v4Fade,
   v4FadeContains,
   v4Spawn,
+  v4AdaptationReports,
+  v4Island,
 } from './world-v4';
 import { horizontalFacing, spriteFlip } from './disciple-facing';
 import { advanceGait, strideLength } from './disciple-gait';
@@ -210,6 +213,9 @@ type Motion = {
   duration: number;
   expedition?: 'out' | 'in';
   musterPoint?: Point;
+  returnWaiting?: boolean;
+  departurePath?: Point[];
+  musterSlot?: number;
   transfer?: { target: Point; arrive: number };
   debugControlled?: boolean;
   debugPose?: string;
@@ -1548,6 +1554,34 @@ export async function createMap(
               __worldV4: {
                 assignments: () =>
                   [...spotPlanner.assignments].map(([id, a]) => ({ id, ...a })),
+                // Presentation-only fixture: exercises draw transitions without writing app/sim/save state.
+                awayFixture: (ids: string[], away: boolean) => {
+                  if (!world) return;
+                  for (const id of ids) {
+                    const m = motions.get(id);
+                    if (m) m.debugControlled = false;
+                  }
+                  const changed = world.disciples.map((d) =>
+                    ids.includes(d.id)
+                      ? {
+                          ...d,
+                          state: {
+                            ...d.state,
+                            awayUntil: away ? world!.tick + 100 : 0,
+                            behavior: (away
+                              ? '历练'
+                              : '修炼') as World['disciples'][number]['state']['behavior'],
+                          },
+                        }
+                      : d,
+                  );
+                  for (let i = 0; i < injected.length; i++)
+                    injected[i] =
+                      changed.find((d) => d.id === injected[i].id) ??
+                      injected[i];
+                  draw({ ...world, disciples: changed });
+                },
+                adaptationReports: v4AdaptationReports,
                 arenaSeats: cool?.arenaSeats,
                 spots: satelliteSpots,
                 stages,
@@ -1568,6 +1602,7 @@ export async function createMap(
                   [...motions].map(([id, m]) => ({
                     id,
                     expedition: m.expedition,
+                    returnWaiting: m.returnWaiting,
                     transfer: m.transfer,
                     toX: m.toX,
                     toY: m.toY,
@@ -1783,6 +1818,21 @@ export async function createMap(
     for (const d of world.disciples) {
       const m = motions.get(d.id);
       if (!m) continue;
+      if (m.returnWaiting) {
+        const occupied = [...motions.values()].some(
+          (other) =>
+            other !== m &&
+            !other.returnWaiting &&
+            !(
+              other.expedition === 'out' &&
+              now - other.start >= other.duration + 800
+            ) &&
+            Math.hypot(other.x - m.x, other.y - m.y) < 45.92,
+        );
+        m.start = now;
+        m.returnWaiting = occupied;
+        active ||= occupied;
+      }
       const elapsed = Math.max(0, now - m.start);
       const moving = elapsed < m.duration;
       active ||= moving;
@@ -1824,6 +1874,7 @@ export async function createMap(
       m.pendingDistance = 0;
       m.lastPaint = now;
       [m.x, m.y] = positionOnPath;
+      if (m.expedition === 'out' && elapsed >= m.duration + 800) continue;
       const group = new Container();
       group.position.set(m.x, m.y);
       group.zIndex = m.y;
@@ -2650,22 +2701,52 @@ export async function createMap(
     now: number,
     target?: Point,
   ) {
-    const rank = Math.max(0, [...motions.values()].indexOf(m));
+    const others = [...motions.values()].filter((other) => other !== m);
+    const reserved = others.flatMap((other) =>
+      other.expedition && other.musterPoint
+        ? [other.musterPoint]
+        : [[other.x, other.y] as Point],
+    );
+    if (direction === 'out') {
+      const occupiedSlots = new Set(
+        others
+          .filter((other) => !!other.expedition)
+          .map((other) => other.musterSlot),
+      );
+      m.musterSlot =
+        v4Island([m.x, m.y]) === 'main'
+          ? ([0, 1, 2, 3, 4, 5].find((i) => !occupiedSlots.has(i)) ?? 6)
+          : 6;
+    }
     const muster =
-      m.musterPoint ?? musterPositions(Math.max(1, rank + 1))[rank];
+      direction === 'out'
+        ? expeditionLanding([m.x, m.y], reserved, undefined, m.musterSlot)
+        : (m.musterPoint ?? v4Fade);
     m.musterPoint = muster;
     const from: Point = direction === 'out' ? [m.x, m.y] : muster;
-    const route =
-      direction === 'out'
-        ? [
-            ...findPath(nearestWalkable(from), v4Route[0]),
-            ...v4Route.slice(1),
-            ...findPath(v4Fade, muster).slice(1),
-          ]
-        : [...findPath(muster, v4Fade), ...[...v4Route].reverse().slice(1)];
-    if (direction === 'in' && target)
-      route.push(...findPath(v4Route[0], target).slice(1));
-    if (route.length < 2) throw Error('v4 expedition route unreachable');
+    const stationary =
+      Math.hypot(from[0] - muster[0], from[1] - muster[1]) < 0.01;
+    let route: Point[] = [from, from];
+    if (direction === 'out' && !stationary) {
+      const approach = findPath(from, v4Route[0]);
+      const landing = findPath(v4Fade, muster);
+      if (approach.length && landing.length)
+        route = [...approach, ...v4Route.slice(1), ...landing.slice(1)];
+      else {
+        console.warn('v4 expedition route unavailable; fading at origin', {
+          from,
+          muster,
+        });
+        m.musterPoint = from;
+      }
+    }
+    if (direction === 'out') m.departurePath = route;
+    // Satellite/overflow return stays at origin. Main-platform return retraces its route after fading in.
+    if (direction === 'in' && (m.departurePath?.length ?? 0) > 2) {
+      route = [...m.departurePath!].reverse();
+      if (target) route.push(...findPath(route.at(-1)!, target).slice(1));
+    }
+    // Occupied landings delay appearance; they never relocate the return.
     Object.assign(m, {
       x: from[0],
       y: from[1],
@@ -2679,6 +2760,7 @@ export async function createMap(
         (pathLength(route) / (routeSpeed(route) * walkScale)) * 1000 +
         (direction === 'in' ? 800 : 0),
       expedition: direction,
+      returnWaiting: direction === 'in',
       transfer: undefined,
     });
   }
@@ -2688,16 +2770,30 @@ export async function createMap(
     paused = host.ownerDocument?.hidden ?? document.hidden;
     // cool 调试注入的弟子只在表现层存在（world 的浅拷贝），不进 sim。
     const real = injected.length
-      ? w.disciples.filter((d) => !injected.includes(d))
+      ? w.disciples.filter((d) => !injected.some((x) => x.id === d.id))
       : w.disciples;
     world = injected.length ? { ...w, disciples: [...real, ...injected] } : w;
     const now = performance.now(),
       visible = new Set<string>();
     const visibleDisciples = world.disciples.filter(
       (d) =>
-        d.stage !== '坐化' &&
-        (v4Active || (!d.state.awayUntil && d.state.behavior !== '历练')),
+        d.stage !== '坐化' && !d.state.awayUntil && d.state.behavior !== '历练',
     );
+    const departing = new Set<string>();
+    if (v4Active)
+      for (const d of world.disciples) {
+        if (
+          d.stage === '坐化' ||
+          (!d.state.awayUntil && d.state.behavior !== '历练')
+        )
+          continue;
+        expeditionAway.add(d.id);
+        const m = motions.get(d.id);
+        if (m) {
+          departing.add(d.id);
+          if (m.expedition !== 'out') startExpedition(m, 'out', now);
+        }
+      }
     const destinations = v4Active
       ? spotPlanner.plan(
           world,
@@ -2742,12 +2838,6 @@ export async function createMap(
       if (m?.debugControlled) continue;
 
       if (v4Active) {
-        const away = !!d.state.awayUntil || d.state.behavior === '历练';
-        if (away) {
-          expeditionAway.add(d.id);
-          if (m && m.expedition !== 'out') startExpedition(m, 'out', now);
-          continue;
-        }
         if (expeditionAway.has(d.id) && !m) {
           m = {
             x: v4Fade[0],
@@ -2770,7 +2860,10 @@ export async function createMap(
           startExpedition(m, 'in', now, [x, y]);
           continue;
         }
-        if (m?.expedition === 'in' && now - m.start < m.duration + 800)
+        if (
+          m?.expedition === 'in' &&
+          (m.returnWaiting || now - m.start < m.duration)
+        )
           continue;
         if (m) m.expedition = undefined;
       }
@@ -2852,7 +2945,8 @@ export async function createMap(
         } else pendingReplans.delete(d.id);
       }
     }
-    for (const id of motions.keys()) if (!visible.has(id)) motions.delete(id);
+    for (const id of motions.keys())
+      if (!visible.has(id) && !departing.has(id)) motions.delete(id);
     for (const id of pendingReplans.keys())
       if (!visible.has(id)) pendingReplans.delete(id);
     paint(now);

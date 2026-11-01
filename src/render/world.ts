@@ -4,6 +4,7 @@ import {
   v4Walkable,
   v4Navigation,
   v4SegmentBlocked,
+  v4RoadCuts,
 } from './world-v4';
 import { pedestalGeometry } from './pedestal';
 import corridor from './main-corridor.json';
@@ -194,7 +195,7 @@ export function lineClear(a: Point, b: Point) {
   if (v4Active && v4SegmentBlocked(a, b)) return false;
   const dx = b[0] - a[0],
     dy = b[1] - a[1],
-    cuts = [0, 1];
+    cuts = [0, 1, ...(v4Active ? v4RoadCuts(a, b) : [])];
   // Partition at every geometry boundary, then test each open interval.
   // Fixed-distance sampling can miss a short corner crossing during interpolation.
   for (const [p, q] of navigationEdges) {
@@ -456,7 +457,7 @@ export function destination(d: Disciple, tick: number, index = 0): Point {
         ? 'meditate'
         : 'social';
   if (tick === 0) {
-    const home = coolActive ? 'platform' : 'main';
+    const home = v4Active ? 'main' : coolActive ? 'platform' : 'main';
     const spots = worldMap.spots.filter(
       (s) => s.island === home && s.kind === 'social',
     );

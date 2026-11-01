@@ -275,7 +275,7 @@ try {
       assert.ok(Math.hypot(a.x - b.x, a.y - b.y) >= 45.92);
   // Geometry stress arrangements explicitly use debug place, for Iris prop/collision inspection.
   await fixture(base);
-  await page.evaluate(() => window.__coolHall.inject(24));
+  await page.evaluate(() => window.__coolHall.inject(6));
   const ids = await page.evaluate(() =>
     window.__worldV4.motionState().map((m) => m.id),
   );
@@ -285,7 +285,7 @@ try {
     { ids, points: geometry.muster },
   );
   await camera(geometry.spots.find((s) => s.id === 'S_MUSTER').point, 1);
-  await shot('05-S_MUSTER-环形集合24人-几何夹具');
+  await shot('05-S_MUSTER-六席-几何夹具');
   await fixture(base);
   const social = geometry.sub.filter((s) => s.id.includes('SOCIAL'));
   for (const side of ['E', 'S']) {
