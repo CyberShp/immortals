@@ -1,0 +1,211 @@
+{
+  "status": "几何与铺装色彩通过；门楼旧栏杆并存，接缝视觉不通过。",
+  "coordinate": "[x,y,1] @ matrix_3x2 = 裁后；世界=裁后+(342,200)",
+  "layer_order": ["主台v3", "桥", "东南台", "角色", "前景件"],
+  "selected": "south_bridge_c3",
+  "png": "south_bridge_v1.png",
+  "cropped_origin": [456, 1092],
+  "world_origin": [798, 1292],
+  "size": [626, 446],
+  "matrix_3x2": [
+    [0.7909231865091267, -0.0034720885815801724],
+    [-0.06388543228667934, 0.7623833292393191],
+    [134.119420900833, 929.0570222145242]
+  ],
+  "residual_px": [
+    2.369625097512586, 2.358510833993637, 2.341939748499833, 2.35305401212942
+  ],
+  "max_residual_px": 2.369625097512586,
+  "HSV_factors": {
+    "H": 1,
+    "S": 0.9819471331928622,
+    "V": 1.0165910960541982
+  },
+  "before": {
+    "pixels": 18002,
+    "mean_S": 0.03847871720790863,
+    "mean_V": 0.7824174761772156,
+    "median_RGB": [200.0, 199.0, 192.0]
+  },
+  "after": {
+    "pixels": 10858,
+    "mean_S": 0.03781940042972565,
+    "mean_V": 0.7954854369163513,
+    "median_RGB": [203.0, 202.0, 196.0]
+  },
+  "references_recomputed_mean": {
+    "v3_south_mouth": {
+      "pixels": 1519,
+      "mean_S": 0.037784066051244736,
+      "mean_V": 0.7963986396789551,
+      "median_RGB": [206.0, 201.0, 199.0]
+    },
+    "south_landing": {
+      "pixels": 13157,
+      "mean_S": 0.024182869121432304,
+      "mean_V": 0.8580731153488159,
+      "median_RGB": [219.0, 217.0, 215.0]
+    }
+  },
+  "mouth_sample_polygon_cropped": [
+    [820, 1180],
+    [860, 1160],
+    [942, 1204],
+    [902, 1224]
+  ],
+  "edge": {
+    "semi_pixels": 17242,
+    "paving_alpha_not255": 0,
+    "alpha_bbox_margin_ltrb": [4, 4, 4, 4],
+    "edge2_RB_over_G8": 0
+  },
+  "selection_note": "c3四点残差最小；放大图结构完整，栏板连续无品红断口。实心栏板较重；整图调色控制铺装亮度。",
+  "seams": {
+    "main": {
+      "world_box": [1012, 1249, 1475, 1553],
+      "deck_normal_offsets_to_target_px": [
+        1.6033407374007842, 5.1867303393271085
+      ],
+      "deck_method": "已有候选桥面边线变换后对目标接缝线的法向偏移；公式北缘不是门楼实际石材边线，不能当作视觉贴合误差。源角点遮挡估计±6px。",
+      "rail_endpoint_pairs_3x": [
+        [
+          [265, 250],
+          [455, 357]
+        ],
+        [
+          [1090, 629],
+          [845, 538]
+        ]
+      ],
+      "double_posts": 1,
+      "additional_old_post_tip_count": 1,
+      "uncertainty_px": 4,
+      "rail_method": "两套栏杆不共轴：量新旧栏杆接入处上沿端点间欧氏距离，非同柱轴高度差。可见旧左柱球顶与新柱形成1组分离双柱；旧右柱仅小尖端，不计完整双柱。",
+      "rail_offsets_px": [72.68577730355659, 87.1180552787742],
+      "deck_visible_offsets_px": null,
+      "deck_visibility_note": "原v3台阶边被新桥覆盖，无法从合成图独立读取两条可见面边；只报告公式北缘偏移，不能伪填实际接缝0px。"
+    },
+    "platform": {
+      "world_box": [744, 1375, 1198, 1678],
+      "deck_normal_offsets_to_target_px": [
+        2.676323354339486, 5.900843818773431
+      ],
+      "deck_method": "已有候选桥面边线变换后对目标接缝线的法向偏移；公式北缘不是门楼实际石材边线，不能当作视觉贴合误差。源角点遮挡估计±6px。",
+      "rail_lines_3x": [
+        [
+          [
+            [307, 216],
+            [340, 199]
+          ],
+          [
+            [180, 179],
+            [240, 212]
+          ],
+          270
+        ],
+        [
+          [
+            [1160, 563],
+            [1200, 541]
+          ],
+          [
+            [1125, 640],
+            [1170, 666]
+          ],
+          1100
+        ]
+      ],
+      "double_posts": 0,
+      "uncertainty_px": 5,
+      "rail_method": "桥栏与南台栏上沿按局部直线外推到x=270/1100的柱轴；柱遮挡约±5裁后px。",
+      "rail_offsets_px": [2.1868686868686873, 9.851851851851848],
+      "deck_visible_platform_line_3x": [
+        [295, 320],
+        [1047, 676]
+      ],
+      "deck_visible_offsets_px": [4.529660199703118, 5.976801650686703]
+    }
+  },
+  "old_exposure": {
+    "polygon_pixels": 86133,
+    "uncovered_pixels": 1534,
+    "bbox_world_xyxy": [965, 1343, 1260, 1498],
+    "bbox_cropped_xyxy": [623, 1143, 918, 1298]
+  },
+  "old_north_regions": {
+    "old_post_795_1203": {
+      "polygon_cropped": [
+        [783, 1153],
+        [790, 1148],
+        [801, 1148],
+        [807, 1155],
+        [807, 1198],
+        [795, 1205],
+        [783, 1199]
+      ],
+      "region_pixels": 1319,
+      "uncovered_pixels": 259,
+      "exposed_north_of_new_deck_pixels": 259,
+      "bbox_cropped_xyxy": [783, 1148, 808, 1166]
+    },
+    "old_post_912_1272": {
+      "polygon_cropped": [
+        [899, 1219],
+        [904, 1213],
+        [914, 1215],
+        [922, 1222],
+        [924, 1266],
+        [912, 1275],
+        [899, 1268]
+      ],
+      "region_pixels": 1393,
+      "uncovered_pixels": 9,
+      "exposed_north_of_new_deck_pixels": 9,
+      "bbox_cropped_xyxy": [910, 1214, 919, 1219]
+    },
+    "upper_rail_left": {
+      "polygon_cropped": [
+        [803, 1174],
+        [840, 1154],
+        [856, 1128],
+        [866, 1131],
+        [853, 1165],
+        [806, 1192]
+      ],
+      "region_pixels": 1332,
+      "uncovered_pixels": 953,
+      "exposed_north_of_new_deck_pixels": 953,
+      "bbox_cropped_xyxy": [814, 1128, 867, 1178]
+    },
+    "upper_rail_right": {
+      "polygon_cropped": [
+        [920, 1241],
+        [978, 1209],
+        [1004, 1189],
+        [1005, 1205],
+        [980, 1227],
+        [924, 1259]
+      ],
+      "region_pixels": 1687,
+      "uncovered_pixels": 1087,
+      "exposed_north_of_new_deck_pixels": 1087,
+      "bbox_cropped_xyxy": [941, 1189, 1006, 1239]
+    }
+  },
+  "landing": {
+    "pad_pixels": 45767,
+    "corridor_pixels": 13941,
+    "existing_platform_object_pixels_pad": 429,
+    "existing_platform_object_pixels_corridor": 0,
+    "note": "沿用已核定南台实体mask；云纹计为铺装。台层在桥层之上。"
+  },
+  "readonly_validation": {
+    "count": 142,
+    "unchanged": false,
+    "task_inputs_unchanged": true,
+    "external_changes_observed": [
+      "/workspace/review/batch3/east-south-fg/scripts/finalize_foreground.py"
+    ],
+    "manifest": "../check/south_readonly_manifest_v1.json"
+  }
+}

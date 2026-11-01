@@ -1,0 +1,366 @@
+{
+  "selected": "c1",
+  "k": 1.0,
+  "cropped_origin": [759, 1079],
+  "world_origin": [1101, 1279],
+  "size": [258, 206],
+  "parts": [
+    {
+      "side": "left",
+      "matrix_3x2": [
+        [0.33796306615551974, -0.0002739319964881629],
+        [0.0034722232820576598, 0.3418671322802312],
+        [599.4735897517653, 1005.9002903192138]
+      ],
+      "residual_px": [
+        3.0864458485909834e-11, 7.077459924367741e-11, 3.714429280047255e-11,
+        7.666371402001341e-11
+      ],
+      "max_residual": 7.666371402001341e-11,
+      "footprints_cropped": [
+        [805.6287452909348, 1171.8819877495307],
+        [852.4933429337302, 1194.0655487322306],
+        [814.14958122595, 1212.2157349906824],
+        [767.2849835831546, 1190.0321740079828]
+      ],
+      "footprints_uv": [
+        [29.152000000000427, 9.215000000000233],
+        [29.702000000000968, 9.21500000000054],
+        [29.701999999999494, 9.664999999999713],
+        [29.151999999998957, 9.664999999999411]
+      ],
+      "front_margin_px": [
+        2.333170216100433, 2.3331702161228396, 35.14337637973628,
+        35.14337637971426
+      ],
+      "png": "south_gate_end_cover_v2_left.png",
+      "k": 1.0,
+      "residual_rechecked_px": [
+        3.0864458485909834e-11, 7.077459924367741e-11, 3.714429280047255e-11,
+        7.666371402001341e-11
+      ],
+      "HSV_factors": {
+        "H": 1,
+        "S": 0.8918912413036355,
+        "V": 1.0473898266306167
+      },
+      "cropped_origin": [759, 1079],
+      "world_origin": [1101, 1279],
+      "size": [116, 138],
+      "baseline_y_cropped": 1212.2157349906824,
+      "baseline_y_world": 1412.2157349906824
+    },
+    {
+      "side": "right",
+      "matrix_3x2": [
+        [0.33647219501376374, -0.0005549497417414773],
+        [0.006741167670004027, 0.34781475073489965],
+        [606.2110543222059, 1003.9770042852987]
+      ],
+      "residual_px": [
+        1.243923121964138e-11, 2.140817035953007e-11, 1.2810342646169851e-11,
+        2.1837344690617046e-11
+      ],
+      "max_residual": 2.1837344690617046e-11,
+      "footprints_cropped": [
+        [947.9267054062599, 1239.2393456423356],
+        [994.7913030490395, 1261.4229066250089],
+        [956.447541341297, 1279.573092883524],
+        [909.5829436985173, 1257.3895319008507]
+      ],
+      "footprints_uv": [
+        [30.822000000000173, 9.215000000000098],
+        [31.3720000000003, 9.215000000000169],
+        [31.371999999999826, 9.664999999999903],
+        [30.8219999999997, 9.664999999999832]
+      ],
+      "front_margin_px": [
+        2.33317021609059, 2.3331702160957706, 35.14337637975014,
+        35.14337637974496
+      ],
+      "png": "south_gate_end_cover_v2_right.png",
+      "k": 1.0,
+      "residual_rechecked_px": [
+        1.243923121964138e-11, 2.140817035953007e-11, 1.2810342646169851e-11,
+        2.1837344690617046e-11
+      ],
+      "HSV_factors": {
+        "H": 1,
+        "S": 0.8918912413036355,
+        "V": 1.0473898266306167
+      },
+      "cropped_origin": [900, 1144],
+      "world_origin": [1242, 1344],
+      "size": [117, 141],
+      "baseline_y_cropped": 1279.573092883524,
+      "baseline_y_world": 1479.573092883524
+    }
+  ],
+  "HSV_factors": {
+    "H": 1,
+    "S": 0.8918912413036355,
+    "V": 1.0473898266306167
+  },
+  "matrix_convention": "[source_x,source_y,1] @ matrix_3x2 = cropped_xy; world=cropped+[342,200]",
+  "layer_prefix": [
+    "main_platform_v4refine_v3",
+    "east_bridge_v3",
+    "south_bridge_v1",
+    "east_platform_v1b",
+    "south_platform_v1"
+  ],
+  "sequence": [
+    {
+      "kind": "fg",
+      "filename": "tower.png",
+      "baseline": 568.9
+    },
+    {
+      "kind": "fg",
+      "filename": "hall_front.png",
+      "baseline": 669.0
+    },
+    {
+      "kind": "fg",
+      "filename": "rail_west_01.png",
+      "baseline": 932.0
+    },
+    {
+      "kind": "fg",
+      "filename": "dorm_4.png",
+      "baseline": 976.7
+    },
+    {
+      "kind": "fg",
+      "filename": "dorm_1.png",
+      "baseline": 978.9
+    },
+    {
+      "kind": "fg",
+      "filename": "dorm_yard_frontwall_06.png",
+      "baseline": 986.0
+    },
+    {
+      "kind": "fg",
+      "filename": "rail_west_02.png",
+      "baseline": 991.0
+    },
+    {
+      "kind": "fg",
+      "filename": "dorm_yard_frontwall_01.png",
+      "baseline": 1039.0
+    },
+    {
+      "kind": "fg",
+      "filename": "dorm_yard_frontwall_02.png",
+      "baseline": 1048.0
+    },
+    {
+      "kind": "fg",
+      "filename": "rail_west_03.png",
+      "baseline": 1083.0
+    },
+    {
+      "kind": "fg",
+      "filename": "dorm_yard_frontwall_05.png",
+      "baseline": 1084.0
+    },
+    {
+      "kind": "fg",
+      "filename": "rail_east_08.png",
+      "baseline": 1104.0
+    },
+    {
+      "kind": "fg",
+      "filename": "dorm_gatehouse.png",
+      "baseline": 1115.5
+    },
+    {
+      "kind": "fg",
+      "filename": "dorm_5.png",
+      "baseline": 1116.7
+    },
+    {
+      "kind": "fg",
+      "filename": "rail_west_04.png",
+      "baseline": 1128.0
+    },
+    {
+      "kind": "fg",
+      "filename": "tree_T3.png",
+      "baseline": 1145.5
+    },
+    {
+      "kind": "fg",
+      "filename": "dorm_yard_frontwall_03.png",
+      "baseline": 1158.0
+    },
+    {
+      "kind": "fg",
+      "filename": "dorm_yard_frontwall_04.png",
+      "baseline": 1158.0
+    },
+    {
+      "kind": "fg",
+      "filename": "tree_T2.png",
+      "baseline": 1171.5
+    },
+    {
+      "kind": "fg",
+      "filename": "rail_east_07.png",
+      "baseline": 1175.0
+    },
+    {
+      "kind": "fg",
+      "filename": "main_east_mouth_post_high.png",
+      "baseline": 1183
+    },
+    {
+      "kind": "fg",
+      "filename": "tree_T5.png",
+      "baseline": 1231.5
+    },
+    {
+      "kind": "fg",
+      "filename": "gate_pine.png",
+      "baseline": 1244.0
+    },
+    {
+      "kind": "fg",
+      "filename": "tree_T4.png",
+      "baseline": 1253.5
+    },
+    {
+      "kind": "fg",
+      "filename": "main_east_mouth_post_low.png",
+      "baseline": 1272
+    },
+    {
+      "kind": "fg",
+      "filename": "gate.png",
+      "baseline": 1290.1
+    },
+    {
+      "kind": "cover",
+      "filename": "south_gate_end_cover_v2_left.png",
+      "baseline": 1212.2157349906824,
+      "side": "left"
+    },
+    {
+      "kind": "cover",
+      "filename": "south_gate_end_cover_v2_right.png",
+      "baseline": 1279.573092883524,
+      "side": "right"
+    },
+    {
+      "kind": "fg",
+      "filename": "rail_east_06.png",
+      "baseline": 1323.0
+    },
+    {
+      "kind": "fg",
+      "filename": "tree_T1.png",
+      "baseline": 1325.5
+    },
+    {
+      "kind": "fg",
+      "filename": "array_lamp_01.png",
+      "baseline": 1330.0
+    },
+    {
+      "kind": "fg",
+      "filename": "rail_mid_01.png",
+      "baseline": 1368.0
+    },
+    {
+      "kind": "fg",
+      "filename": "array_lamp_06.png",
+      "baseline": 1377.0
+    },
+    {
+      "kind": "fg",
+      "filename": "rail_east_05.png",
+      "baseline": 1414.0
+    },
+    {
+      "kind": "fg",
+      "filename": "array_lamp_02.png",
+      "baseline": 1452.0
+    },
+    {
+      "kind": "fg",
+      "filename": "rail_mid_02.png",
+      "baseline": 1465.0
+    },
+    {
+      "kind": "fg",
+      "filename": "array_lamp_05.png",
+      "baseline": 1504.0
+    },
+    {
+      "kind": "fg",
+      "filename": "rail_east_04.png",
+      "baseline": 1508.0
+    },
+    {
+      "kind": "fg",
+      "filename": "rail_mid_03.png",
+      "baseline": 1543.0
+    },
+    {
+      "kind": "fg",
+      "filename": "rail_east_03.png",
+      "baseline": 1544.0
+    },
+    {
+      "kind": "fg",
+      "filename": "array_lamp_03.png",
+      "baseline": 1604.0
+    },
+    {
+      "kind": "fg",
+      "filename": "array_lamp_04.png",
+      "baseline": 1607.0
+    },
+    {
+      "kind": "fg",
+      "filename": "rail_mid_04.png",
+      "baseline": 1616.0
+    },
+    {
+      "kind": "fg",
+      "filename": "rail_east_02.png",
+      "baseline": 1679.0
+    },
+    {
+      "kind": "fg",
+      "filename": "rail_mid_05.png",
+      "baseline": 1694.0
+    },
+    {
+      "kind": "fg",
+      "filename": "rail_east_01.png",
+      "baseline": 1756.0
+    },
+    {
+      "kind": "fg",
+      "filename": "rail_mid_06.png",
+      "baseline": 1778.0
+    }
+  ],
+  "layer_rule": "主台v3→东桥v3→南桥v1→东台v1b→南台v1→fg/out 45件按基线y和文件名稳定排序；左右按真实基线求插入位置，强制不早于gate.png之后；同位置左再右。合并容器不可与左右件同时合成。",
+  "foreground_overlap": [
+    {
+      "filename": "gate_pine.png",
+      "alpha_positive": 0,
+      "alpha128": 0,
+      "baseline": 1244.0
+    },
+    {
+      "filename": "gate.png",
+      "alpha_positive": 2770,
+      "alpha128": 2683,
+      "baseline": 1290.1
+    }
+  ]
+}

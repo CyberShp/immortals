@@ -4,6 +4,7 @@
 import { z } from 'zod';
 import raw from './cool-world.json';
 import { coolEnabled } from './cool-config';
+import { adaptV4, v4Active } from './world-v4';
 
 type P = [number, number];
 const point = z.tuple([z.number().finite(), z.number().finite()]);
@@ -186,8 +187,13 @@ export type CoolWorld = ReturnType<typeof buildCoolWorld>;
 
 /** 模块初始化时读一次地址栏；Node/测试环境没有 location 时视为关闭。 */
 export const coolActive =
-  typeof location !== 'undefined' && coolEnabled(location.search ?? '');
+  v4Active ||
+  (typeof location !== 'undefined' &&
+    (coolEnabled(location.search ?? '') ||
+      new URLSearchParams(location.search).get('world') === 'v3'));
 /** 仅在 cool 打开时构建（关闭时不做任何 cool 计算）。 */
 export const coolWorld: CoolWorld | null = coolActive
-  ? buildCoolWorld(raw)
+  ? v4Active
+    ? adaptV4(buildCoolWorld(raw))
+    : buildCoolWorld(raw)
   : null;

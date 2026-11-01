@@ -1,3 +1,14 @@
+import {
+  v4ForegroundBounds,
+  v4Active,
+  v4Assets,
+  v4Layers,
+  V4,
+  uv,
+  v4Route,
+  v4Fade,
+  v4FadeContains,
+} from './world-v4';
 import { horizontalFacing, spriteFlip } from './disciple-facing';
 import { advanceGait, strideLength } from './disciple-gait';
 import { buildingSortY, pedestalGeometry } from './pedestal';
@@ -29,7 +40,7 @@ import {
   Matrix,
   Sprite,
   Text,
-  type Texture,
+  Texture,
 } from 'pixi.js';
 import {
   INDOOR_INSET,
@@ -183,6 +194,7 @@ type Motion = {
   row: number;
   path: Point[];
   duration: number;
+  expedition?: 'out' | 'in';
   debugControlled?: boolean;
   debugPose?: string;
   directionAt?: number;
@@ -299,7 +311,7 @@ export async function createMap(
   // cool 的地面是 S1 未验收的平面色块占位（Graphics 绘制），不加载底图文件。
   const groundFile = cool ? '' : depth ? DEPTH.world : 'map/world.webp';
   // cool 主殿 B1/B2 分层与召集全员（纯表现层）。
-  const coolHall = cool ? buildCoolHall() : undefined;
+  const coolHall = cool && !v4Active ? buildCoolHall() : undefined;
   let coolRoof: CoolRoof = roofClosed();
   let coolRoofHold: number | undefined;
   // v4g 楼层视图：auto = 按殿内有人淡出屋顶、内景为正殿；固定楼层 = 屋顶淡出并保持，显示该层内景。
@@ -328,9 +340,11 @@ export async function createMap(
   >();
   const replanLog = { maxPerFrame: 0, total: 0, deferred: 0, maxGapMs: 0 };
   const motionDistance = (m: Motion, elapsed: number) =>
-    m.speedFactor === undefined
-      ? (elapsed / 1000) * routeSpeed(m.path) * walkScale
-      : (elapsed / 1000) * routeSpeed(m.path) * walkScale * m.speedFactor;
+    m.expedition === 'in'
+      ? (Math.max(0, elapsed - 800) / 1000) * routeSpeed(m.path) * walkScale
+      : m.speedFactor === undefined
+        ? (elapsed / 1000) * routeSpeed(m.path) * walkScale
+        : (elapsed / 1000) * routeSpeed(m.path) * walkScale * m.speedFactor;
   const assemblyEnabled = params.get('assembly') !== '0';
   if (params.get('debug') === '1')
     Object.assign(window, {
@@ -546,38 +560,40 @@ export async function createMap(
   );
   const height = requestedHeight
     ? Math.min(96, Math.max(16, requestedHeight))
-    : 96 * DISCIPLE_SCALE;
+    : 96 * DISCIPLE_SCALE * (v4Active ? V4.actorScale : 1);
   const textures = new Map<string, Texture>();
   const entries = new Map(manifest.files.map((f) => [f.file, f]));
   let warned = false;
   const needed = manifest.files.filter(
     (f) => false || f.file.includes('-map@') || f.file.includes('-96@'),
   );
-  const mapEntries = coolHall
-    ? [
-        coolHall.layers.base,
-        coolHall.layers.room,
-        coolHall.layers.roof,
-        ...coolHall.layers.columns,
-        ...(coolHall.layers.shadow ? [coolHall.layers.shadow] : []),
-        ...(coolHall.layers.outerColumns ?? []),
-        ...(coolHall.layers.carpet ? [coolHall.layers.carpet] : []),
-        ...(coolHall.layers.stairs ?? []),
-        ...Object.values(coolHall.layers.rooms ?? {}),
-      ].map((l) => ({ file: l.file, size: l.size, anchor: { x: 0, y: 0 } }))
-    : [
-        { file: groundFile, size: [3200, 1400], anchor: { x: 0, y: 0 } },
-        {
-          file: 'map/world-mini.webp',
-          size: [320, 140],
-          anchor: { x: 0, y: 0 },
-        },
-        {
-          file: gateArt.file,
-          size: gateArt.crop.slice(2),
-          anchor: { x: 0, y: 0 },
-        },
-      ];
+  const mapEntries = v4Active
+    ? v4Assets
+    : coolHall
+      ? [
+          coolHall.layers.base,
+          coolHall.layers.room,
+          coolHall.layers.roof,
+          ...coolHall.layers.columns,
+          ...(coolHall.layers.shadow ? [coolHall.layers.shadow] : []),
+          ...(coolHall.layers.outerColumns ?? []),
+          ...(coolHall.layers.carpet ? [coolHall.layers.carpet] : []),
+          ...(coolHall.layers.stairs ?? []),
+          ...Object.values(coolHall.layers.rooms ?? {}),
+        ].map((l) => ({ file: l.file, size: l.size, anchor: { x: 0, y: 0 } }))
+      : [
+          { file: groundFile, size: [3200, 1400], anchor: { x: 0, y: 0 } },
+          {
+            file: 'map/world-mini.webp',
+            size: [320, 140],
+            anchor: { x: 0, y: 0 },
+          },
+          {
+            file: gateArt.file,
+            size: gateArt.crop.slice(2),
+            anchor: { x: 0, y: 0 },
+          },
+        ];
   for (const entry of mapEntries)
     entries.set(entry.file, entry as (typeof manifest.files)[number]);
   Assets.setPreferences({ preferWorkers: false });
@@ -605,7 +621,7 @@ export async function createMap(
   // 08 增补 R2/R5：P7 椅、P8 蒲团、P9 讲道位道具（锚点见 cool-frames.json props）。
   if (cool) coolDiscipleEntries.push(...coolPropEntries());
   // ?cool=1：B5–B9 建筑立绘（cool-buildings.json，左上角锚点）。
-  if (cool)
+  if (cool && !v4Active)
     coolDiscipleEntries.push(
       ...coolBuildingLayers.map((l) => ({
         file: l.file,
@@ -625,14 +641,37 @@ export async function createMap(
   await Promise.all(
     loadList.map(async ({ file }) => {
       try {
-        textures.set(
-          file,
-          await Assets.load<Texture>({
-            src: import.meta.env.BASE_URL + 'assets/' + file,
-            // @2x filenames otherwise make Pixi halve texture dimensions too.
-            data: { resolution: 1 },
-          }),
-        );
+        const loaded = await Assets.load<Texture>({
+          src: import.meta.env.BASE_URL + 'assets/' + file,
+          // @2x filenames otherwise make Pixi halve texture dimensions too.
+          data: { resolution: 1 },
+        });
+        const bbox = v4Active ? v4ForegroundBounds.get(file) : undefined;
+        if (bbox && loaded.source.resource) {
+          const canvas = document.createElement('canvas');
+          canvas.width = bbox[2] - bbox[0];
+          canvas.height = bbox[3] - bbox[1];
+          canvas
+            .getContext('2d')!
+            .drawImage(
+              loaded.source.resource as CanvasImageSource,
+              bbox[0],
+              bbox[1],
+              canvas.width,
+              canvas.height,
+              0,
+              0,
+              canvas.width,
+              canvas.height,
+            );
+          textures.set(file, Texture.from(canvas));
+          const entry = entries.get(file)!;
+          entries.set(file, {
+            ...entry,
+            size: [canvas.width, canvas.height],
+            anchor: { x: -bbox[0], y: -bbox[1] },
+          });
+        } else textures.set(file, loaded);
       } catch {
         if (!warned) {
           console.warn('部分地图素材不可用，已启用简化绘制。');
@@ -646,7 +685,7 @@ export async function createMap(
   app.stage.addChild(scene);
   const depthLayers = depth ? createDepthLayers(textures) : undefined;
   // ?cool=1：自有天空/云海层（cool-depth.ts），与 ?depth=1 无关。
-  const coolDepth = cool ? createCoolDepth() : undefined;
+  const coolDepth = cool && !v4Active ? createCoolDepth() : undefined;
   if (coolDepth) {
     app.stage.addChildAt(coolDepth.root, 0);
     if (params.get('debug') === '1')
@@ -811,6 +850,7 @@ export async function createMap(
     );
   const visibilityCache = new Map<string, ReturnType<typeof visibilityOrder>>();
   const motions = new Map<string, Motion>();
+  const expeditionAway = new Set<string>();
   let frame = 0;
   let frameWindow: Window | null = null;
   const cancelFrame = () => {
@@ -844,6 +884,15 @@ export async function createMap(
   function coolGround(scale: number, labels: boolean) {
     const c = coolWorld!;
     const g = new Container();
+    if (v4Active) {
+      for (const l of v4Layers.filter((l) => !labels || l.z < 0)) {
+        const sprite = art(l.file, scale);
+        if (!sprite) continue;
+        sprite.position.set(l.x * scale, l.y * scale);
+        g.addChild(sprite);
+      }
+      return g;
+    }
     const flat = (p: Point[]) => p.flatMap(([x, y]) => [x * scale, y * scale]);
     g.addChild(
       new Graphics()
@@ -970,10 +1019,12 @@ export async function createMap(
       seat: spot.seat && walked >= length,
     };
   };
+  let debugPaintTime: number | undefined;
   let lastPaint = 0;
   let lastTap = { id: '', at: 0 };
   let miniDrag = false;
   function paint(now: number) {
+    now = debugPaintTime ?? now;
     if (!world) return;
     if (coolHall) {
       for (const [id, r] of [...pendingReplans]) {
@@ -1068,9 +1119,22 @@ export async function createMap(
     ground.zIndex = -1000;
 
     scene.addChild(ground);
+    if (v4Active)
+      for (const l of v4Layers.filter((l) => l.z >= 0)) {
+        const sprite = art(l.file, 1);
+        if (!sprite) {
+          stats.fallbacks++;
+          continue;
+        }
+        sprite.position.set(l.x, l.y);
+        sprite.zIndex = l.z;
+        sprite.label = l.file;
+        scene.addChild(sprite);
+      }
     // Round platforms are baked below bridges in world.webp.
     // ?cool=1：B5–B9 立绘（地面层 z=-900；其余按最低足迹角 y 与弟子排序）。门楼不属 sim 建筑，常显。
     const paintCoolBuilding = (id: string, alpha = 1): boolean => {
+      if (v4Active) return true;
       if (!cool) return false;
       const layers = coolBuildingsFor(id);
       if (!layers.length || layers.some((l) => !textures.has(l.file)))
@@ -1401,6 +1465,56 @@ export async function createMap(
     }
     if (params.get('debug') === '1')
       Object.assign(window, {
+        ...(v4Active
+          ? {
+              __worldV4: {
+                motionState: () =>
+                  [...motions].map(([id, m]) => ({
+                    id,
+                    expedition: m.expedition,
+                    x: m.x,
+                    y: m.y,
+                    path: m.path,
+                    duration: m.duration,
+                  })),
+                captureOnly: (enabled: boolean) => {
+                  mini.visible = !enabled;
+                  overlay.visible = !enabled;
+                  host
+                    .querySelectorAll<HTMLElement>('.camera-controls')
+                    .forEach((e) => (e.style.display = enabled ? 'none' : ''));
+                  cancelFrame();
+                  paint(performance.now());
+                },
+                layers: v4Layers,
+                uv,
+                fade: v4Fade,
+                expedition: (id: string, direction: 'out' | 'in' = 'out') => {
+                  const m = motions.get(id);
+                  if (!m) throw Error('Unknown disciple');
+                  m.debugControlled = true;
+                  debugPaintTime = undefined;
+                  startExpedition(
+                    m,
+                    direction,
+                    performance.now(),
+                    worldMap.slots[0].entrance,
+                  );
+                  cancelFrame();
+                  frame = requestFrame(paint);
+                  return { duration: m.duration, path: m.path };
+                },
+                seek: (id: string, elapsed: number) => {
+                  const m = motions.get(id);
+                  if (!m) throw Error('Unknown disciple');
+                  debugPaintTime = performance.now();
+                  m.start = debugPaintTime - elapsed;
+                  cancelFrame();
+                  paint(performance.now());
+                },
+              },
+            }
+          : {}),
         __gateWalk: (id: string) => {
           const m = motions.get(id);
           if (!m) throw Error('Gate walker absent');
@@ -1426,11 +1540,13 @@ export async function createMap(
         },
         __motionDebug: {
           place: (id: string, requested: Point) => {
+            debugPaintTime = undefined;
             const m = motions.get(id);
             if (!m) throw Error('Unknown disciple');
             const point = nearestWalkable(requested);
             Object.assign(m, {
               debugControlled: true,
+              expedition: undefined,
               debugPose: 'walk-pass',
               x: point[0],
               y: point[1],
@@ -1455,6 +1571,7 @@ export async function createMap(
             if (!path.length) throw Error('Debug route unreachable');
             Object.assign(m, {
               debugControlled: true,
+              expedition: undefined,
               debugPose: 'walk-pass',
               x: from[0],
               y: from[1],
@@ -1620,8 +1737,21 @@ export async function createMap(
             s.id === destinationBuilding(d) &&
             Math.hypot(m.toX - s.entrance[0], m.toY - s.entrance[1]) < 0.1,
         );
+      const expeditionAlpha =
+        m.expedition === 'out'
+          ? v4FadeContains(positionOnPath)
+            ? Math.max(0, 1 - (elapsed - m.duration) / 800)
+            : 1
+          : m.expedition === 'in'
+            ? Math.min(1, elapsed / 800)
+            : 1;
+      active ||=
+        !!m.expedition &&
+        expeditionAlpha > 0 &&
+        (m.expedition === 'out' || elapsed < 800);
       const alpha = Math.min(
-        entering && !moving && !indoor
+        expeditionAlpha,
+        !m.expedition && entering && !moving && !indoor
           ? Math.max(0, 1 - (elapsed - m.duration) / 350)
           : 1,
         hallStatus?.alpha ?? 1,
@@ -2358,6 +2488,35 @@ export async function createMap(
     m.toY = y;
     m.start = now;
   }
+  function startExpedition(
+    m: Motion,
+    direction: 'out' | 'in',
+    now: number,
+    target?: Point,
+  ) {
+    const from: Point = direction === 'out' ? [m.x, m.y] : v4Fade;
+    const route =
+      direction === 'out'
+        ? [...findPath(nearestWalkable(from), v4Route[0]), ...v4Route.slice(1)]
+        : [...v4Route].reverse();
+    if (direction === 'in' && target)
+      route.push(...findPath(v4Route[0], target).slice(1));
+    if (route.length < 2) throw Error('v4 expedition route unreachable');
+    Object.assign(m, {
+      x: from[0],
+      y: from[1],
+      fromX: from[0],
+      fromY: from[1],
+      toX: route.at(-1)![0],
+      toY: route.at(-1)![1],
+      path: route,
+      start: now,
+      duration:
+        (pathLength(route) / (routeSpeed(route) * walkScale)) * 1000 +
+        (direction === 'in' ? 800 : 0),
+      expedition: direction,
+    });
+  }
   function draw(w: World) {
     cancelFrame();
     frame = 0;
@@ -2371,7 +2530,8 @@ export async function createMap(
       visible = new Set<string>();
     const visibleDisciples = world.disciples.filter(
       (d) =>
-        d.stage !== '坐化' && !d.state.awayUntil && d.state.behavior !== '历练',
+        d.stage !== '坐化' &&
+        (v4Active || (!d.state.awayUntil && d.state.behavior !== '历练')),
     );
     const destinations = discipleDestinations(visibleDisciples, w.tick);
     const coolTargets = coolHall
@@ -2383,7 +2543,7 @@ export async function createMap(
       const ct = coolTargets?.[i];
       const [x, y] = ct ? ct.point : destinations[i];
       const row = i > 2 ? 1 : 0;
-      const m = motions.get(d.id);
+      let m = motions.get(d.id);
       const roofId = roofFade ? destinationBuilding(d) : undefined;
       const indoorIndex =
         roofId && roofFadeBuildings[roofId]
@@ -2392,6 +2552,39 @@ export async function createMap(
       if (roofId && indoorIndex !== undefined)
         indoorCounts.set(roofId, indoorIndex + 1);
       if (m?.debugControlled) continue;
+      if (v4Active) {
+        const away = !!d.state.awayUntil || d.state.behavior === '历练';
+        if (away) {
+          expeditionAway.add(d.id);
+          if (m && m.expedition !== 'out') startExpedition(m, 'out', now);
+          continue;
+        }
+        if (expeditionAway.has(d.id) && !m) {
+          m = {
+            x: v4Fade[0],
+            y: v4Fade[1],
+            fromX: v4Fade[0],
+            fromY: v4Fade[1],
+            toX: v4Fade[0],
+            toY: v4Fade[1],
+            start: now,
+            facing: 1,
+            row,
+            path: [v4Fade],
+            duration: 0,
+            expedition: 'out',
+          };
+          motions.set(d.id, m);
+        }
+        if (m?.expedition === 'out') {
+          expeditionAway.delete(d.id);
+          startExpedition(m, 'in', now, [x, y]);
+          continue;
+        }
+        if (m?.expedition === 'in' && now - m.start < m.duration + 800)
+          continue;
+        if (m) m.expedition = undefined;
+      }
       if (!m)
         motions.set(d.id, {
           x,
@@ -2452,7 +2645,8 @@ export async function createMap(
     typeof ResizeObserver === 'undefined'
       ? undefined
       : new ResizeObserver(() => {
-          app.renderer.resize(host.clientWidth, host.clientHeight);
+          const bounds = host.getBoundingClientRect();
+          app.renderer.resize(bounds.width, bounds.height);
           cancelFrame();
           paint(performance.now());
         });
@@ -2463,6 +2657,8 @@ export async function createMap(
     select,
     reset: () => {
       motions.clear();
+      debugPaintTime = undefined;
+      expeditionAway.clear();
       selectedId = undefined;
       hoveredId = undefined;
     },

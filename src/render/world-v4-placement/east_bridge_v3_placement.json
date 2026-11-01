@@ -1,0 +1,802 @@
+{
+  "status": "数值约束通过，西端底脚被端柱覆盖；上沿代理点仍在端柱轮廓外，南桥旧栏杆并存。供审查，未通过完整接缝视觉验收。",
+  "coordinate": "[x,y,1] @ matrix_3x2 = 裁后；世界=裁后+(342,200)",
+  "layer_order": [
+    "主台v3",
+    "东桥v3",
+    "南桥v1或v1c",
+    "东台v1b",
+    "南台v1",
+    "fg/out全部前景件，端柱最后"
+  ],
+  "east": {
+    "selected": "east_bridge_c4",
+    "png": "east_bridge_v3.png",
+    "cropped_origin": [3106, 1143],
+    "world_origin": [3448, 1343],
+    "size": [492, 367],
+    "matrix_3x2": [
+      [0.6592160952023502, -0.01065499123771365],
+      [-0.011947334500643917, 0.6071662014751207],
+      [2800.0000100558163, 1013.6778999167731]
+    ],
+    "residual_px": [
+      2.257610359244792, 2.2937287415381973, 2.347483383097816,
+      2.3113650008069517
+    ],
+    "max_residual_px": 2.347483383097816,
+    "RGB_gains": [1.020728711218921, 0.9932523054092489, 1.004640452922855],
+    "before": {
+      "pixels": 27429,
+      "mean_S": 0.029523499310016632,
+      "mean_V": 0.7477025985717773,
+      "median_RGB": [188.0, 189.0, 184.0]
+    },
+    "after": {
+      "pixels": 11004,
+      "mean_S": 0.03859136998653412,
+      "mean_V": 0.7584964036941528,
+      "median_RGB": [192.0, 188.0, 185.0]
+    }
+  },
+  "references_recomputed_mean": {
+    "v3_imperial_road": {
+      "pixels": 1915,
+      "mean_S": 0.0403423085808754,
+      "mean_V": 0.8512609004974365,
+      "median_RGB": [217.0, 212.0, 208.0]
+    },
+    "v3_east_mouth": {
+      "pixels": 1538,
+      "mean_S": 0.03867124393582344,
+      "mean_V": 0.7589101791381836,
+      "median_RGB": [193.0, 189.0, 186.0]
+    },
+    "east_landing": {
+      "pixels": 10890,
+      "mean_S": 0.03141670674085617,
+      "mean_V": 0.9904320240020752,
+      "median_RGB": [254.0, 251.0, 245.0]
+    },
+    "south_landing": {
+      "pixels": 13157,
+      "mean_S": 0.024182869121432304,
+      "mean_V": 0.8580731153488159,
+      "median_RGB": [219.0, 217.0, 215.0]
+    }
+  },
+  "target_definition": {
+    "original_post_centers_TRBL": [
+      [3299.5, 1183.0],
+      [3564.002, 1300.673],
+      [3397.849, 1381.472],
+      [3121.5, 1272.0]
+    ],
+    "bridge_unit_direction": [0.9219896644306664, 0.3872144866647259],
+    "adjusted_targets_TRBL": [
+      [3287.152, 1175.633],
+      [3564.002, 1300.673],
+      [3397.849, 1381.472],
+      [3116.735, 1256.301]
+    ],
+    "note": "西端采用桥面T/L公式角；东端采用桥头柱脚实测中心。"
+  },
+  "edge": {
+    "paving_alpha_not255": 0,
+    "edge2_RB_over_G8": 0
+  },
+  "west_rail_endpoint_cropped": [
+    [3287.1473732296863, 1173.9356242445226],
+    [3120.790195944015, 1255.5309782457166]
+  ],
+  "west_rail_offset_from_original_posts": [
+    [-12.352626770313691, -9.064375755477386],
+    [-0.7098040559849323, -16.469021754283403]
+  ],
+  "far_ball_crop": {
+    "roi_cropped": [3556, 1244, 3579, 1266],
+    "visible_pixels_before": 330,
+    "visible_alpha128_before": 87,
+    "visible_bbox_cropped": [3556, 1244, 3579, 1266],
+    "changed_alpha_pixels": 330,
+    "removed_nonzero_pixels": 330,
+    "method": "桥头远侧球顶上部ROI内以东台alpha>=250的不透明外轮廓为界裁桥alpha；不改变RGB、不补内容；ROI坐标由两层alpha上边界突起读取，±2px。",
+    "remaining_nonzero_outside_alpha250_pixels": 0,
+    "remaining_effective_alpha_max": 0.0,
+    "remaining_alpha128_pixels": 0
+  },
+  "east_color": {
+    "output": {
+      "pixels": 11004,
+      "RGB": [193.4075469970703, 189.03224182128906, 185.92103576660156],
+      "S": 0.03859136998653412,
+      "V": 0.7584964036941528,
+      "H": 24.879695892333984,
+      "Lab": [76.78438568115234, 0.9843650460243225, 2.1074581146240234]
+    },
+    "reference": {
+      "pixels": 1538,
+      "RGB": [193.5216827392578, 189.0162353515625, 186.0631866455078],
+      "S": 0.03867124393582344,
+      "V": 0.7589101791381836,
+      "H": 23.769168853759766,
+      "Lab": [76.8054428100586, 1.0537528991699219, 2.048988103866577]
+    },
+    "difference": {
+      "S_relative_percent": -0.2065461080638542,
+      "V_relative_percent": -0.05452232100782162,
+      "delta_H_deg": 1.1105270385742188,
+      "delta_E76": 0.0931494444422809,
+      "RGB_difference": [
+        -0.1141357421875, 0.0160064697265625, -0.14215087890625
+      ]
+    }
+  },
+  "south_color": {
+    "before": {
+      "pixels": 10858,
+      "RGB": [202.507568359375, 201.66717529296875, 195.14947509765625],
+      "S": 0.03781940042972565,
+      "V": 0.7954854369163513,
+      "H": 53.37356948852539,
+      "Lab": [80.99658203125, -0.8629481196403503, 3.345047950744629]
+    },
+    "reference": {
+      "pixels": 1519,
+      "RGB": [202.33518981933594, 198.580078125, 196.4984893798828],
+      "S": 0.037784066051244736,
+      "V": 0.7963986396789551,
+      "H": 21.402132034301758,
+      "Lab": [80.16922760009766, 0.9500287771224976, 1.4789129495620728]
+    },
+    "difference_before": {
+      "S_relative_percent": 0.09351661208985007,
+      "V_relative_percent": -0.11466653973339902,
+      "delta_H_deg": 31.971437454223633,
+      "delta_E76": 2.7301758964546377,
+      "RGB_difference": [
+        0.1723785400390625, 3.08709716796875, -1.3490142822265625
+      ]
+    },
+    "selected_png": "bridges/out/south_bridge_v1.png",
+    "output": {
+      "pixels": 10858,
+      "RGB": [202.507568359375, 201.66717529296875, 195.14947509765625],
+      "S": 0.03781940042972565,
+      "V": 0.7954854369163513,
+      "H": 53.37356948852539,
+      "Lab": [80.99658203125, -0.8629481196403503, 3.345047950744629]
+    },
+    "difference": {
+      "S_relative_percent": 0.09351661208985007,
+      "V_relative_percent": -0.11466653973339902,
+      "delta_H_deg": 31.971437454223633,
+      "delta_E76": 2.7301758964546377,
+      "RGB_difference": [
+        0.1723785400390625, 3.08709716796875, -1.3490142822265625
+      ]
+    }
+  },
+  "foreground_snapshot": [
+    {
+      "original": "fg/out/array_lamp_01.png",
+      "sha256": "8ed79cb03fe84d96d7a4f55ff046012d48ed8ea65fbacf73ae57802ed3f238ad"
+    },
+    {
+      "original": "fg/out/array_lamp_02.png",
+      "sha256": "30fd3ba9dfa7d0f7c5065f432b884203be58340b38e9791c0e28092da241c6e5"
+    },
+    {
+      "original": "fg/out/array_lamp_03.png",
+      "sha256": "fc24598fcaf335e7dc64d6752a01aaa5e9fe5f0abf0c15296a8883bafa9b5f67"
+    },
+    {
+      "original": "fg/out/array_lamp_04.png",
+      "sha256": "052fe1810b7c692c103cee3bcb203c72e47d32dc610ed447095e22b42d68b3d2"
+    },
+    {
+      "original": "fg/out/array_lamp_05.png",
+      "sha256": "6265412e698fc6f4c1e007ffc37e2054428744aa4c0c9c83dd93169a25536735"
+    },
+    {
+      "original": "fg/out/array_lamp_06.png",
+      "sha256": "2e845efa05a17907c4dae250c0fa92eb15f04d1ce03ba3db3ffc7e1e5136ad33"
+    },
+    {
+      "original": "fg/out/dorm_1.png",
+      "sha256": "b47c82932c08db42aa9e81fe0178ad38b48202fabd0bad5ed6b58690c6e3da6c"
+    },
+    {
+      "original": "fg/out/dorm_4.png",
+      "sha256": "08b56b94e86c3e89997fc97170b31f3e4ee1a16933eb6b91fa871a14eb85c893"
+    },
+    {
+      "original": "fg/out/dorm_5.png",
+      "sha256": "de26109c4e2afc389cf1e07a38d60f8de5b4b0b8d04b3c46498aef7e757d61bd"
+    },
+    {
+      "original": "fg/out/dorm_gatehouse.png",
+      "sha256": "9629ce6dae326358b54f1694cc015f59666677221d89a608b56b2a6cddd1ada4"
+    },
+    {
+      "original": "fg/out/dorm_yard_frontwall_01.png",
+      "sha256": "8bf4be4656786712268f9c3198bd744ecaa843296a1a2207b0894dbd32ab4015"
+    },
+    {
+      "original": "fg/out/dorm_yard_frontwall_02.png",
+      "sha256": "340af9038b83768ebf97102af468866a2a818de6721af45723ebb5ccbf830d48"
+    },
+    {
+      "original": "fg/out/dorm_yard_frontwall_03.png",
+      "sha256": "627a7eacc77d524b4c463c14ba24cd95b39b5ab4110428e9ba2fa512d300dd41"
+    },
+    {
+      "original": "fg/out/dorm_yard_frontwall_04.png",
+      "sha256": "ebaf08532d7fd80142e092b62afa7198ec83b548f9624470cf11c947c70c551c"
+    },
+    {
+      "original": "fg/out/dorm_yard_frontwall_05.png",
+      "sha256": "a95c777e7d098f56796b84f98b8c330a3faab5631a029fd15ddc394d724dbd7e"
+    },
+    {
+      "original": "fg/out/dorm_yard_frontwall_06.png",
+      "sha256": "07316cd9c71be5ca6b68ae20e1906bf21f5c6c7eeba453937c182dde89a37481"
+    },
+    {
+      "original": "fg/out/gate.png",
+      "sha256": "31c42a94b3361b94e3b7231aadf964ef60978c5e20251af3b1947982b91a742a"
+    },
+    {
+      "original": "fg/out/gate_pine.png",
+      "sha256": "e8540e73bb06f07629e2a6d612ae283cfb580ba5bf6b5b461e3b0320df9f57d7"
+    },
+    {
+      "original": "fg/out/hall_front.png",
+      "sha256": "fb18c30e5ec9d4759b06a46583baa6c9fa554ae5b2136e0973350e6d7e51f8b6"
+    },
+    {
+      "original": "fg/out/rail_east_01.png",
+      "sha256": "d45fd2513d93db7cefe1ef3bcb4cfc5f99d894b4bdd7edee582f5d89b130c2df"
+    },
+    {
+      "original": "fg/out/rail_east_02.png",
+      "sha256": "b083744039c3228880c66c89f8cee32e2a184edad85c23e06d735b1d2608e0df"
+    },
+    {
+      "original": "fg/out/rail_east_03.png",
+      "sha256": "579c5a406121fc9bfeaf47e44821e80555297d57822993f1b052c587876afe08"
+    },
+    {
+      "original": "fg/out/rail_east_04.png",
+      "sha256": "361206e68c17c6d3b8267c7f20c1d155710170b538b1541c4050991c0dc221d6"
+    },
+    {
+      "original": "fg/out/rail_east_05.png",
+      "sha256": "26492c85dc256be9f2bc8e8dcee1cb7da8ccb80bb281813b2d1c981c05c3e377"
+    },
+    {
+      "original": "fg/out/rail_east_06.png",
+      "sha256": "5008a866ca01218c0f55d97e6a2e256fb98acb95a985d45f51f4405a8c1766fe"
+    },
+    {
+      "original": "fg/out/rail_east_07.png",
+      "sha256": "f3bfe0e171a5890efaf9c43a2021f83691e8b3910db2f41ff6d5d173fba289e5"
+    },
+    {
+      "original": "fg/out/rail_east_08.png",
+      "sha256": "d3482e4f24e08b6a181d09fc7f4a1cea26073eb32740ef977e56450803dc5a61"
+    },
+    {
+      "original": "fg/out/rail_mid_01.png",
+      "sha256": "3c825b30277aa1a27c78893662ea88aea22bffc34d99c567e899f375fc77996f"
+    },
+    {
+      "original": "fg/out/rail_mid_02.png",
+      "sha256": "c0274a96d43c65ea56d6a9cd8841a566f2ab9bdaeba5037c7714af61d8be1323"
+    },
+    {
+      "original": "fg/out/rail_mid_03.png",
+      "sha256": "b8fade66316ccb4b434411aa26db289a723cc7a2471a4c294774e2db5e526eac"
+    },
+    {
+      "original": "fg/out/rail_mid_04.png",
+      "sha256": "404c603dd75c6a03be76beb634b33dcfd346f5a3a3df2215be2df790974ea1b1"
+    },
+    {
+      "original": "fg/out/rail_mid_05.png",
+      "sha256": "9a35547368052e788f0792fc875e0cf28ac9542d72900a9fdf5c6ad850b594eb"
+    },
+    {
+      "original": "fg/out/rail_mid_06.png",
+      "sha256": "20742da05dd4f2aac48a9ecfe92041eddb9d577f7cce28de53fcb67b9deaf823"
+    },
+    {
+      "original": "fg/out/rail_west_01.png",
+      "sha256": "c46ea2fe28e409d5aef96512da09f1fc4e83afcb502676814a3ed1643a9737ea"
+    },
+    {
+      "original": "fg/out/rail_west_02.png",
+      "sha256": "bd3079cefaf45837eb8a18b5be1e3ce408dbbb895603fd7ed0674ee39a5b426c"
+    },
+    {
+      "original": "fg/out/rail_west_03.png",
+      "sha256": "cead0f034c546111eb9b79987e27fb5b3ef5393bafa62585f28f6066f9ea74bb"
+    },
+    {
+      "original": "fg/out/rail_west_04.png",
+      "sha256": "03aeb954cd7d9bae84ab066e7cc8a65b8ff83174f836c6f8797b8f8373f35b51"
+    },
+    {
+      "original": "fg/out/tower.png",
+      "sha256": "acb8193a66494177f338318e169ce09a0bf1aae2726d961ea9c762f1d31bb31b"
+    },
+    {
+      "original": "fg/out/tree_T1.png",
+      "sha256": "4cfd0fd24a759b01ab9b318171ec16679b0bec1666260359ed1f24346fc6f190"
+    },
+    {
+      "original": "fg/out/tree_T2.png",
+      "sha256": "b07f21a393a687eac1060cad18b83bda963bceb4887fd48ec97724e2d857b046"
+    },
+    {
+      "original": "fg/out/tree_T3.png",
+      "sha256": "70759de5f1bc8dbea8992490c22aa2086dff20c10fd81592b8c7d9d6040dcf67"
+    },
+    {
+      "original": "fg/out/tree_T4.png",
+      "sha256": "6f6618b593586799a2e0a1e47afdd6db86d91c5e0f9fd4898d37b1ab7936d4a8"
+    },
+    {
+      "original": "fg/out/tree_T5.png",
+      "sha256": "ba2a92115e438ac1ad3616cb4311f532c591eae2ab5a9a9d18d056d599ab8a87"
+    },
+    {
+      "original": "fg/out/main_east_mouth_post_low.png",
+      "sha256": "1d25774bf0ee4d14e5bd5f2ca8fe30cf642ab5f9ef90e17c05eca193dace8b63"
+    },
+    {
+      "original": "fg/out/main_east_mouth_post_high.png",
+      "sha256": "3f1a4216ff4020b488e6b6eddf6338f7ff1b737086014afb6cb4b9f04d477c28"
+    }
+  ],
+  "foreground_restore": {
+    "piece_count": 45,
+    "max_channel_difference": 0,
+    "mismatch_pixels": 0,
+    "RGBA_max_difference": 0,
+    "RGBA_mismatch_pixels": 0,
+    "items": [
+      {
+        "file": "array_lamp_01.png",
+        "rgb_max_difference": 0,
+        "rgb_mismatch_pixels": 0
+      },
+      {
+        "file": "array_lamp_02.png",
+        "rgb_max_difference": 0,
+        "rgb_mismatch_pixels": 0
+      },
+      {
+        "file": "array_lamp_03.png",
+        "rgb_max_difference": 0,
+        "rgb_mismatch_pixels": 0
+      },
+      {
+        "file": "array_lamp_04.png",
+        "rgb_max_difference": 0,
+        "rgb_mismatch_pixels": 0
+      },
+      {
+        "file": "array_lamp_05.png",
+        "rgb_max_difference": 0,
+        "rgb_mismatch_pixels": 0
+      },
+      {
+        "file": "array_lamp_06.png",
+        "rgb_max_difference": 0,
+        "rgb_mismatch_pixels": 0
+      },
+      {
+        "file": "dorm_1.png",
+        "rgb_max_difference": 0,
+        "rgb_mismatch_pixels": 0
+      },
+      {
+        "file": "dorm_4.png",
+        "rgb_max_difference": 0,
+        "rgb_mismatch_pixels": 0
+      },
+      {
+        "file": "dorm_5.png",
+        "rgb_max_difference": 0,
+        "rgb_mismatch_pixels": 0
+      },
+      {
+        "file": "dorm_gatehouse.png",
+        "rgb_max_difference": 0,
+        "rgb_mismatch_pixels": 0
+      },
+      {
+        "file": "dorm_yard_frontwall_01.png",
+        "rgb_max_difference": 0,
+        "rgb_mismatch_pixels": 0
+      },
+      {
+        "file": "dorm_yard_frontwall_02.png",
+        "rgb_max_difference": 0,
+        "rgb_mismatch_pixels": 0
+      },
+      {
+        "file": "dorm_yard_frontwall_03.png",
+        "rgb_max_difference": 0,
+        "rgb_mismatch_pixels": 0
+      },
+      {
+        "file": "dorm_yard_frontwall_04.png",
+        "rgb_max_difference": 0,
+        "rgb_mismatch_pixels": 0
+      },
+      {
+        "file": "dorm_yard_frontwall_05.png",
+        "rgb_max_difference": 0,
+        "rgb_mismatch_pixels": 0
+      },
+      {
+        "file": "dorm_yard_frontwall_06.png",
+        "rgb_max_difference": 0,
+        "rgb_mismatch_pixels": 0
+      },
+      {
+        "file": "gate.png",
+        "rgb_max_difference": 0,
+        "rgb_mismatch_pixels": 0
+      },
+      {
+        "file": "gate_pine.png",
+        "rgb_max_difference": 0,
+        "rgb_mismatch_pixels": 0
+      },
+      {
+        "file": "hall_front.png",
+        "rgb_max_difference": 0,
+        "rgb_mismatch_pixels": 0
+      },
+      {
+        "file": "rail_east_01.png",
+        "rgb_max_difference": 0,
+        "rgb_mismatch_pixels": 0
+      },
+      {
+        "file": "rail_east_02.png",
+        "rgb_max_difference": 0,
+        "rgb_mismatch_pixels": 0
+      },
+      {
+        "file": "rail_east_03.png",
+        "rgb_max_difference": 0,
+        "rgb_mismatch_pixels": 0
+      },
+      {
+        "file": "rail_east_04.png",
+        "rgb_max_difference": 0,
+        "rgb_mismatch_pixels": 0
+      },
+      {
+        "file": "rail_east_05.png",
+        "rgb_max_difference": 0,
+        "rgb_mismatch_pixels": 0
+      },
+      {
+        "file": "rail_east_06.png",
+        "rgb_max_difference": 0,
+        "rgb_mismatch_pixels": 0
+      },
+      {
+        "file": "rail_east_07.png",
+        "rgb_max_difference": 0,
+        "rgb_mismatch_pixels": 0
+      },
+      {
+        "file": "rail_east_08.png",
+        "rgb_max_difference": 0,
+        "rgb_mismatch_pixels": 0
+      },
+      {
+        "file": "rail_mid_01.png",
+        "rgb_max_difference": 0,
+        "rgb_mismatch_pixels": 0
+      },
+      {
+        "file": "rail_mid_02.png",
+        "rgb_max_difference": 0,
+        "rgb_mismatch_pixels": 0
+      },
+      {
+        "file": "rail_mid_03.png",
+        "rgb_max_difference": 0,
+        "rgb_mismatch_pixels": 0
+      },
+      {
+        "file": "rail_mid_04.png",
+        "rgb_max_difference": 0,
+        "rgb_mismatch_pixels": 0
+      },
+      {
+        "file": "rail_mid_05.png",
+        "rgb_max_difference": 0,
+        "rgb_mismatch_pixels": 0
+      },
+      {
+        "file": "rail_mid_06.png",
+        "rgb_max_difference": 0,
+        "rgb_mismatch_pixels": 0
+      },
+      {
+        "file": "rail_west_01.png",
+        "rgb_max_difference": 0,
+        "rgb_mismatch_pixels": 0
+      },
+      {
+        "file": "rail_west_02.png",
+        "rgb_max_difference": 0,
+        "rgb_mismatch_pixels": 0
+      },
+      {
+        "file": "rail_west_03.png",
+        "rgb_max_difference": 0,
+        "rgb_mismatch_pixels": 0
+      },
+      {
+        "file": "rail_west_04.png",
+        "rgb_max_difference": 0,
+        "rgb_mismatch_pixels": 0
+      },
+      {
+        "file": "tower.png",
+        "rgb_max_difference": 0,
+        "rgb_mismatch_pixels": 0
+      },
+      {
+        "file": "tree_T1.png",
+        "rgb_max_difference": 0,
+        "rgb_mismatch_pixels": 0
+      },
+      {
+        "file": "tree_T2.png",
+        "rgb_max_difference": 0,
+        "rgb_mismatch_pixels": 0
+      },
+      {
+        "file": "tree_T3.png",
+        "rgb_max_difference": 0,
+        "rgb_mismatch_pixels": 0
+      },
+      {
+        "file": "tree_T4.png",
+        "rgb_max_difference": 0,
+        "rgb_mismatch_pixels": 0
+      },
+      {
+        "file": "tree_T5.png",
+        "rgb_max_difference": 0,
+        "rgb_mismatch_pixels": 0
+      },
+      {
+        "file": "main_east_mouth_post_low.png",
+        "rgb_max_difference": 0,
+        "rgb_mismatch_pixels": 0
+      },
+      {
+        "file": "main_east_mouth_post_high.png",
+        "rgb_max_difference": 0,
+        "rgb_mismatch_pixels": 0
+      }
+    ]
+  },
+  "seam_world_boxes": {
+    "main": [3388, 1308, 3712, 1542],
+    "platform": [3664, 1425, 3977, 1652]
+  },
+  "old_exposure": {
+    "parts": [
+      {
+        "name": "原近端柱（有意保留）",
+        "polygon_pixels": 1392,
+        "uncovered_pixels": 890,
+        "bbox_cropped_xyxy": [3109, 1211, 3134, 1271]
+      },
+      {
+        "name": "原远端柱（有意保留）",
+        "polygon_pixels": 1498,
+        "uncovered_pixels": 833,
+        "bbox_cropped_xyxy": [3286, 1122, 3313, 1176]
+      },
+      {
+        "name": "远侧旧栏杆",
+        "polygon_pixels": 2450,
+        "uncovered_pixels": 2150,
+        "bbox_cropped_xyxy": [3310, 1113, 3368, 1175]
+      }
+    ],
+    "uncovered_pixels": 3812,
+    "bbox_cropped_xyxy": [3109, 1113, 3368, 1271],
+    "method": "新桥/东台alpha>=250覆盖；保留原柱前景不计为消除旧柱，避免统计自遮挡。多边形包括孔洞背景，非精确石材面积。"
+  },
+  "landing": {
+    "pad_pixels": 27793,
+    "corridor_pixels": 14002,
+    "semantic_object_pixels_pad_estimate": 86,
+    "semantic_object_pixels_corridor_estimate": 0,
+    "method": "沿用未修改东台v1b的旧人工药架杆mask，最终全景复核；轮廓约±2px。中央带1格宽。"
+  },
+  "seams": {
+    "main": {
+      "deck_lines_world": [
+        [
+          [3482.6666666666665, 1458.6666666666667],
+          [3630.0, 1381.3333333333333]
+        ],
+        [
+          [3477.5836004595103, 1436.447468219319],
+          [3629.5644472244735, 1376.0699413272748]
+        ]
+      ],
+      "deck_signed_normal_offsets_px": [
+        -22.036129928647554, -4.862838694241638
+      ],
+      "deck_normal_offsets_px": [22.036129928647554, 4.862838694241638],
+      "rail_pairs": [
+        {
+          "original_world": [3464.6666666666665, 1431.3333333333333],
+          "bridge_world": [3445.551874642631, 1425.9060529606809],
+          "vertical_difference_px": -5.427280372652376,
+          "endpoint_distance_px": 19.870345904525916
+        },
+        {
+          "original_world": [3643.0, 1348.0],
+          "bridge_world": [3619.951549479589, 1347.871714761487],
+          "vertical_difference_px": -0.1282852385129445,
+          "endpoint_distance_px": 23.048807528682396
+        }
+      ],
+      "method": "v2已手读面边/上沿样点：保留原台样点，将桥样点逆v2仿射再正变换v3；属旧读点推算，不冒充v3新视觉实测，±4px；球顶裁切不修改这些栏杆样点。",
+      "double_posts": 0,
+      "deck_to_requested_line_normal_px": [1.809713838397358, 1.852803877524402]
+    },
+    "platform": {
+      "deck_lines_world": [
+        [
+          [3756.3333333333335, 1571.6666666666667],
+          [3900.6666666666665, 1502.0]
+        ],
+        [
+          [3763.4605174802946, 1575.589988590937],
+          [3903.5978558507886, 1509.1002393784222]
+        ]
+      ],
+      "deck_signed_normal_offsets_px": [6.631386233580034, 7.668492813502841],
+      "deck_normal_offsets_px": [6.631386233580034, 7.668492813502841],
+      "rail_pairs": [
+        {
+          "original_world": [3742.3333333333335, 1546.6666666666667],
+          "bridge_world": [3741.3976987714004, 1548.879242300978],
+          "vertical_difference_px": 2.212575634311179,
+          "endpoint_distance_px": 2.4022703784193773
+        },
+        {
+          "original_world": [3906.6666666666665, 1471.0],
+          "bridge_world": [3902.3643031069914, 1479.5673873226854],
+          "vertical_difference_px": 8.567387322685363,
+          "endpoint_distance_px": 9.586994197167845
+        }
+      ],
+      "method": "v2已手读面边/上沿样点：保留原台样点，将桥样点逆v2仿射再正变换v3；属旧读点推算，不冒充v3新视觉实测，±4px；球顶裁切不修改这些栏杆样点。",
+      "double_posts": 0,
+      "deck_to_requested_line_normal_px": [1.557657719116393, 4.33832696623364]
+    }
+  },
+  "west_endpoint_coverage": [
+    {
+      "post": "high",
+      "endpoint_cropped": [3287.1473732296863, 1173.9356242445226],
+      "offset_from_original_base": [-12.352626770313691, -9.064375755477386],
+      "post_alpha_at_endpoint": 255,
+      "distance_to_alpha128_px": 0.0,
+      "covered": true
+    },
+    {
+      "post": "low",
+      "endpoint_cropped": [3120.790195944015, 1255.5309782457166],
+      "offset_from_original_base": [-0.7098040559849323, -16.469021754283403],
+      "post_alpha_at_endpoint": 255,
+      "distance_to_alpha128_px": 0.0,
+      "covered": true
+    }
+  ],
+  "mouth_strip": {
+    "polygon_pixels": 3200,
+    "bridge_alpha250_covered": 3188,
+    "uncovered": 12,
+    "note": "公式桥口条整体含两端栏杆；按alpha>=250计桥覆盖，非石材/草语义分割。",
+    "v2_uncovered": 3106,
+    "uncovered_bbox_cropped": [3117, 1246, 3145, 1257]
+  },
+  "south_old_exposure_recomputed": {
+    "polygon_pixels": 86133,
+    "uncovered_pixels": 1534,
+    "bbox_world": [965, 1343, 1260, 1498],
+    "method": "与东区同口径；桥和台alpha>=250，含多边形内背景。"
+  },
+  "south_landing": {
+    "pad_pixels": 45767,
+    "corridor_pixels": 13941,
+    "existing_platform_object_pixels_pad": 429,
+    "existing_platform_object_pixels_corridor": 0,
+    "note": "沿用已核定南台实体mask；云纹计为铺装。台层在桥层之上。"
+  },
+  "blank_regions": {
+    "world_size": [4997, 2579],
+    "main_world_rect": [342, 200, 3942, 2120],
+    "outside_main_canvas_pixels": 5975263,
+    "background_color": [200, 210, 222],
+    "note": "粉色标记主台矩形画布外全区，不是新增云海；区内平台仍有内容，背后没有主台云海。为不裁平台，世界画布向下扩展。",
+    "east": {
+      "platform_nonzero_pixels_outside_main": 653337,
+      "platform_alpha128_pixels_outside_main": 600438,
+      "platform_rect_pixels_outside_main": 1313910
+    },
+    "south": {
+      "platform_nonzero_pixels_outside_main": 199585,
+      "platform_alpha128_pixels_outside_main": 177549,
+      "platform_rect_pixels_outside_main": 796112
+    }
+  },
+  "readonly_validation": {
+    "file_count": 1194,
+    "changed": [
+      "/workspace/review/batch3/east-south-fg/background/PROGRESS.md",
+      "/workspace/review/batch3/east-south-fg/background/scripts/common.py",
+      "/workspace/review/batch3/east-south-fg/background/prompts/g_R1.txt",
+      "/workspace/review/batch3/east-south-fg/background/prompts/g_Ta.txt",
+      "/workspace/review/batch3/east-south-fg/background/prompts/g_R3.txt",
+      "/workspace/review/batch3/east-south-fg/background/prompts/g_Ba.txt",
+      "/workspace/review/batch3/east-south-fg/background/prompts/g_L2.txt",
+      "/workspace/review/batch3/east-south-fg/background/scripts/__pycache__/common.cpython-313.pyc"
+    ],
+    "unchanged": false,
+    "protected_changed": [],
+    "protected_unchanged": true,
+    "note": "background脚本并发变动，本任务未导入或写入background；不将全工作区误报为零变化。"
+  },
+  "selection": {
+    "east": "v3",
+    "reason": "西端桥面改用公式角，四点最大残差由4.327降至2.347px；RGB暖灰匹配且远侧球顶仅裁alpha。接缝仍有栏杆收口偏差，未声称视觉全通过。",
+    "south": "bridges/out/south_bridge_v1.png"
+  },
+  "output_sha256": {
+    "bridges/out/east_bridge_v3.png": "006bbd98dae241f99eb3816cbd09625bd87a9d747dab5aa7ecffaa2bbd5378b1",
+    "bridges/view/full_composite_final.png": "0daa0c0ab51f3a2e419e6ca49a52029552f665075d778ec29227ee0411450e43"
+  },
+  "west_rail_upper_proxy": [
+    {
+      "post": "low",
+      "top_proxy_cropped": [3103.551874642631, 1225.9060529606809],
+      "top_post_alpha": 0,
+      "top_distance_to_post_alpha128_px": 6.4031242374328485,
+      "endpoint_centerline_length_px": 34.27529605172945,
+      "uncovered_centerline_length_estimate_px": 25.6465501925528,
+      "centerline_max_distance_to_post_px": 6.4031242374328485,
+      "method": "用v2手读桥上沿点重投影至v3，连到本次已知底脚；只估计端面中心线，非整栏杆语义轮廓；±4px。"
+    },
+    {
+      "post": "high",
+      "top_proxy_cropped": [3277.951549479589, 1147.871714761487],
+      "top_post_alpha": 0,
+      "top_distance_to_post_alpha128_px": 11.0,
+      "endpoint_centerline_length_px": 27.638570006111415,
+      "uncovered_centerline_length_estimate_px": 25.043139855687365,
+      "centerline_max_distance_to_post_px": 11.0,
+      "method": "用v2手读桥上沿点重投影至v3，连到本次已知底脚；只估计端面中心线，非整栏杆语义轮廓；±4px。"
+    }
+  ]
+}

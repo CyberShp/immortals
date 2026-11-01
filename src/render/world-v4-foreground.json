@@ -1,0 +1,2002 @@
+{
+  "canvas": [3600, 1920],
+  "source": "/workspace/review/batch3/main-platform/v4refine/v3/main_platform_v4refine_v3_3600x1920.png",
+  "source_sha256": "efa51cd662db67e7d72d753f0c0979ccc570357376c7956a8be311532d3d325e",
+  "world_offset": [342, 200],
+  "layer_order": "主台v3 → 桥 → 东/南台 → 角色与前景件按基线 y 排序；基线大者在前。同基线预览按文件名稳定排序。",
+  "overlap_note": "main_east_mouth_post_low/high 与 rail_east_06/rail_east_07 的端柱像素重叠，重叠不影响零差。",
+  "file_count": 45,
+  "cleaned_count": 30,
+  "unchanged_building_count": 13,
+  "combined_zero_diff": {
+    "max_channel_difference": 0,
+    "mismatch_pixel_count": 0
+  },
+  "total_deleted_pixels": 752,
+  "objects": [
+    {
+      "filename": "array_lamp_01.png",
+      "bbox": [2203, 1248, 2237, 1331],
+      "bbox_convention": "[x0,y0,x1,y1)，右下不含",
+      "sort_baseline_y_cropped": 1330.0,
+      "sort_baseline_y_world": 1530.0,
+      "source_polygon_reference": "§4 array；圆盘中心uv(40.554,4.399)，从屏幕北侧起顺时针",
+      "source_polygon": [
+        [2203, 1325.0],
+        [2237, 1325.0],
+        [2237, 1330.0],
+        [2203, 1330.0]
+      ],
+      "root_or_contact_point": [2219.0, 1330.0],
+      "roi_polygon": [
+        [2201, 1330.0],
+        [2239, 1330.0],
+        [2239, 1246],
+        [2201, 1246]
+      ],
+      "pixels_alpha_positive": 1778,
+      "pixels_alpha_255": 1507,
+      "feather_width_px": 1.5,
+      "notes": "放大图手点灯帽、灯身、柱墩轮廓；排除阵盘地面和相邻弧栏。",
+      "occlusion": "无需要补画的位置；灯帽、灯身、柱墩是源图可见轮廓，阵盘及旁边栏杆不含。",
+      "cleanup": {
+        "non_object_removed_pixels": 0,
+        "isolated_removed_pixels": 0,
+        "deleted_pixels": 0,
+        "alpha_lowered_nonzero_pixels": 0
+      },
+      "zero_diff": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "rgb_all_pixels": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "sha256": "8ed79cb03fe84d96d7a4f55ff046012d48ed8ea65fbacf73ae57802ed3f238ad"
+    },
+    {
+      "filename": "array_lamp_02.png",
+      "bbox": [2413, 1374, 2448, 1453],
+      "bbox_convention": "[x0,y0,x1,y1)，右下不含",
+      "sort_baseline_y_cropped": 1452.0,
+      "sort_baseline_y_world": 1652.0,
+      "source_polygon_reference": "§4 array；圆盘中心uv(40.554,4.399)，从屏幕北侧起顺时针",
+      "source_polygon": [
+        [2413, 1447.0],
+        [2448, 1447.0],
+        [2448, 1452.0],
+        [2413, 1452.0]
+      ],
+      "root_or_contact_point": [2431.0, 1452.0],
+      "roi_polygon": [
+        [2411, 1452.0],
+        [2450, 1452.0],
+        [2450, 1372],
+        [2411, 1372]
+      ],
+      "pixels_alpha_positive": 1909,
+      "pixels_alpha_255": 1640,
+      "feather_width_px": 1.5,
+      "notes": "放大图手点灯帽、灯身、柱墩轮廓；排除阵盘地面和相邻弧栏。",
+      "occlusion": "无需要补画的位置；灯帽、灯身、柱墩是源图可见轮廓，阵盘及旁边栏杆不含。",
+      "cleanup": {
+        "non_object_removed_pixels": 0,
+        "isolated_removed_pixels": 0,
+        "deleted_pixels": 0,
+        "alpha_lowered_nonzero_pixels": 0
+      },
+      "zero_diff": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "rgb_all_pixels": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "sha256": "30fd3ba9dfa7d0f7c5065f432b884203be58340b38e9791c0e28092da241c6e5"
+    },
+    {
+      "filename": "array_lamp_03.png",
+      "bbox": [2172, 1496, 2208, 1605],
+      "bbox_convention": "[x0,y0,x1,y1)，右下不含",
+      "sort_baseline_y_cropped": 1604.0,
+      "sort_baseline_y_world": 1804.0,
+      "source_polygon_reference": "§4 array；圆盘中心uv(40.554,4.399)，从屏幕北侧起顺时针",
+      "source_polygon": [
+        [2172, 1599.0],
+        [2208, 1599.0],
+        [2208, 1604.0],
+        [2172, 1604.0]
+      ],
+      "root_or_contact_point": [2192.0, 1604.0],
+      "roi_polygon": [
+        [2170, 1604.0],
+        [2210, 1604.0],
+        [2210, 1494],
+        [2170, 1494]
+      ],
+      "pixels_alpha_positive": 2552,
+      "pixels_alpha_255": 2213,
+      "feather_width_px": 1.5,
+      "notes": "放大图手点灯帽、灯身、柱墩轮廓；排除阵盘地面和相邻弧栏。",
+      "occlusion": "无需要补画的位置；灯帽、灯身、柱墩是源图可见轮廓，阵盘及旁边栏杆不含。",
+      "cleanup": {
+        "non_object_removed_pixels": 0,
+        "isolated_removed_pixels": 0,
+        "deleted_pixels": 0,
+        "alpha_lowered_nonzero_pixels": 0
+      },
+      "zero_diff": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "rgb_all_pixels": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "sha256": "fc24598fcaf335e7dc64d6752a01aaa5e9fe5f0abf0c15296a8883bafa9b5f67"
+    },
+    {
+      "filename": "array_lamp_04.png",
+      "bbox": [2100, 1494, 2135, 1608],
+      "bbox_convention": "[x0,y0,x1,y1)，右下不含",
+      "sort_baseline_y_cropped": 1607.0,
+      "sort_baseline_y_world": 1807.0,
+      "source_polygon_reference": "§4 array；圆盘中心uv(40.554,4.399)，从屏幕北侧起顺时针",
+      "source_polygon": [
+        [2100, 1602.0],
+        [2135, 1602.0],
+        [2135, 1607.0],
+        [2100, 1607.0]
+      ],
+      "root_or_contact_point": [2118.0, 1607.0],
+      "roi_polygon": [
+        [2098, 1607.0],
+        [2137, 1607.0],
+        [2137, 1492],
+        [2098, 1492]
+      ],
+      "pixels_alpha_positive": 2918,
+      "pixels_alpha_255": 2565,
+      "feather_width_px": 1.5,
+      "notes": "放大图手点灯帽、灯身、柱墩轮廓；排除阵盘地面和相邻弧栏。",
+      "occlusion": "无需要补画的位置；灯帽、灯身、柱墩是源图可见轮廓，阵盘及旁边栏杆不含。",
+      "cleanup": {
+        "non_object_removed_pixels": 0,
+        "isolated_removed_pixels": 0,
+        "deleted_pixels": 0,
+        "alpha_lowered_nonzero_pixels": 0
+      },
+      "zero_diff": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "rgb_all_pixels": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "sha256": "052fe1810b7c692c103cee3bcb203c72e47d32dc610ed447095e22b42d68b3d2"
+    },
+    {
+      "filename": "array_lamp_05.png",
+      "bbox": [1945, 1420, 1979, 1505],
+      "bbox_convention": "[x0,y0,x1,y1)，右下不含",
+      "sort_baseline_y_cropped": 1504.0,
+      "sort_baseline_y_world": 1704.0,
+      "source_polygon_reference": "§4 array；圆盘中心uv(40.554,4.399)，从屏幕北侧起顺时针",
+      "source_polygon": [
+        [1945, 1499.0],
+        [1979, 1499.0],
+        [1979, 1504.0],
+        [1945, 1504.0]
+      ],
+      "root_or_contact_point": [1951.0, 1504.0],
+      "roi_polygon": [
+        [1943, 1504.0],
+        [1981, 1504.0],
+        [1981, 1418],
+        [1943, 1418]
+      ],
+      "pixels_alpha_positive": 1864,
+      "pixels_alpha_255": 1571,
+      "feather_width_px": 1.5,
+      "notes": "放大图手点灯帽、灯身、柱墩轮廓；排除阵盘地面和相邻弧栏。",
+      "occlusion": "无需要补画的位置；灯帽、灯身、柱墩是源图可见轮廓，阵盘及旁边栏杆不含。",
+      "cleanup": {
+        "non_object_removed_pixels": 2,
+        "isolated_removed_pixels": 0,
+        "deleted_pixels": 2,
+        "alpha_lowered_nonzero_pixels": 4
+      },
+      "zero_diff": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "rgb_all_pixels": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "sha256": "6265412e698fc6f4c1e007ffc37e2054428744aa4c0c9c83dd93169a25536735"
+    },
+    {
+      "filename": "array_lamp_06.png",
+      "bbox": [1986, 1296, 2022, 1378],
+      "bbox_convention": "[x0,y0,x1,y1)，右下不含",
+      "sort_baseline_y_cropped": 1377.0,
+      "sort_baseline_y_world": 1577.0,
+      "source_polygon_reference": "§4 array；圆盘中心uv(40.554,4.399)，从屏幕北侧起顺时针",
+      "source_polygon": [
+        [1986, 1372.0],
+        [2022, 1372.0],
+        [2022, 1377.0],
+        [1986, 1377.0]
+      ],
+      "root_or_contact_point": [2006.0, 1377.0],
+      "roi_polygon": [
+        [1984, 1377.0],
+        [2024, 1377.0],
+        [2024, 1294],
+        [1984, 1294]
+      ],
+      "pixels_alpha_positive": 1845,
+      "pixels_alpha_255": 1570,
+      "feather_width_px": 1.5,
+      "notes": "放大图手点灯帽、灯身、柱墩轮廓；排除阵盘地面和相邻弧栏。",
+      "occlusion": "无需要补画的位置；灯帽、灯身、柱墩是源图可见轮廓，阵盘及旁边栏杆不含。",
+      "cleanup": {
+        "non_object_removed_pixels": 0,
+        "isolated_removed_pixels": 0,
+        "deleted_pixels": 0,
+        "alpha_lowered_nonzero_pixels": 0
+      },
+      "zero_diff": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "rgb_all_pixels": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "sha256": "2e845efa05a17907c4dae250c0fa92eb15f04d1ce03ba3db3ffc7e1e5136ad33"
+    },
+    {
+      "filename": "dorm_1.png",
+      "bbox": [1821, 761, 2046, 938],
+      "bbox_convention": "[x0,y0,x1,y1)，右下不含",
+      "sort_baseline_y_cropped": 978.9,
+      "sort_baseline_y_world": 1178.9,
+      "source_polygon_reference": "14-forge-intake-main-platform-v1.3.md §4 dorm_1",
+      "source_polygon": [
+        [1961.5, 849.7],
+        [2079.7, 905.7],
+        [1924.9, 978.9],
+        [1806.7, 923.0]
+      ],
+      "root_or_contact_point": [1924.9, 978.9],
+      "roi_polygon": [
+        [2107.699951171875, 905.7000122070312],
+        [2059.0, 951.0],
+        [1952.9000244140625, 978.9000244140625],
+        [1896.9000244140625, 978.9000244140625],
+        [1808.0, 951.0],
+        [1778.699951171875, 923.0],
+        [1778.699951171875, 692.0],
+        [1789.0, 664.0],
+        [1933.5, 618.7000122070312],
+        [1989.5, 618.7000122070312],
+        [1996.0, 619.0],
+        [2054.0, 646.0],
+        [2107.699951171875, 674.7000122070312]
+      ],
+      "pixels_alpha_positive": 19587,
+      "pixels_alpha_255": 18672,
+      "feather_width_px": 1,
+      "notes": "按实际前左居舍檐口描边；下缘沿院墙压住建筑的可见交界，不切入院墙；右下灌木遮挡处扣除。",
+      "occlusion": "下部墙体被前院墙遮挡；右下墙脚被灌木遮挡，无法从源图恢复。",
+      "cleanup": {
+        "deleted_pixels": 0
+      },
+      "zero_diff": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "rgb_all_pixels": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "sha256": "b47c82932c08db42aa9e81fe0178ad38b48202fabd0bad5ed6b58690c6e3da6c"
+    },
+    {
+      "filename": "dorm_4.png",
+      "bbox": [2385, 725, 2681, 953],
+      "bbox_convention": "[x0,y0,x1,y1)，右下不含",
+      "sort_baseline_y_cropped": 976.7,
+      "sort_baseline_y_world": 1176.7,
+      "source_polygon_reference": "14-forge-intake-main-platform-v1.3.md §4 dorm_4",
+      "source_polygon": [
+        [2641.9, 808.8],
+        [2739.6, 855.1],
+        [2482.5, 976.7],
+        [2384.8, 930.5]
+      ],
+      "root_or_contact_point": [2482.5, 976.7],
+      "roi_polygon": [
+        [2767.60009765625, 855.0999755859375],
+        [2694.0, 964.0],
+        [2510.5, 976.7000122070312],
+        [2454.5, 976.7000122070312],
+        [2368.0, 964.0],
+        [2356.800048828125, 930.5],
+        [2356.800048828125, 666.5],
+        [2613.89990234375, 544.7999877929688],
+        [2669.89990234375, 544.7999877929688],
+        [2767.60009765625, 591.0999755859375]
+      ],
+      "pixels_alpha_positive": 30539,
+      "pixels_alpha_255": 29283,
+      "feather_width_px": 1,
+      "notes": "按右侧长屋实际轮廓；院墙以上可见墙面保留，下方被院墙遮挡处止切。",
+      "occlusion": "右下墙脚被院墙遮住；左下与 dorm_5 屋面相交处缺少不可见墙体。",
+      "cleanup": {
+        "deleted_pixels": 0
+      },
+      "zero_diff": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "rgb_all_pixels": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "sha256": "08b56b94e86c3e89997fc97170b31f3e4ee1a16933eb6b91fa871a14eb85c893"
+    },
+    {
+      "filename": "dorm_5.png",
+      "bbox": [2230, 898, 2475, 1080],
+      "bbox_convention": "[x0,y0,x1,y1)，右下不含",
+      "sort_baseline_y_cropped": 1116.7,
+      "sort_baseline_y_world": 1316.7,
+      "source_polygon_reference": "14-forge-intake-main-platform-v1.3.md §4 dorm_5",
+      "source_polygon": [
+        [2415.8, 981.1],
+        [2519.3, 1030.0],
+        [2336.1, 1116.7],
+        [2232.7, 1067.7]
+      ],
+      "root_or_contact_point": [2336.1, 1116.7],
+      "roi_polygon": [
+        [2547.300048828125, 1030.0],
+        [2487.0, 1097.0],
+        [2364.10009765625, 1116.699951171875],
+        [2308.10009765625, 1116.699951171875],
+        [2212.0, 1097.0],
+        [2204.699951171875, 1067.699951171875],
+        [2204.699951171875, 832.7000122070312],
+        [2367.0, 747.0],
+        [2387.800048828125, 746.0999755859375],
+        [2443.800048828125, 746.0999755859375],
+        [2478.0, 759.0],
+        [2547.300048828125, 795.0]
+      ],
+      "pixels_alpha_positive": 19033,
+      "pixels_alpha_255": 18098,
+      "feather_width_px": 1,
+      "notes": "保留前右居舍可见屋顶和墙体，底边止于院墙上沿；树冠、树干另扣除。",
+      "occlusion": "下部与右侧墙脚被院墙遮住；左侧被松树遮挡。",
+      "cleanup": {
+        "deleted_pixels": 0
+      },
+      "zero_diff": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "rgb_all_pixels": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "sha256": "de26109c4e2afc389cf1e07a38d60f8de5b4b0b8d04b3c46498aef7e757d61bd"
+    },
+    {
+      "filename": "dorm_gatehouse.png",
+      "bbox": [1987, 937, 2159, 1098],
+      "bbox_convention": "[x0,y0,x1,y1)，右下不含",
+      "sort_baseline_y_cropped": 1115.5,
+      "sort_baseline_y_world": 1315.5,
+      "source_polygon_reference": "14-forge-intake-main-platform-v1.3.md §4 dorm_gatehouse",
+      "source_polygon": [
+        [2013.6, 1021.0],
+        [2144.3, 1082.8],
+        [2075.1, 1115.5],
+        [1944.5, 1053.7]
+      ],
+      "root_or_contact_point": [2075.1, 1115.5],
+      "roi_polygon": [
+        [2174.0, 1109.0],
+        [2103.10009765625, 1115.5],
+        [2047.0999755859375, 1115.5],
+        [1947.0, 1109.0],
+        [1916.5, 1053.699951171875],
+        [1916.5, 859.7000122070312],
+        [1985.5999755859375, 827.0],
+        [2041.5999755859375, 827.0],
+        [2172.300048828125, 888.7999877929688],
+        [2174.0, 921.0]
+      ],
+      "pixels_alpha_positive": 12907,
+      "pixels_alpha_255": 12241,
+      "feather_width_px": 1,
+      "notes": "沿门房屋檐与门柱柱脚切；门洞透出的院内地面和门前台阶均扣除。",
+      "occlusion": "门洞保留透明；左檐邻接院墙花砖带，按可见交界分开，不把墙顶当作檐角补入。",
+      "cleanup": {
+        "deleted_pixels": 0
+      },
+      "zero_diff": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "rgb_all_pixels": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "sha256": "9629ce6dae326358b54f1694cc015f59666677221d89a608b56b2a6cddd1ada4"
+    },
+    {
+      "filename": "dorm_yard_frontwall_01.png",
+      "bbox": [1785, 882, 1955, 1036],
+      "bbox_convention": "[x0,y0,x1,y1)，右下不含",
+      "sort_baseline_y_cropped": 1039.0,
+      "sort_baseline_y_world": 1239.0,
+      "source_polygon_reference": "14-forge-intake-main-platform-v1.3.md §4 dorm_yard",
+      "source_polygon": [
+        [2308.2, 650.9],
+        [2929.3, 944.8],
+        [2288.8, 1248.0],
+        [1667.7, 954.0]
+      ],
+      "root_or_contact_point": [1953, 1039],
+      "roi_polygon": [
+        [2957.300048828125, 944.7999877929688],
+        [2316.800048828125, 1248.0],
+        [2260.800048828125, 1248.0],
+        [1774.0, 1052.0],
+        [1639.699951171875, 954.0],
+        [1639.699951171875, 574.0],
+        [2280.199951171875, 270.8999938964844],
+        [2336.199951171875, 270.8999938964844],
+        [2957.300048828125, 564.7999877929688]
+      ],
+      "pixels_alpha_positive": 10783,
+      "pixels_alpha_255": 9899,
+      "feather_width_px": 1,
+      "notes": "v1侧前左实体院墙第一段；含墙顶砖孔纹饰，不含前景旗杆与树木。",
+      "occlusion": "前景松树、旗杆和草木遮挡墙脚。",
+      "cleanup": {
+        "deleted_pixels": 0
+      },
+      "zero_diff": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "rgb_all_pixels": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "sha256": "8bf4be4656786712268f9c3198bd744ecaa843296a1a2207b0894dbd32ab4015"
+    },
+    {
+      "filename": "dorm_yard_frontwall_02.png",
+      "bbox": [1953, 953, 1992, 1047],
+      "bbox_convention": "[x0,y0,x1,y1)，右下不含",
+      "sort_baseline_y_cropped": 1048.0,
+      "sort_baseline_y_world": 1248.0,
+      "source_polygon_reference": "14-forge-intake-main-platform-v1.3.md §4 dorm_yard",
+      "source_polygon": [
+        [2308.2, 650.9],
+        [2929.3, 944.8],
+        [2288.8, 1248.0],
+        [1667.7, 954.0]
+      ],
+      "root_or_contact_point": [1990, 1048],
+      "roi_polygon": [
+        [2957.300048828125, 944.7999877929688],
+        [2316.800048828125, 1248.0],
+        [2260.800048828125, 1248.0],
+        [1639.699951171875, 954.0],
+        [1639.699951171875, 644.0],
+        [2280.199951171875, 340.8999938964844],
+        [2336.199951171875, 340.8999938964844],
+        [2957.300048828125, 634.7999877929688]
+      ],
+      "pixels_alpha_positive": 3088,
+      "pixels_alpha_255": 2820,
+      "feather_width_px": 1,
+      "notes": "v1侧墙至门房左边的短收口；因门房开口，本段不足 2 格。",
+      "occlusion": "局部墙脚有草木遮挡。",
+      "cleanup": {
+        "deleted_pixels": 0
+      },
+      "zero_diff": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "rgb_all_pixels": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "sha256": "340af9038b83768ebf97102af468866a2a818de6721af45723ebb5ccbf830d48"
+    },
+    {
+      "filename": "dorm_yard_frontwall_03.png",
+      "bbox": [2111, 1009, 2288, 1144],
+      "bbox_convention": "[x0,y0,x1,y1)，右下不含",
+      "sort_baseline_y_cropped": 1158.0,
+      "sort_baseline_y_world": 1358.0,
+      "source_polygon_reference": "14-forge-intake-main-platform-v1.3.md §4 dorm_yard",
+      "source_polygon": [
+        [2308.2, 650.9],
+        [2929.3, 944.8],
+        [2288.8, 1248.0],
+        [1667.7, 954.0]
+      ],
+      "root_or_contact_point": [2286, 1158],
+      "roi_polygon": [
+        [2957.300048828125, 944.7999877929688],
+        [2316.800048828125, 1248.0],
+        [2260.800048828125, 1248.0],
+        [1639.699951171875, 954.0],
+        [1639.699951171875, 700.0],
+        [2280.199951171875, 396.8999938964844],
+        [2336.199951171875, 396.8999938964844],
+        [2957.300048828125, 690.7999877929688]
+      ],
+      "pixels_alpha_positive": 12341,
+      "pixels_alpha_255": 11504,
+      "feather_width_px": 1,
+      "notes": "v1侧门房右侧至前角的实体墙；扣除树木、岩石与墙前旗杆。",
+      "occlusion": "前角墙面及墙脚被松树遮挡。",
+      "cleanup": {
+        "deleted_pixels": 0
+      },
+      "zero_diff": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "rgb_all_pixels": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "sha256": "627a7eacc77d524b4c463c14ba24cd95b39b5ab4110428e9ba2fa512d300dd41"
+    },
+    {
+      "filename": "dorm_yard_frontwall_04.png",
+      "bbox": [2290, 993, 2442, 1143],
+      "bbox_convention": "[x0,y0,x1,y1)，右下不含",
+      "sort_baseline_y_cropped": 1158.0,
+      "sort_baseline_y_world": 1358.0,
+      "source_polygon_reference": "14-forge-intake-main-platform-v1.3.md §4 dorm_yard",
+      "source_polygon": [
+        [2308.2, 650.9],
+        [2929.3, 944.8],
+        [2288.8, 1248.0],
+        [1667.7, 954.0]
+      ],
+      "root_or_contact_point": [2287, 1158],
+      "roi_polygon": [
+        [2957.300048828125, 944.7999877929688],
+        [2316.800048828125, 1248.0],
+        [2260.800048828125, 1248.0],
+        [1639.699951171875, 954.0],
+        [1639.699951171875, 685.0],
+        [2280.199951171875, 381.8999938964844],
+        [2336.199951171875, 381.8999938964844],
+        [2957.300048828125, 675.7999877929688]
+      ],
+      "pixels_alpha_positive": 10521,
+      "pixels_alpha_255": 9623,
+      "feather_width_px": 1,
+      "notes": "u1侧前右墙第一段；透空窗洞为深色墙内空间，保留；前方树木扣除。",
+      "occlusion": "前角松树及墙中段松树遮挡墙体。",
+      "cleanup": {
+        "deleted_pixels": 0
+      },
+      "zero_diff": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "rgb_all_pixels": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "sha256": "ebaf08532d7fd80142e092b62afa7198ec83b548f9624470cf11c947c70c551c"
+    },
+    {
+      "filename": "dorm_yard_frontwall_05.png",
+      "bbox": [2440, 906, 2592, 1080],
+      "bbox_convention": "[x0,y0,x1,y1)，右下不含",
+      "sort_baseline_y_cropped": 1084.0,
+      "sort_baseline_y_world": 1284.0,
+      "source_polygon_reference": "14-forge-intake-main-platform-v1.3.md §4 dorm_yard",
+      "source_polygon": [
+        [2308.2, 650.9],
+        [2929.3, 944.8],
+        [2288.8, 1248.0],
+        [1667.7, 954.0]
+      ],
+      "root_or_contact_point": [2441, 1084],
+      "roi_polygon": [
+        [2957.300048828125, 944.7999877929688],
+        [2316.800048828125, 1248.0],
+        [2260.800048828125, 1248.0],
+        [1639.699951171875, 954.0],
+        [1639.699951171875, 598.0],
+        [2280.199951171875, 294.8999938964844],
+        [2336.199951171875, 294.8999938964844],
+        [2957.300048828125, 588.7999877929688]
+      ],
+      "pixels_alpha_positive": 7539,
+      "pixels_alpha_255": 6713,
+      "feather_width_px": 1,
+      "notes": "u1侧前右墙中段；扣除墙前松树和悬挂旗杆。",
+      "occlusion": "(2410–2480,950–1040)树木、旗杆遮挡墙面；不补画。",
+      "cleanup": {
+        "deleted_pixels": 0
+      },
+      "zero_diff": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "rgb_all_pixels": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "sha256": "a95c777e7d098f56796b84f98b8c330a3faab5631a029fd15ddc394d724dbd7e"
+    },
+    {
+      "filename": "dorm_yard_frontwall_06.png",
+      "bbox": [2590, 828, 2712, 984],
+      "bbox_convention": "[x0,y0,x1,y1)，右下不含",
+      "sort_baseline_y_cropped": 986.0,
+      "sort_baseline_y_world": 1186.0,
+      "source_polygon_reference": "14-forge-intake-main-platform-v1.3.md §4 dorm_yard",
+      "source_polygon": [
+        [2308.2, 650.9],
+        [2929.3, 944.8],
+        [2288.8, 1248.0],
+        [1667.7, 954.0]
+      ],
+      "root_or_contact_point": [2591, 986],
+      "roi_polygon": [
+        [2957.300048828125, 944.7999877929688],
+        [2316.800048828125, 1248.0],
+        [2260.800048828125, 1248.0],
+        [1639.699951171875, 954.0],
+        [1639.699951171875, 518.0],
+        [2280.199951171875, 214.89999389648438],
+        [2336.199951171875, 214.89999389648438],
+        [2957.300048828125, 508.79998779296875]
+      ],
+      "pixels_alpha_positive": 6938,
+      "pixels_alpha_255": 6140,
+      "feather_width_px": 1,
+      "notes": "u1侧前右墙末段；墙顶端柱保留，墙外树木排除。",
+      "occlusion": "(2620–2703,850–920)墙外树木局部遮挡。",
+      "cleanup": {
+        "deleted_pixels": 0
+      },
+      "zero_diff": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "rgb_all_pixels": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "sha256": "07316cd9c71be5ca6b68ae20e1906bf21f5c6c7eeba453937c182dde89a37481"
+    },
+    {
+      "filename": "gate.png",
+      "bbox": [717, 852, 1246, 1245],
+      "bbox_convention": "[x0,y0,x1,y1)，右下不含",
+      "sort_baseline_y_cropped": 1290.1,
+      "sort_baseline_y_world": 1490.1,
+      "source_polygon_reference": "14-forge-intake-main-platform-v1.3.md §4 gate",
+      "source_polygon": [
+        [866.3, 1083.3],
+        [1181.9, 1232.7],
+        [1060.7, 1290.1],
+        [745.1, 1140.7]
+      ],
+      "root_or_contact_point": [1060.7, 1290.1],
+      "roi_polygon": [
+        [1259.0, 1260.0],
+        [1088.699951171875, 1290.0999755859375],
+        [1032.699951171875, 1290.0999755859375],
+        [703.0, 1260.0],
+        [703.0, 839.0],
+        [717.0999755859375, 689.7000122070312],
+        [838.2999877929688, 632.2999877929688],
+        [894.2999877929688, 632.2999877929688],
+        [1209.9000244140625, 781.7000122070312],
+        [1259.0, 839.0]
+      ],
+      "pixels_alpha_positive": 95678,
+      "pixels_alpha_255": 92214,
+      "feather_width_px": 1,
+      "notes": "排除门洞地面；左前旧石桥、桥栏杆和石灯均不属于本件；平台护栏另扣除。树木遮挡按可见边界切。",
+      "occlusion": "左侧墙墩下缘(765–820,1080–1140)被树遮挡；前柱底座(995–1040,1180–1217)被桥栏杆遮挡；右墙墩(1140–1190,1120–1250)被松树与平台石灯遮挡。",
+      "cleanup": {
+        "deleted_pixels": 0
+      },
+      "zero_diff": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "rgb_all_pixels": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "sha256": "31c42a94b3361b94e3b7231aadf964ef60978c5e20251af3b1947982b91a742a"
+    },
+    {
+      "filename": "gate_pine.png",
+      "bbox": [1156, 1110, 1292, 1247],
+      "bbox_convention": "[x0,y0,x1,y1)，右下不含",
+      "sort_baseline_y_cropped": 1244.0,
+      "sort_baseline_y_world": 1444.0,
+      "source_polygon_reference": "§4 gate 邻近；目视树根 (1214,1244)",
+      "source_polygon": [
+        [1214, 1231.9],
+        [1239.6, 1244],
+        [1214, 1256.1],
+        [1188.4, 1244]
+      ],
+      "root_or_contact_point": [1214, 1244],
+      "roi_polygon": [
+        [1154, 1244.0],
+        [1294, 1244.0],
+        [1294, 1108],
+        [1154, 1108]
+      ],
+      "pixels_alpha_positive": 7444,
+      "pixels_alpha_255": 5574,
+      "feather_width_px": 1.5,
+      "notes": "门楼东侧、药田西侧，冠心约(1216,1170)，根点目视(1214,1244)；左冠叠在门楼墙上，透明孔需露出墙面。",
+      "occlusion": "(1140–1190,1140–1200) 树冠叠在门楼暗墙上，细针叶与墙面色近；保留可辨枝叶，不补隐蔽部分。",
+      "cleanup": {
+        "non_object_removed_pixels": 125,
+        "isolated_removed_pixels": 0,
+        "deleted_pixels": 125,
+        "alpha_lowered_nonzero_pixels": 347
+      },
+      "zero_diff": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "rgb_all_pixels": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "sha256": "e8540e73bb06f07629e2a6d612ae283cfb580ba5bf6b5b461e3b0320df9f57d7"
+    },
+    {
+      "filename": "hall_front.png",
+      "bbox": [1245, 324, 1848, 708],
+      "bbox_convention": "[x0,y0,x1,y1)，右下不含",
+      "sort_baseline_y_cropped": 669.0,
+      "sort_baseline_y_world": 869.0,
+      "source_polygon_reference": "14-forge-intake-main-platform-v1.3.md §4 hall",
+      "source_polygon": [
+        [1725.4, 273.8],
+        [2322.4, 556.4],
+        [1736.9, 833.6],
+        [1139.8, 551.0]
+      ],
+      "root_or_contact_point": [1812, 669],
+      "roi_polygon": [
+        [2350.39990234375, 556.4000244140625],
+        [1764.9000244140625, 833.5999755859375],
+        [1708.9000244140625, 833.5999755859375],
+        [1234.0, 728.0],
+        [1111.800048828125, 551.0],
+        [1111.800048828125, 28.0],
+        [1697.4000244140625, -249.1999969482422],
+        [1753.4000244140625, -249.1999969482422],
+        [2350.39990234375, 33.400001525878906]
+      ],
+      "pixels_alpha_positive": 71682,
+      "pixels_alpha_255": 66410,
+      "feather_width_px": 1,
+      "notes": "仅下层屋顶朝 +v 的前坡、前翼角、前柱及两侧前廊栏板；切除柱间墙门、廊地和全部台阶，栏板上方透空逐孔扣除。",
+      "occlusion": "前柱与檐梁背面不可见；栏板遮住的柱脚不补画。",
+      "cleanup": {
+        "deleted_pixels": 0
+      },
+      "zero_diff": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "rgb_all_pixels": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "sha256": "fb18c30e5ec9d4759b06a46583baa6c9fa554ae5b2136e0973350e6d7e51f8b6"
+    },
+    {
+      "filename": "main_east_mouth_post_high.png",
+      "bbox": [3285, 1122, 3314, 1184],
+      "bbox_convention": "[x0,y0,x1,y1)，右下不含",
+      "sort_baseline_y_cropped": 1183,
+      "sort_baseline_y_world": 1383,
+      "source_polygon_reference": "§4 主台东桥口端柱；按源图可见轮廓 ROI（main_east_mouth_post_high_v2.json）",
+      "source_polygon": [
+        [3297, 1122],
+        [3302, 1122],
+        [3306, 1125],
+        [3308, 1129],
+        [3307, 1134],
+        [3303, 1138],
+        [3305, 1140],
+        [3310, 1141],
+        [3311, 1145],
+        [3310, 1171],
+        [3313, 1175],
+        [3310, 1179],
+        [3299, 1183],
+        [3285, 1177],
+        [3285, 1173],
+        [3288, 1170],
+        [3289, 1147],
+        [3289, 1140],
+        [3293, 1137],
+        [3295, 1135],
+        [3293, 1131],
+        [3294, 1126]
+      ],
+      "root_or_contact_point": null,
+      "roi_polygon": [
+        [3297, 1122],
+        [3302, 1122],
+        [3306, 1125],
+        [3308, 1129],
+        [3307, 1134],
+        [3303, 1138],
+        [3305, 1140],
+        [3310, 1141],
+        [3311, 1145],
+        [3310, 1171],
+        [3313, 1175],
+        [3310, 1179],
+        [3299, 1183],
+        [3285, 1177],
+        [3285, 1173],
+        [3288, 1170],
+        [3289, 1147],
+        [3289, 1140],
+        [3293, 1137],
+        [3295, 1135],
+        [3293, 1131],
+        [3294, 1126]
+      ],
+      "pixels_alpha_positive": 1215,
+      "pixels_alpha_255": 1022,
+      "feather_width_px": 1.5,
+      "notes": "源图可见球顶/柱身/柱座；遮挡处不补。轮廓人工读取约±1px；基线以下alpha=0。",
+      "occlusion": "",
+      "cleanup": {
+        "deleted_pixels": 0
+      },
+      "zero_diff": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "rgb_all_pixels": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "sha256": "3f1a4216ff4020b488e6b6eddf6338f7ff1b737086014afb6cb4b9f04d477c28"
+    },
+    {
+      "filename": "main_east_mouth_post_low.png",
+      "bbox": [3109, 1211, 3138, 1273],
+      "bbox_convention": "[x0,y0,x1,y1)，右下不含",
+      "sort_baseline_y_cropped": 1272,
+      "sort_baseline_y_world": 1472,
+      "source_polygon_reference": "§4 主台东桥口端柱；按源图可见轮廓 ROI（main_east_mouth_post_low_v2.json）",
+      "source_polygon": [
+        [3119, 1211],
+        [3124, 1211],
+        [3128, 1214],
+        [3129, 1219],
+        [3128, 1224],
+        [3126, 1228],
+        [3128, 1230],
+        [3132, 1232],
+        [3133, 1236],
+        [3133, 1260],
+        [3136, 1264],
+        [3137, 1267],
+        [3122, 1272],
+        [3114, 1269],
+        [3114, 1265],
+        [3117, 1261],
+        [3117, 1237],
+        [3109, 1234],
+        [3109, 1230],
+        [3113, 1226],
+        [3114, 1225],
+        [3112, 1220],
+        [3113, 1215]
+      ],
+      "root_or_contact_point": null,
+      "roi_polygon": [
+        [3119, 1211],
+        [3124, 1211],
+        [3128, 1214],
+        [3129, 1219],
+        [3128, 1224],
+        [3126, 1228],
+        [3128, 1230],
+        [3132, 1232],
+        [3133, 1236],
+        [3133, 1260],
+        [3136, 1264],
+        [3137, 1267],
+        [3122, 1272],
+        [3114, 1269],
+        [3114, 1265],
+        [3117, 1261],
+        [3117, 1237],
+        [3109, 1234],
+        [3109, 1230],
+        [3113, 1226],
+        [3114, 1225],
+        [3112, 1220],
+        [3113, 1215]
+      ],
+      "pixels_alpha_positive": 1074,
+      "pixels_alpha_255": 880,
+      "feather_width_px": 1.5,
+      "notes": "源图可见球顶/柱身/柱座；遮挡处不补。轮廓人工读取约±1px；基线以下alpha=0。",
+      "occlusion": "",
+      "cleanup": {
+        "deleted_pixels": 0
+      },
+      "zero_diff": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "rgb_all_pixels": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "sha256": "1d25774bf0ee4d14e5bd5f2ca8fe30cf642ab5f9ef90e17c05eca193dace8b63"
+    },
+    {
+      "filename": "rail_east_01.png",
+      "bbox": [2224, 1649, 2370, 1757],
+      "bbox_convention": "[x0,y0,x1,y1)，右下不含",
+      "sort_baseline_y_cropped": 1756.0,
+      "sort_baseline_y_world": 1956.0,
+      "source_polygon_reference": "JSON platform.corners_uv；实际前沿 east_a 接地线：[(2222, 1725), (2280, 1696), (2340, 1664), (2380, 1642), (2435, 1611)]",
+      "source_polygon": [
+        [2224, 1751.0],
+        [2370, 1751.0],
+        [2370, 1756.0],
+        [2224, 1756.0]
+      ],
+      "root_or_contact_point": [2228.0, 1756.0],
+      "roi_polygon": [
+        [2222, 1756.0],
+        [2372, 1756.0],
+        [2372, 1647],
+        [2222, 1647]
+      ],
+      "pixels_alpha_positive": 4592,
+      "pixels_alpha_255": 3717,
+      "feather_width_px": 1.5,
+      "notes": "沿实见栏板、望柱、石灯接地线手点；栏板上透空缝逐孔扣除；前景枝干/植被遮挡处不补画。",
+      "occlusion": "无需要补画的位置；栏后岩石不包含。",
+      "cleanup": {
+        "non_object_removed_pixels": 0,
+        "isolated_removed_pixels": 0,
+        "deleted_pixels": 0,
+        "alpha_lowered_nonzero_pixels": 0
+      },
+      "zero_diff": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "rgb_all_pixels": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "sha256": "d45fd2513d93db7cefe1ef3bcb4cfc5f99d894b4bdd7edee582f5d89b130c2df"
+    },
+    {
+      "filename": "rail_east_02.png",
+      "bbox": [2370, 1582, 2449, 1680],
+      "bbox_convention": "[x0,y0,x1,y1)，右下不含",
+      "sort_baseline_y_cropped": 1679.0,
+      "sort_baseline_y_world": 1879.0,
+      "source_polygon_reference": "JSON platform.corners_uv；实际前沿 east_a 接地线：[(2222, 1725), (2280, 1696), (2340, 1664), (2380, 1642), (2435, 1611)]",
+      "source_polygon": [
+        [2370, 1674.0],
+        [2449, 1674.0],
+        [2449, 1679.0],
+        [2370, 1679.0]
+      ],
+      "root_or_contact_point": [2376.0, 1679.0],
+      "roi_polygon": [
+        [2368, 1679.0],
+        [2451, 1679.0],
+        [2451, 1580],
+        [2368, 1580]
+      ],
+      "pixels_alpha_positive": 2883,
+      "pixels_alpha_255": 2318,
+      "feather_width_px": 1.5,
+      "notes": "沿实见栏板、望柱、石灯接地线手点；栏板上透空缝逐孔扣除；前景枝干/植被遮挡处不补画。",
+      "occlusion": "无需要补画的位置；台阶口自然断开，不补栏杆。",
+      "cleanup": {
+        "non_object_removed_pixels": 0,
+        "isolated_removed_pixels": 0,
+        "deleted_pixels": 0,
+        "alpha_lowered_nonzero_pixels": 0
+      },
+      "zero_diff": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "rgb_all_pixels": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "sha256": "b083744039c3228880c66c89f8cee32e2a184edad85c23e06d735b1d2608e0df"
+    },
+    {
+      "filename": "rail_east_03.png",
+      "bbox": [2552, 1471, 2670, 1545],
+      "bbox_convention": "[x0,y0,x1,y1)，右下不含",
+      "sort_baseline_y_cropped": 1544.0,
+      "sort_baseline_y_world": 1744.0,
+      "source_polygon_reference": "JSON platform.corners_uv；实际前沿 east_b 接地线：[(2497, 1576), (2590, 1522), (2650, 1488), (2750, 1433), (2850, 1378), (2950, 1322), (3050, 1266), (3117, 1231)]",
+      "source_polygon": [
+        [2552, 1539.0],
+        [2670, 1539.0],
+        [2670, 1544.0],
+        [2552, 1544.0]
+      ],
+      "root_or_contact_point": [2606.0, 1544.0],
+      "roi_polygon": [
+        [2550, 1544.0],
+        [2672, 1544.0],
+        [2672, 1469],
+        [2550, 1469]
+      ],
+      "pixels_alpha_positive": 3436,
+      "pixels_alpha_255": 2728,
+      "feather_width_px": 1.5,
+      "notes": "沿实见栏板、望柱、石灯接地线手点；栏板上透空缝逐孔扣除；前景枝干/植被遮挡处不补画。",
+      "occlusion": "(2497–2608,1522–1600) 松冠/树干挡住栏杆和灯柱底部，只切可见石灯及东侧栏板；不补。",
+      "cleanup": {
+        "non_object_removed_pixels": 0,
+        "isolated_removed_pixels": 0,
+        "deleted_pixels": 0,
+        "alpha_lowered_nonzero_pixels": 0
+      },
+      "zero_diff": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "rgb_all_pixels": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "sha256": "579c5a406121fc9bfeaf47e44821e80555297d57822993f1b052c587876afe08"
+    },
+    {
+      "filename": "rail_east_04.png",
+      "bbox": [2670, 1373, 2840, 1509],
+      "bbox_convention": "[x0,y0,x1,y1)，右下不含",
+      "sort_baseline_y_cropped": 1508.0,
+      "sort_baseline_y_world": 1708.0,
+      "source_polygon_reference": "JSON platform.corners_uv；实际前沿 east_b 接地线：[(2497, 1576), (2590, 1522), (2650, 1488), (2750, 1433), (2850, 1378), (2950, 1322), (3050, 1266), (3117, 1231)]",
+      "source_polygon": [
+        [2670, 1503.0],
+        [2840, 1503.0],
+        [2840, 1508.0],
+        [2670, 1508.0]
+      ],
+      "root_or_contact_point": [2672.0, 1508.0],
+      "roi_polygon": [
+        [2668, 1508.0],
+        [2842, 1508.0],
+        [2842, 1371],
+        [2668, 1371]
+      ],
+      "pixels_alpha_positive": 5731,
+      "pixels_alpha_255": 4719,
+      "feather_width_px": 1.5,
+      "notes": "沿实见栏板、望柱、石灯接地线手点；栏板上透空缝逐孔扣除；前景枝干/植被遮挡处不补画。",
+      "occlusion": "无需要补画的位置；接地植物处保留实际遮挡。",
+      "cleanup": {
+        "non_object_removed_pixels": 0,
+        "isolated_removed_pixels": 0,
+        "deleted_pixels": 0,
+        "alpha_lowered_nonzero_pixels": 0
+      },
+      "zero_diff": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "rgb_all_pixels": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "sha256": "361206e68c17c6d3b8267c7f20c1d155710170b538b1541c4050991c0dc221d6"
+    },
+    {
+      "filename": "rail_east_05.png",
+      "bbox": [2840, 1284, 3010, 1415],
+      "bbox_convention": "[x0,y0,x1,y1)，右下不含",
+      "sort_baseline_y_cropped": 1414.0,
+      "sort_baseline_y_world": 1614.0,
+      "source_polygon_reference": "JSON platform.corners_uv；实际前沿 east_b 接地线：[(2497, 1576), (2590, 1522), (2650, 1488), (2750, 1433), (2850, 1378), (2950, 1322), (3050, 1266), (3117, 1231)]",
+      "source_polygon": [
+        [2840, 1409.0],
+        [3010, 1409.0],
+        [3010, 1414.0],
+        [2840, 1414.0]
+      ],
+      "root_or_contact_point": [2842.0, 1414.0],
+      "roi_polygon": [
+        [2838, 1414.0],
+        [3012, 1414.0],
+        [3012, 1282],
+        [2838, 1282]
+      ],
+      "pixels_alpha_positive": 5239,
+      "pixels_alpha_255": 4206,
+      "feather_width_px": 1.5,
+      "notes": "沿实见栏板、望柱、石灯接地线手点；栏板上透空缝逐孔扣除；前景枝干/植被遮挡处不补画。",
+      "occlusion": "无需要补画的位置；石峰位于栏后，不包含。",
+      "cleanup": {
+        "non_object_removed_pixels": 0,
+        "isolated_removed_pixels": 0,
+        "deleted_pixels": 0,
+        "alpha_lowered_nonzero_pixels": 0
+      },
+      "zero_diff": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "rgb_all_pixels": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "sha256": "26492c85dc256be9f2bc8e8dcee1cb7da8ccb80bb281813b2d1c981c05c3e377"
+    },
+    {
+      "filename": "rail_east_06.png",
+      "bbox": [3010, 1206, 3131, 1324],
+      "bbox_convention": "[x0,y0,x1,y1)，右下不含",
+      "sort_baseline_y_cropped": 1323.0,
+      "sort_baseline_y_world": 1523.0,
+      "source_polygon_reference": "JSON platform.corners_uv；实际前沿 east_b 接地线：[(2497, 1576), (2590, 1522), (2650, 1488), (2750, 1433), (2850, 1378), (2950, 1322), (3050, 1266), (3117, 1231)]",
+      "source_polygon": [
+        [3010, 1318.0],
+        [3131, 1318.0],
+        [3131, 1323.0],
+        [3010, 1323.0]
+      ],
+      "root_or_contact_point": [3013.0, 1323.0],
+      "roi_polygon": [
+        [3008, 1323.0],
+        [3133, 1323.0],
+        [3133, 1204],
+        [3008, 1204]
+      ],
+      "pixels_alpha_positive": 4010,
+      "pixels_alpha_255": 3208,
+      "feather_width_px": 1.5,
+      "notes": "沿实见栏板、望柱、石灯接地线手点；栏板上透空缝逐孔扣除；前景枝干/植被遮挡处不补画。",
+      "occlusion": "(3070–3110,1250–1290) 少量藤叶挡住栏板；不补。",
+      "cleanup": {
+        "non_object_removed_pixels": 0,
+        "isolated_removed_pixels": 0,
+        "deleted_pixels": 0,
+        "alpha_lowered_nonzero_pixels": 0
+      },
+      "zero_diff": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "rgb_all_pixels": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "sha256": "5008a866ca01218c0f55d97e6a2e256fb98acb95a985d45f51f4405a8c1766fe"
+    },
+    {
+      "filename": "rail_east_07.png",
+      "bbox": [3287, 1056, 3445, 1176],
+      "bbox_convention": "[x0,y0,x1,y1)，右下不含",
+      "sort_baseline_y_cropped": 1175.0,
+      "sort_baseline_y_world": 1375.0,
+      "source_polygon_reference": "JSON platform.corners_uv；实际前沿 east_c 接地线：[(3290, 1140), (3350, 1111), (3438, 1076), (3499, 1048)]",
+      "source_polygon": [
+        [3287, 1170.0],
+        [3445, 1170.0],
+        [3445, 1175.0],
+        [3287, 1175.0]
+      ],
+      "root_or_contact_point": [3297.0, 1175.0],
+      "roi_polygon": [
+        [3285, 1175.0],
+        [3447, 1175.0],
+        [3447, 1054],
+        [3285, 1054]
+      ],
+      "pixels_alpha_positive": 6185,
+      "pixels_alpha_255": 5191,
+      "feather_width_px": 1.5,
+      "notes": "沿实见栏板、望柱、石灯接地线手点；栏板上透空缝逐孔扣除；前景枝干/植被遮挡处不补画。",
+      "occlusion": "(3283–3310,1140–1176) 接地植被遮挡；不补。",
+      "cleanup": {
+        "non_object_removed_pixels": 0,
+        "isolated_removed_pixels": 0,
+        "deleted_pixels": 0,
+        "alpha_lowered_nonzero_pixels": 0
+      },
+      "zero_diff": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "rgb_all_pixels": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "sha256": "f3bfe0e171a5890efaf9c43a2021f83691e8b3910db2f41ff6d5d173fba289e5"
+    },
+    {
+      "filename": "rail_east_08.png",
+      "bbox": [3445, 999, 3520, 1105],
+      "bbox_convention": "[x0,y0,x1,y1)，右下不含",
+      "sort_baseline_y_cropped": 1104.0,
+      "sort_baseline_y_world": 1304.0,
+      "source_polygon_reference": "JSON platform.corners_uv；实际前沿 east_c 接地线：[(3290, 1140), (3350, 1111), (3438, 1076), (3499, 1048)]",
+      "source_polygon": [
+        [3445, 1099.0],
+        [3520, 1099.0],
+        [3520, 1104.0],
+        [3445, 1104.0]
+      ],
+      "root_or_contact_point": [3447.0, 1104.0],
+      "roi_polygon": [
+        [3443, 1104.0],
+        [3522, 1104.0],
+        [3522, 997],
+        [3443, 997]
+      ],
+      "pixels_alpha_positive": 2884,
+      "pixels_alpha_255": 2320,
+      "feather_width_px": 1.5,
+      "notes": "沿实见栏板、望柱、石灯接地线手点；栏板上透空缝逐孔扣除；前景枝干/植被遮挡处不补画。",
+      "occlusion": "无需要补画的位置；R角与北侧回折栏杆接合，只取朝镜头一侧。",
+      "cleanup": {
+        "non_object_removed_pixels": 0,
+        "isolated_removed_pixels": 0,
+        "deleted_pixels": 0,
+        "alpha_lowered_nonzero_pixels": 0
+      },
+      "zero_diff": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "rgb_all_pixels": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "sha256": "d3482e4f24e08b6a181d09fc7f4a1cea26073eb32740ef977e56450803dc5a61"
+    },
+    {
+      "filename": "rail_mid_01.png",
+      "bbox": [1216, 1256, 1390, 1369],
+      "bbox_convention": "[x0,y0,x1,y1)，右下不含",
+      "sort_baseline_y_cropped": 1368.0,
+      "sort_baseline_y_world": 1568.0,
+      "source_polygon_reference": "JSON platform.corners_uv；实际前沿 mid 接地线：[(1228, 1282), (1359, 1338), (1504, 1406), (1625, 1467), (1720, 1510), (1770, 1533), (1820, 1556), (1860, 1572), (1900, 1591), (1960, 1619), (2020, 1647), (2080, 1674), (2140, 1701), (2205, 1730)]",
+      "source_polygon": [
+        [1216, 1363.0],
+        [1390, 1363.0],
+        [1390, 1368.0],
+        [1216, 1368.0]
+      ],
+      "root_or_contact_point": [1351.0, 1368.0],
+      "roi_polygon": [
+        [1214, 1368.0],
+        [1392, 1368.0],
+        [1392, 1254],
+        [1214, 1254]
+      ],
+      "pixels_alpha_positive": 5083,
+      "pixels_alpha_255": 4072,
+      "feather_width_px": 1.5,
+      "notes": "沿实见栏板、望柱、石灯接地线手点；栏板上透空缝逐孔扣除；前景枝干/植被遮挡处不补画。",
+      "occlusion": "(1215–1235,1280–1320)、(1355–1390,1350–1390) 植物遮挡底边，不补。",
+      "cleanup": {
+        "non_object_removed_pixels": 0,
+        "isolated_removed_pixels": 0,
+        "deleted_pixels": 0,
+        "alpha_lowered_nonzero_pixels": 0
+      },
+      "zero_diff": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "rgb_all_pixels": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "sha256": "3c825b30277aa1a27c78893662ea88aea22bffc34d99c567e899f375fc77996f"
+    },
+    {
+      "filename": "rail_mid_02.png",
+      "bbox": [1391, 1355, 1550, 1466],
+      "bbox_convention": "[x0,y0,x1,y1)，右下不含",
+      "sort_baseline_y_cropped": 1465.0,
+      "sort_baseline_y_world": 1665.0,
+      "source_polygon_reference": "JSON platform.corners_uv；实际前沿 mid 接地线：[(1228, 1282), (1359, 1338), (1504, 1406), (1625, 1467), (1720, 1510), (1770, 1533), (1820, 1556), (1860, 1572), (1900, 1591), (1960, 1619), (2020, 1647), (2080, 1674), (2140, 1701), (2205, 1730)]",
+      "source_polygon": [
+        [1391, 1460.0],
+        [1550, 1460.0],
+        [1550, 1465.0],
+        [1391, 1465.0]
+      ],
+      "root_or_contact_point": [1546.0, 1465.0],
+      "roi_polygon": [
+        [1389, 1465.0],
+        [1552, 1465.0],
+        [1552, 1353],
+        [1389, 1353]
+      ],
+      "pixels_alpha_positive": 1583,
+      "pixels_alpha_255": 1163,
+      "feather_width_px": 1.5,
+      "notes": "沿实见栏板、望柱、石灯接地线手点；栏板上透空缝逐孔扣除；前景枝干/植被遮挡处不补画。",
+      "occlusion": "(1390–1515,1360–1465) 岩上大松遮挡，栏杆只能保留零散可见部分；不补。",
+      "cleanup": {
+        "non_object_removed_pixels": 1,
+        "isolated_removed_pixels": 0,
+        "deleted_pixels": 1,
+        "alpha_lowered_nonzero_pixels": 5
+      },
+      "zero_diff": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "rgb_all_pixels": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "sha256": "c0274a96d43c65ea56d6a9cd8841a566f2ab9bdaeba5037c7714af61d8be1323"
+    },
+    {
+      "filename": "rail_mid_03.png",
+      "bbox": [1550, 1421, 1720, 1544],
+      "bbox_convention": "[x0,y0,x1,y1)，右下不含",
+      "sort_baseline_y_cropped": 1543.0,
+      "sort_baseline_y_world": 1743.0,
+      "source_polygon_reference": "JSON platform.corners_uv；实际前沿 mid 接地线：[(1228, 1282), (1359, 1338), (1504, 1406), (1625, 1467), (1720, 1510), (1770, 1533), (1820, 1556), (1860, 1572), (1900, 1591), (1960, 1619), (2020, 1647), (2080, 1674), (2140, 1701), (2205, 1730)]",
+      "source_polygon": [
+        [1550, 1538.0],
+        [1720, 1538.0],
+        [1720, 1543.0],
+        [1550, 1543.0]
+      ],
+      "root_or_contact_point": [1716.0, 1543.0],
+      "roi_polygon": [
+        [1548, 1543.0],
+        [1722, 1543.0],
+        [1722, 1419],
+        [1548, 1419]
+      ],
+      "pixels_alpha_positive": 5197,
+      "pixels_alpha_255": 4170,
+      "feather_width_px": 1.5,
+      "notes": "沿实见栏板、望柱、石灯接地线手点；栏板上透空缝逐孔扣除；前景枝干/植被遮挡处不补画。",
+      "occlusion": "(1540–1600,1450–1490) 树冠遮挡接地边，不补。",
+      "cleanup": {
+        "non_object_removed_pixels": 0,
+        "isolated_removed_pixels": 0,
+        "deleted_pixels": 0,
+        "alpha_lowered_nonzero_pixels": 0
+      },
+      "zero_diff": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "rgb_all_pixels": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "sha256": "b8fade66316ccb4b434411aa26db289a723cc7a2471a4c294774e2db5e526eac"
+    },
+    {
+      "filename": "rail_mid_04.png",
+      "bbox": [1720, 1487, 1889, 1617],
+      "bbox_convention": "[x0,y0,x1,y1)，右下不含",
+      "sort_baseline_y_cropped": 1616.0,
+      "sort_baseline_y_world": 1816.0,
+      "source_polygon_reference": "JSON platform.corners_uv；实际前沿 mid 接地线：[(1228, 1282), (1359, 1338), (1504, 1406), (1625, 1467), (1720, 1510), (1770, 1533), (1820, 1556), (1860, 1572), (1900, 1591), (1960, 1619), (2020, 1647), (2080, 1674), (2140, 1701), (2205, 1730)]",
+      "source_polygon": [
+        [1720, 1611.0],
+        [1889, 1611.0],
+        [1889, 1616.0],
+        [1720, 1616.0]
+      ],
+      "root_or_contact_point": [1887.0, 1616.0],
+      "roi_polygon": [
+        [1718, 1616.0],
+        [1891, 1616.0],
+        [1891, 1485],
+        [1718, 1485]
+      ],
+      "pixels_alpha_positive": 7051,
+      "pixels_alpha_255": 5942,
+      "feather_width_px": 1.5,
+      "notes": "沿实见栏板、望柱、石灯接地线手点；栏板上透空缝逐孔扣除；前景枝干/植被遮挡处不补画。",
+      "occlusion": "无需要补画的位置；石灯侧面与栏板接合只切可见面。",
+      "cleanup": {
+        "non_object_removed_pixels": 0,
+        "isolated_removed_pixels": 0,
+        "deleted_pixels": 0,
+        "alpha_lowered_nonzero_pixels": 0
+      },
+      "zero_diff": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "rgb_all_pixels": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "sha256": "404c603dd75c6a03be76beb634b33dcfd346f5a3a3df2215be2df790974ea1b1"
+    },
+    {
+      "filename": "rail_mid_05.png",
+      "bbox": [1891, 1578, 2059, 1695],
+      "bbox_convention": "[x0,y0,x1,y1)，右下不含",
+      "sort_baseline_y_cropped": 1694.0,
+      "sort_baseline_y_world": 1894.0,
+      "source_polygon_reference": "JSON platform.corners_uv；实际前沿 mid 接地线：[(1228, 1282), (1359, 1338), (1504, 1406), (1625, 1467), (1720, 1510), (1770, 1533), (1820, 1556), (1860, 1572), (1900, 1591), (1960, 1619), (2020, 1647), (2080, 1674), (2140, 1701), (2205, 1730)]",
+      "source_polygon": [
+        [1891, 1689.0],
+        [2059, 1689.0],
+        [2059, 1694.0],
+        [1891, 1694.0]
+      ],
+      "root_or_contact_point": [2028.0, 1694.0],
+      "roi_polygon": [
+        [1889, 1694.0],
+        [2061, 1694.0],
+        [2061, 1576],
+        [1889, 1576]
+      ],
+      "pixels_alpha_positive": 4338,
+      "pixels_alpha_255": 3468,
+      "feather_width_px": 1.5,
+      "notes": "沿实见栏板、望柱、石灯接地线手点；栏板上透空缝逐孔扣除；前景枝干/植被遮挡处不补画。",
+      "occlusion": "(1906–1952,1609–1640) 岩石/植被挡住栏板，已扣除，不补。",
+      "cleanup": {
+        "non_object_removed_pixels": 0,
+        "isolated_removed_pixels": 0,
+        "deleted_pixels": 0,
+        "alpha_lowered_nonzero_pixels": 0
+      },
+      "zero_diff": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "rgb_all_pixels": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "sha256": "9a35547368052e788f0792fc875e0cf28ac9542d72900a9fdf5c6ad850b594eb"
+    },
+    {
+      "filename": "rail_mid_06.png",
+      "bbox": [2060, 1655, 2235, 1779],
+      "bbox_convention": "[x0,y0,x1,y1)，右下不含",
+      "sort_baseline_y_cropped": 1778.0,
+      "sort_baseline_y_world": 1978.0,
+      "source_polygon_reference": "JSON platform.corners_uv；实际前沿 mid 接地线：[(1228, 1282), (1359, 1338), (1504, 1406), (1625, 1467), (1720, 1510), (1770, 1533), (1820, 1556), (1860, 1572), (1900, 1591), (1960, 1619), (2020, 1647), (2080, 1674), (2140, 1701), (2205, 1730)]",
+      "source_polygon": [
+        [2060, 1773.0],
+        [2235, 1773.0],
+        [2235, 1778.0],
+        [2060, 1778.0]
+      ],
+      "root_or_contact_point": [2206.0, 1778.0],
+      "roi_polygon": [
+        [2058, 1778.0],
+        [2237, 1778.0],
+        [2237, 1653],
+        [2058, 1653]
+      ],
+      "pixels_alpha_positive": 6872,
+      "pixels_alpha_255": 5797,
+      "feather_width_px": 1.5,
+      "notes": "沿实见栏板、望柱、石灯接地线手点；栏板上透空缝逐孔扣除；前景枝干/植被遮挡处不补画。",
+      "occlusion": "(2060–2105,1690–1720) 松冠遮挡底边；B角灯的完整可见轮廓归本件。",
+      "cleanup": {
+        "non_object_removed_pixels": 0,
+        "isolated_removed_pixels": 0,
+        "deleted_pixels": 0,
+        "alpha_lowered_nonzero_pixels": 0
+      },
+      "zero_diff": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "rgb_all_pixels": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "sha256": "20742da05dd4f2aac48a9ecfe92041eddb9d577f7cce28de53fcb67b9deaf823"
+    },
+    {
+      "filename": "rail_west_01.png",
+      "bbox": [116, 775, 276, 933],
+      "bbox_convention": "[x0,y0,x1,y1)，右下不含",
+      "sort_baseline_y_cropped": 932.0,
+      "sort_baseline_y_world": 1132.0,
+      "source_polygon_reference": "JSON platform.corners_uv；实际前沿 west 接地线：[(164, 851), (360, 938), (520, 1008), (686, 1081), (777, 1122)]",
+      "source_polygon": [
+        [116, 927.0],
+        [276, 927.0],
+        [276, 932.0],
+        [116, 932.0]
+      ],
+      "root_or_contact_point": [275.0, 932.0],
+      "roi_polygon": [
+        [114, 932.0],
+        [278, 932.0],
+        [278, 773],
+        [114, 773]
+      ],
+      "pixels_alpha_positive": 6320,
+      "pixels_alpha_255": 5331,
+      "feather_width_px": 1.5,
+      "notes": "沿实见栏板、望柱、石灯接地线手点；栏板上透空缝逐孔扣除；前景枝干/植被遮挡处不补画。",
+      "occlusion": "(115–170,830–890) L角石灯与后沿栏杆接合，接合后的隐藏侧面不补。",
+      "cleanup": {
+        "non_object_removed_pixels": 0,
+        "isolated_removed_pixels": 0,
+        "deleted_pixels": 0,
+        "alpha_lowered_nonzero_pixels": 0
+      },
+      "zero_diff": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "rgb_all_pixels": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "sha256": "c46ea2fe28e409d5aef96512da09f1fc4e83afcb502676814a3ed1643a9737ea"
+    },
+    {
+      "filename": "rail_west_02.png",
+      "bbox": [278, 897, 408, 992],
+      "bbox_convention": "[x0,y0,x1,y1)，右下不含",
+      "sort_baseline_y_cropped": 991.0,
+      "sort_baseline_y_world": 1191.0,
+      "source_polygon_reference": "JSON platform.corners_uv；实际前沿 west 接地线：[(164, 851), (360, 938), (520, 1008), (686, 1081), (777, 1122)]",
+      "source_polygon": [
+        [278, 986.0],
+        [408, 986.0],
+        [408, 991.0],
+        [278, 991.0]
+      ],
+      "root_or_contact_point": [407.0, 991.0],
+      "roi_polygon": [
+        [276, 991.0],
+        [410, 991.0],
+        [410, 895],
+        [276, 895]
+      ],
+      "pixels_alpha_positive": 3388,
+      "pixels_alpha_255": 2648,
+      "feather_width_px": 1.5,
+      "notes": "沿实见栏板、望柱、石灯接地线手点；栏板上透空缝逐孔扣除；前景枝干/植被遮挡处不补画。",
+      "occlusion": "(395–460,955–1025) 前景松枝/树干遮挡栏板；可见栏杆分成不连通片，不补。",
+      "cleanup": {
+        "non_object_removed_pixels": 0,
+        "isolated_removed_pixels": 0,
+        "deleted_pixels": 0,
+        "alpha_lowered_nonzero_pixels": 0
+      },
+      "zero_diff": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "rgb_all_pixels": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "sha256": "bd3079cefaf45837eb8a18b5be1e3ce408dbbb895603fd7ed0674ee39a5b426c"
+    },
+    {
+      "filename": "rail_west_03.png",
+      "bbox": [461, 985, 620, 1084],
+      "bbox_convention": "[x0,y0,x1,y1)，右下不含",
+      "sort_baseline_y_cropped": 1083.0,
+      "sort_baseline_y_world": 1283.0,
+      "source_polygon_reference": "JSON platform.corners_uv；实际前沿 west 接地线：[(164, 851), (360, 938), (520, 1008), (686, 1081), (777, 1122)]",
+      "source_polygon": [
+        [461, 1078.0],
+        [620, 1078.0],
+        [620, 1083.0],
+        [461, 1083.0]
+      ],
+      "root_or_contact_point": [617.0, 1083.0],
+      "roi_polygon": [
+        [459, 1083.0],
+        [622, 1083.0],
+        [622, 983],
+        [459, 983]
+      ],
+      "pixels_alpha_positive": 4577,
+      "pixels_alpha_255": 3685,
+      "feather_width_px": 1.5,
+      "notes": "沿实见栏板、望柱、石灯接地线手点；栏板上透空缝逐孔扣除；前景枝干/植被遮挡处不补画。",
+      "occlusion": "(450–475,975–1025) 树干与栏杆交界，不补隐藏边。",
+      "cleanup": {
+        "non_object_removed_pixels": 0,
+        "isolated_removed_pixels": 0,
+        "deleted_pixels": 0,
+        "alpha_lowered_nonzero_pixels": 0
+      },
+      "zero_diff": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "rgb_all_pixels": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "sha256": "cead0f034c546111eb9b79987e27fb5b3ef5393bafa62585f28f6066f9ea74bb"
+    },
+    {
+      "filename": "rail_west_04.png",
+      "bbox": [620, 1034, 722, 1129],
+      "bbox_convention": "[x0,y0,x1,y1)，右下不含",
+      "sort_baseline_y_cropped": 1128.0,
+      "sort_baseline_y_world": 1328.0,
+      "source_polygon_reference": "JSON platform.corners_uv；实际前沿 west 接地线：[(164, 851), (360, 938), (520, 1008), (686, 1081), (777, 1122)]",
+      "source_polygon": [
+        [620, 1123.0],
+        [722, 1123.0],
+        [722, 1128.0],
+        [620, 1128.0]
+      ],
+      "root_or_contact_point": [718.0, 1128.0],
+      "roi_polygon": [
+        [618, 1128.0],
+        [724, 1128.0],
+        [724, 1032],
+        [618, 1032]
+      ],
+      "pixels_alpha_positive": 2967,
+      "pixels_alpha_255": 2384,
+      "feather_width_px": 1.5,
+      "notes": "沿实见栏板、望柱、石灯接地线手点；栏板上透空缝逐孔扣除；前景枝干/植被遮挡处不补画。",
+      "occlusion": "(710–777,1080–1145) 门楼西侧松树挡住栏杆末端，只保留可见部分；不补。",
+      "cleanup": {
+        "non_object_removed_pixels": 0,
+        "isolated_removed_pixels": 0,
+        "deleted_pixels": 0,
+        "alpha_lowered_nonzero_pixels": 0
+      },
+      "zero_diff": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "rgb_all_pixels": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "sha256": "03aeb954cd7d9bae84ab066e7cc8a65b8ff83174f836c6f8797b8f8373f35b51"
+    },
+    {
+      "filename": "tower.png",
+      "bbox": [2457, 217, 2567, 521],
+      "bbox_convention": "[x0,y0,x1,y1)，右下不含",
+      "sort_baseline_y_cropped": 568.9,
+      "sort_baseline_y_world": 768.9,
+      "source_polygon_reference": "14-forge-intake-main-platform-v1.3.md §4 tower",
+      "source_polygon": [
+        [2520.6, 461.0],
+        [2639.6, 517.3],
+        [2530.6, 568.9],
+        [2411.6, 512.6]
+      ],
+      "root_or_contact_point": [2530.6, 568.9],
+      "roi_polygon": [
+        [2667.60009765625, 517.2999877929688],
+        [2558.60009765625, 568.9000244140625],
+        [2502.60009765625, 568.9000244140625],
+        [2383.60009765625, 512.5999755859375],
+        [2383.60009765625, 147.60000610351562],
+        [2492.60009765625, 96.0],
+        [2548.60009765625, 96.0],
+        [2667.60009765625, 152.3000030517578]
+      ],
+      "pixels_alpha_positive": 17639,
+      "pixels_alpha_255": 16520,
+      "feather_width_px": 1,
+      "notes": "沿塔尖、各层挑檐、塔身和塔基接地线切；底部外圈平台栏杆、前阶不纳入塔体。",
+      "occlusion": "塔身完整可见；塔基外侧局部受前方栏杆遮挡，不补画。",
+      "cleanup": {
+        "deleted_pixels": 0
+      },
+      "zero_diff": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "rgb_all_pixels": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "sha256": "acb8193a66494177f338318e169ce09a0bf1aae2726d961ea9c762f1d31bb31b"
+    },
+    {
+      "filename": "tree_T1.png",
+      "bbox": [2502, 1131, 2743, 1319],
+      "bbox_convention": "[x0,y0,x1,y1)，右下不含",
+      "sort_baseline_y_cropped": 1325.5,
+      "sort_baseline_y_world": 1525.5,
+      "source_polygon_reference": "§5 T1",
+      "source_polygon": [
+        [2620.5, 1313.4],
+        [2646.1, 1325.5],
+        [2620.5, 1337.6],
+        [2594.9, 1325.5]
+      ],
+      "root_or_contact_point": [2620.5, 1325.5],
+      "roi_polygon": [
+        [2500, 1325.5],
+        [2745, 1325.5],
+        [2745, 1129],
+        [2500, 1129]
+      ],
+      "pixels_alpha_positive": 18193,
+      "pixels_alpha_255": 14960,
+      "feather_width_px": 1.5,
+      "notes": "主干与大横枝归 T1；左下枝叶与坡面杂植接近，按可追踪枝干保留，根下树池岩石排除。给定基线1325.5；可见木质根约1298。",
+      "occlusion": "(2500–2565,1265–1317) 左下枝叶与坡面杂植同色；(2635–2690,1160–1200) 上冠局部被前枝覆盖。按可追踪枝干归属切，隐蔽枝条不补。",
+      "cleanup": {
+        "non_object_removed_pixels": 159,
+        "isolated_removed_pixels": 0,
+        "deleted_pixels": 159,
+        "alpha_lowered_nonzero_pixels": 573
+      },
+      "zero_diff": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "rgb_all_pixels": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "sha256": "4cfd0fd24a759b01ab9b318171ec16679b0bec1666260359ed1f24346fc6f190"
+    },
+    {
+      "filename": "tree_T2.png",
+      "bbox": [2883, 1009, 2987, 1175],
+      "bbox_convention": "[x0,y0,x1,y1)，右下不含",
+      "sort_baseline_y_cropped": 1171.5,
+      "sort_baseline_y_world": 1371.5,
+      "source_polygon_reference": "§5 T2",
+      "source_polygon": [
+        [2944.5, 1159.4],
+        [2970.1, 1171.5],
+        [2944.5, 1183.6],
+        [2918.9, 1171.5]
+      ],
+      "root_or_contact_point": [2944.5, 1171.5],
+      "roi_polygon": [
+        [2881, 1171.5],
+        [2989, 1171.5],
+        [2989, 1007],
+        [2881, 1007]
+      ],
+      "pixels_alpha_positive": 7768,
+      "pixels_alpha_255": 6077,
+      "feather_width_px": 1.5,
+      "notes": "与 T3 枝叶交接处按主干方向分归；可见根部止于道路/树池接触线。",
+      "occlusion": "(2885–2910,1100–1145) 与后方松枝接近；(2970–2990,1080–1145) 与T3冠缘邻接。隐蔽冠缘不补。",
+      "cleanup": {
+        "non_object_removed_pixels": 208,
+        "isolated_removed_pixels": 0,
+        "deleted_pixels": 208,
+        "alpha_lowered_nonzero_pixels": 683
+      },
+      "zero_diff": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "rgb_all_pixels": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "sha256": "b07f21a393a687eac1060cad18b83bda963bceb4887fd48ec97724e2d857b046"
+    },
+    {
+      "filename": "tree_T3.png",
+      "bbox": [2980, 1029, 3055, 1147],
+      "bbox_convention": "[x0,y0,x1,y1)，右下不含",
+      "sort_baseline_y_cropped": 1145.5,
+      "sort_baseline_y_world": 1345.5,
+      "source_polygon_reference": "§5 T3",
+      "source_polygon": [
+        [2999.5, 1133.4],
+        [3025.1, 1145.5],
+        [2999.5, 1157.6],
+        [2973.9, 1145.5]
+      ],
+      "root_or_contact_point": [2999.5, 1145.5],
+      "roi_polygon": [
+        [2977, 1145.5],
+        [3057, 1145.5],
+        [3057, 1027],
+        [2977, 1027]
+      ],
+      "pixels_alpha_positive": 3628,
+      "pixels_alpha_255": 2624,
+      "feather_width_px": 1.5,
+      "notes": "T2/T3交叠枝叶不补全背面；基线沿给定T3根点。",
+      "occlusion": "(2975–2995,1080–1130) 西侧枝叶受T2遮挡；按前后关系剔除重复像素，不补缺枝。",
+      "cleanup": {
+        "non_object_removed_pixels": 124,
+        "isolated_removed_pixels": 0,
+        "deleted_pixels": 124,
+        "alpha_lowered_nonzero_pixels": 349
+      },
+      "zero_diff": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "rgb_all_pixels": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "sha256": "70759de5f1bc8dbea8992490c22aa2086dff20c10fd81592b8c7d9d6040dcf67"
+    },
+    {
+      "filename": "tree_T4.png",
+      "bbox": [2744, 1159, 2804, 1247],
+      "bbox_convention": "[x0,y0,x1,y1)，右下不含",
+      "sort_baseline_y_cropped": 1253.5,
+      "sort_baseline_y_world": 1453.5,
+      "source_polygon_reference": "§5 T4",
+      "source_polygon": [
+        [2772.5, 1241.4],
+        [2798.1, 1253.5],
+        [2772.5, 1265.6],
+        [2746.9, 1253.5]
+      ],
+      "root_or_contact_point": [2772.5, 1253.5],
+      "roi_polygon": [
+        [2742, 1253.5],
+        [2806, 1253.5],
+        [2806, 1157],
+        [2742, 1157]
+      ],
+      "pixels_alpha_positive": 2441,
+      "pixels_alpha_255": 1810,
+      "feather_width_px": 1.5,
+      "notes": "前排左侧小针叶树；与T5接触处按可见树干归属。",
+      "occlusion": "(2780–2800,1180–1225) 与T5冠叶重叠；只保留可见前枝。",
+      "cleanup": {
+        "non_object_removed_pixels": 70,
+        "isolated_removed_pixels": 0,
+        "deleted_pixels": 70,
+        "alpha_lowered_nonzero_pixels": 239
+      },
+      "zero_diff": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "rgb_all_pixels": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "sha256": "6f6618b593586799a2e0a1e47afdd6db86d91c5e0f9fd4898d37b1ab7936d4a8"
+    },
+    {
+      "filename": "tree_T5.png",
+      "bbox": [2781, 1113, 2849, 1233],
+      "bbox_convention": "[x0,y0,x1,y1)，右下不含",
+      "sort_baseline_y_cropped": 1231.5,
+      "sort_baseline_y_world": 1431.5,
+      "source_polygon_reference": "§5 T5",
+      "source_polygon": [
+        [2818.5, 1219.4],
+        [2844.1, 1231.5],
+        [2818.5, 1243.6],
+        [2792.9, 1231.5]
+      ],
+      "root_or_contact_point": [2818.5, 1231.5],
+      "roi_polygon": [
+        [2779, 1231.5],
+        [2851, 1231.5],
+        [2851, 1110],
+        [2779, 1110]
+      ],
+      "pixels_alpha_positive": 3609,
+      "pixels_alpha_255": 2856,
+      "feather_width_px": 1.5,
+      "notes": "前排右侧小针叶树；冠尖与后方石景颜色接近，限制在手点冠形内。",
+      "occlusion": "(2780–2810,1170–1230) 被T4前枝覆盖，背面轮廓无法恢复；不补。",
+      "cleanup": {
+        "non_object_removed_pixels": 63,
+        "isolated_removed_pixels": 0,
+        "deleted_pixels": 63,
+        "alpha_lowered_nonzero_pixels": 315
+      },
+      "zero_diff": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "rgb_all_pixels": {
+        "max_channel_difference": 0,
+        "mismatch_pixel_count": 0
+      },
+      "sha256": "ba2a92115e438ac1ad3616cb4311f532c591eae2ab5a9a9d18d056d599ab8a87"
+    }
+  ],
+  "visual_review": {
+    "reviewer": "脚本执行者逐图读取目视复核（view_image）",
+    "scale": 3,
+    "results": [
+      {
+        "name": "tree_T1",
+        "path": "fg/check/tree_T1_dark_3x.png",
+        "sha256": "2b657a8297e8e9f1d76d0ae089c8ec3016456f3d725afe531bd06f7207145a31",
+        "result": "未见明显透出地面/天空的灰白碎点；树皮、石材与灯光本体高光保留。"
+      },
+      {
+        "name": "gate_pine",
+        "path": "fg/check/gate_pine_dark_3x.png",
+        "sha256": "256d5eb6c12008029e70e50dbceee47b4240621be40486dc94218f99620601e2",
+        "result": "未见明显透出地面/天空的灰白碎点；树皮、石材与灯光本体高光保留。"
+      },
+      {
+        "name": "tree_T2",
+        "path": "fg/check/tree_T2_dark_3x.png",
+        "sha256": "7656aca755c3b37d6b69b46698c26ec9f3c88799c7b65338e1efb563367d6f4a",
+        "result": "未见明显透出地面/天空的灰白碎点；树皮、石材与灯光本体高光保留。"
+      },
+      {
+        "name": "rail_mid_04",
+        "path": "fg/check/rail_mid_04_dark_3x.png",
+        "sha256": "109cd55a4ac973ff6951d9b71613f893d70b77e3afcf3b120f987307d8a65c21",
+        "result": "未见明显透出地面/天空的灰白碎点；树皮、石材与灯光本体高光保留。"
+      },
+      {
+        "name": "array_lamp_03",
+        "path": "fg/check/array_lamp_03_dark_3x.png",
+        "sha256": "9582a42f7ea25638fc245b8120acd8fc43321f35b2460d068bda5965475a3d93",
+        "result": "未见明显透出地面/天空的灰白碎点；树皮、石材与灯光本体高光保留。"
+      }
+    ],
+    "additional_review": "另复核 tree_T3/T4/T5 的暗底3倍拼图，无明显白色背景残留。30件均进行颜色/空间检测及清理前逐件暗底拼图目视检查。"
+  },
+  "post_rail_overlap_pixels": {
+    "main_east_mouth_post_low / rail_east_06": 708,
+    "main_east_mouth_post_high / rail_east_07": 898
+  }
+}

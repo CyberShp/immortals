@@ -1,3 +1,9 @@
+import {
+  v4Active,
+  v4Walkable,
+  v4Navigation,
+  v4SegmentBlocked,
+} from './world-v4';
 import { pedestalGeometry } from './pedestal';
 import corridor from './main-corridor.json';
 export const corridorCut = corridor.blockedPolygon as [number, number][];
@@ -87,8 +93,8 @@ export type Point = [number, number];
 export { DISCIPLE_SCALE, DISCIPLE_HEIGHT } from './world-scale';
 // Legacy renderer interpolated every trip over 1.2s, not at a constant speed.
 // Reference: old dorm plot front (202.5,170.5) -> hall (299.75,153).
-import { WALK_SPEED } from './world-scale';
-export { WALK_SPEED } from './world-scale';
+import { WALK_SPEED as BASE_WALK_SPEED } from './world-scale';
+export const WALK_SPEED = BASE_WALK_SPEED * (v4Active ? 1.64 : 1);
 export function inPolygon([x, y]: Point, poly: Point[]) {
   let c = false;
   for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
@@ -149,6 +155,7 @@ function inRect(p: Point, rect: readonly number[]) {
   );
 }
 export function walkable(p: Point) {
+  if (v4Active) return v4Walkable(p);
   if (p[0] < 0 || p[1] < 0 || p[0] >= worldMap.width || p[1] >= worldMap.height)
     return false;
   if (worldMap.slots.some((s) => inFootprint(p, s.footprint))) return false;
@@ -165,22 +172,25 @@ export function walkable(p: Point) {
     })
   );
 }
-const navigationPolygons: Point[][] = [
-  ...(activeCorridorCut ? [activeCorridorCut] : []),
-  ...worldMap.islands.flatMap((i) =>
-    [i.walkable, ...i.obstacles].map((poly) =>
-      poly.map((p) => [p[0] + i.offset[0], p[1] + i.offset[1]] as Point),
-    ),
-  ),
-  ...worldMap.bridges.map((b) => b.walkable),
-  ...activePlatformWalkables.map((b) => b.polygon),
-  ...worldMap.slots.flatMap((s) => footprintPolygons(s.footprint)),
-];
+const navigationPolygons: Point[][] = v4Active
+  ? v4Navigation
+  : [
+      ...(activeCorridorCut ? [activeCorridorCut] : []),
+      ...worldMap.islands.flatMap((i) =>
+        [i.walkable, ...i.obstacles].map((poly) =>
+          poly.map((p) => [p[0] + i.offset[0], p[1] + i.offset[1]] as Point),
+        ),
+      ),
+      ...worldMap.bridges.map((b) => b.walkable),
+      ...activePlatformWalkables.map((b) => b.polygon),
+      ...worldMap.slots.flatMap((s) => footprintPolygons(s.footprint)),
+    ];
 const navigationEdges = navigationPolygons.flatMap((poly) =>
   poly.map((a, i) => [a, poly[(i + 1) % poly.length]]),
 );
 export function lineClear(a: Point, b: Point) {
   if (!walkable(a) || !walkable(b)) return false;
+  if (v4Active && v4SegmentBlocked(a, b)) return false;
   const dx = b[0] - a[0],
     dy = b[1] - a[1],
     cuts = [0, 1];
@@ -210,6 +220,8 @@ export function lineClear(a: Point, b: Point) {
     if (!walkable([a[0] + dx * t, a[1] + dy * t])) return false;
   }
   // Closed footprints also reject tangencies, so the exact corner cannot be occupied.
+  if (v4Active)
+    return cuts.every((t) => walkable([a[0] + dx * t, a[1] + dy * t]));
   return cuts.every(
     (t) =>
       !worldMap.slots.some((s) =>

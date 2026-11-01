@@ -1,0 +1,497 @@
+[
+  {
+    "source": "background/background_world_v2_4997x2320.png",
+    "file": "world-v4/background/background_world_v2_4997x2320.webp",
+    "size": [4997, 2320],
+    "anchor": {
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "source": "main-platform/main_platform_v4refine_v3_3600x1920.png",
+    "file": "world-v4/main-platform/main_platform_v4refine_v3_3600x1920.webp",
+    "size": [3600, 1920],
+    "anchor": {
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "source": "bridges/east_bridge_v4.png",
+    "file": "world-v4/bridges/east_bridge_v4.webp",
+    "size": [492, 367],
+    "anchor": {
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "source": "bridges/south_bridge_v1.png",
+    "file": "world-v4/bridges/south_bridge_v1.webp",
+    "size": [626, 446],
+    "anchor": {
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "source": "bridges/south_gate_end_cover_v2_left.png",
+    "file": "world-v4/bridges/south_gate_end_cover_v2_left.webp",
+    "size": [116, 138],
+    "anchor": {
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "source": "bridges/south_gate_end_cover_v2_right.png",
+    "file": "world-v4/bridges/south_gate_end_cover_v2_right.webp",
+    "size": [117, 141],
+    "anchor": {
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "source": "platforms/east_platform_v1b.png",
+    "file": "world-v4/platforms/east_platform_v1b.webp",
+    "size": [1268, 1298],
+    "anchor": {
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "source": "platforms/south_platform_v1b.png",
+    "file": "world-v4/platforms/south_platform_v1b.webp",
+    "size": [1460, 1277],
+    "anchor": {
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "source": "fogband/east_fogband_layer_v2.png",
+    "file": "world-v4/fogband/east_fogband_layer_v2.webp",
+    "size": [1268, 1298],
+    "anchor": {
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "source": "fogband/south_fogband_layer_v2.png",
+    "file": "world-v4/fogband/south_fogband_layer_v2.webp",
+    "size": [1460, 1277],
+    "anchor": {
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "source": "fg/array_lamp_01.png",
+    "file": "world-v4/fg/array_lamp_01.webp",
+    "size": [3600, 1920],
+    "anchor": {
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "source": "fg/array_lamp_02.png",
+    "file": "world-v4/fg/array_lamp_02.webp",
+    "size": [3600, 1920],
+    "anchor": {
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "source": "fg/array_lamp_03.png",
+    "file": "world-v4/fg/array_lamp_03.webp",
+    "size": [3600, 1920],
+    "anchor": {
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "source": "fg/array_lamp_04.png",
+    "file": "world-v4/fg/array_lamp_04.webp",
+    "size": [3600, 1920],
+    "anchor": {
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "source": "fg/array_lamp_05.png",
+    "file": "world-v4/fg/array_lamp_05.webp",
+    "size": [3600, 1920],
+    "anchor": {
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "source": "fg/array_lamp_06.png",
+    "file": "world-v4/fg/array_lamp_06.webp",
+    "size": [3600, 1920],
+    "anchor": {
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "source": "fg/dorm_1.png",
+    "file": "world-v4/fg/dorm_1.webp",
+    "size": [3600, 1920],
+    "anchor": {
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "source": "fg/dorm_4.png",
+    "file": "world-v4/fg/dorm_4.webp",
+    "size": [3600, 1920],
+    "anchor": {
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "source": "fg/dorm_5.png",
+    "file": "world-v4/fg/dorm_5.webp",
+    "size": [3600, 1920],
+    "anchor": {
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "source": "fg/dorm_gatehouse.png",
+    "file": "world-v4/fg/dorm_gatehouse.webp",
+    "size": [3600, 1920],
+    "anchor": {
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "source": "fg/dorm_yard_frontwall_01.png",
+    "file": "world-v4/fg/dorm_yard_frontwall_01.webp",
+    "size": [3600, 1920],
+    "anchor": {
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "source": "fg/dorm_yard_frontwall_02.png",
+    "file": "world-v4/fg/dorm_yard_frontwall_02.webp",
+    "size": [3600, 1920],
+    "anchor": {
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "source": "fg/dorm_yard_frontwall_03.png",
+    "file": "world-v4/fg/dorm_yard_frontwall_03.webp",
+    "size": [3600, 1920],
+    "anchor": {
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "source": "fg/dorm_yard_frontwall_04.png",
+    "file": "world-v4/fg/dorm_yard_frontwall_04.webp",
+    "size": [3600, 1920],
+    "anchor": {
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "source": "fg/dorm_yard_frontwall_05.png",
+    "file": "world-v4/fg/dorm_yard_frontwall_05.webp",
+    "size": [3600, 1920],
+    "anchor": {
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "source": "fg/dorm_yard_frontwall_06.png",
+    "file": "world-v4/fg/dorm_yard_frontwall_06.webp",
+    "size": [3600, 1920],
+    "anchor": {
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "source": "fg/gate.png",
+    "file": "world-v4/fg/gate.webp",
+    "size": [3600, 1920],
+    "anchor": {
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "source": "fg/gate_pine.png",
+    "file": "world-v4/fg/gate_pine.webp",
+    "size": [3600, 1920],
+    "anchor": {
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "source": "fg/hall_front.png",
+    "file": "world-v4/fg/hall_front.webp",
+    "size": [3600, 1920],
+    "anchor": {
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "source": "fg/main_east_mouth_post_high.png",
+    "file": "world-v4/fg/main_east_mouth_post_high.webp",
+    "size": [3600, 1920],
+    "anchor": {
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "source": "fg/main_east_mouth_post_low.png",
+    "file": "world-v4/fg/main_east_mouth_post_low.webp",
+    "size": [3600, 1920],
+    "anchor": {
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "source": "fg/rail_east_01.png",
+    "file": "world-v4/fg/rail_east_01.webp",
+    "size": [3600, 1920],
+    "anchor": {
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "source": "fg/rail_east_02.png",
+    "file": "world-v4/fg/rail_east_02.webp",
+    "size": [3600, 1920],
+    "anchor": {
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "source": "fg/rail_east_03.png",
+    "file": "world-v4/fg/rail_east_03.webp",
+    "size": [3600, 1920],
+    "anchor": {
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "source": "fg/rail_east_04.png",
+    "file": "world-v4/fg/rail_east_04.webp",
+    "size": [3600, 1920],
+    "anchor": {
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "source": "fg/rail_east_05.png",
+    "file": "world-v4/fg/rail_east_05.webp",
+    "size": [3600, 1920],
+    "anchor": {
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "source": "fg/rail_east_06.png",
+    "file": "world-v4/fg/rail_east_06.webp",
+    "size": [3600, 1920],
+    "anchor": {
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "source": "fg/rail_east_07.png",
+    "file": "world-v4/fg/rail_east_07.webp",
+    "size": [3600, 1920],
+    "anchor": {
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "source": "fg/rail_east_08.png",
+    "file": "world-v4/fg/rail_east_08.webp",
+    "size": [3600, 1920],
+    "anchor": {
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "source": "fg/rail_mid_01.png",
+    "file": "world-v4/fg/rail_mid_01.webp",
+    "size": [3600, 1920],
+    "anchor": {
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "source": "fg/rail_mid_02.png",
+    "file": "world-v4/fg/rail_mid_02.webp",
+    "size": [3600, 1920],
+    "anchor": {
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "source": "fg/rail_mid_03.png",
+    "file": "world-v4/fg/rail_mid_03.webp",
+    "size": [3600, 1920],
+    "anchor": {
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "source": "fg/rail_mid_04.png",
+    "file": "world-v4/fg/rail_mid_04.webp",
+    "size": [3600, 1920],
+    "anchor": {
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "source": "fg/rail_mid_05.png",
+    "file": "world-v4/fg/rail_mid_05.webp",
+    "size": [3600, 1920],
+    "anchor": {
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "source": "fg/rail_mid_06.png",
+    "file": "world-v4/fg/rail_mid_06.webp",
+    "size": [3600, 1920],
+    "anchor": {
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "source": "fg/rail_west_01.png",
+    "file": "world-v4/fg/rail_west_01.webp",
+    "size": [3600, 1920],
+    "anchor": {
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "source": "fg/rail_west_02.png",
+    "file": "world-v4/fg/rail_west_02.webp",
+    "size": [3600, 1920],
+    "anchor": {
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "source": "fg/rail_west_03.png",
+    "file": "world-v4/fg/rail_west_03.webp",
+    "size": [3600, 1920],
+    "anchor": {
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "source": "fg/rail_west_04.png",
+    "file": "world-v4/fg/rail_west_04.webp",
+    "size": [3600, 1920],
+    "anchor": {
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "source": "fg/tower.png",
+    "file": "world-v4/fg/tower.webp",
+    "size": [3600, 1920],
+    "anchor": {
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "source": "fg/tree_T1.png",
+    "file": "world-v4/fg/tree_T1.webp",
+    "size": [3600, 1920],
+    "anchor": {
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "source": "fg/tree_T2.png",
+    "file": "world-v4/fg/tree_T2.webp",
+    "size": [3600, 1920],
+    "anchor": {
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "source": "fg/tree_T3.png",
+    "file": "world-v4/fg/tree_T3.webp",
+    "size": [3600, 1920],
+    "anchor": {
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "source": "fg/tree_T4.png",
+    "file": "world-v4/fg/tree_T4.webp",
+    "size": [3600, 1920],
+    "anchor": {
+      "x": 0,
+      "y": 0
+    }
+  },
+  {
+    "source": "fg/tree_T5.png",
+    "file": "world-v4/fg/tree_T5.webp",
+    "size": [3600, 1920],
+    "anchor": {
+      "x": 0,
+      "y": 0
+    }
+  }
+]
