@@ -15,6 +15,7 @@ try {
     deviceScaleFactor: 2,
   });
   await context.addInitScript(() => {
+    performance.setResourceTimingBufferSize(10000);
     new MutationObserver(() => {
       if (document.documentElement)
         document.documentElement.style.zoom = '0.95';
@@ -48,13 +49,15 @@ try {
     window.__xianfu.reset();
     window.__xianfu.freeze(true);
   });
+  await page.waitForTimeout(2000);
+  await page.waitForLoadState('networkidle');
   const report = await page.evaluate(async () => {
     await new Promise((r) =>
       requestAnimationFrame(() => requestAnimationFrame(r)),
     );
     return {
       method:
-        'Resource Timing encodedBodySize at first completed map paint; fresh context; DPR2; CSS zoom .95; 1600x1000; default v4',
+        'Resource Timing encodedBodySize after completed map paint + 2s stability, including all eager world blocks; fresh context; DPR2; CSS zoom .95; 1600x1000; default v4',
       camera: window.__camera.get(),
       viewport: window.__mapStats.viewport,
       resources: performance.getEntriesByType('resource').map((r) => ({

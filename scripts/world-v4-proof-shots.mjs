@@ -17,6 +17,8 @@ try {
     deviceScaleFactor: 2,
   });
   const page = await context.newPage();
+  const requests = [];
+  page.on('request', (r) => requests.push(r.url()));
   await page.goto((process.argv[2] ?? 'http://127.0.0.1:4186') + '/?debug=1');
   await page.waitForFunction(
     () => window.__mapReady && window.__worldV4,
@@ -55,26 +57,48 @@ try {
   proof.rail = best;
   proof.viewport = await page.evaluate(() => window.__mapStats.viewport);
   // Pan rapidly across the world and inspect errors/fallback counters every animation frame.
+  const beforePanRequests = requests.length;
   const frames = await page.evaluate(async () => {
     let rows = [];
-    for (let i = 0; i < 120; i++) {
-      const t = i / 119;
-      window.__camera.set({ x: 4997 * t, y: 2320 * t, zoom: 1 });
+    for (let i = 0; i < 480; i++) {
+      const targets = [
+        [2350, 1150],
+        [4400, 1800],
+        [600, 2100],
+        [0, 0],
+        [4997, 0],
+        [0, 2320],
+        [4997, 2320],
+      ];
+      const a = targets[Math.floor(i / 60) % targets.length],
+        b = targets[(Math.floor(i / 60) + 1) % targets.length];
+      const t = (i % 60) / 59;
+      const jump = targets[i % targets.length];
+      window.__camera.set({
+        x: i < 360 ? a[0] + (b[0] - a[0]) * t : jump[0],
+        y: i < 360 ? a[1] + (b[1] - a[1]) * t : jump[1],
+        zoom: 1,
+      });
       await new Promise(requestAnimationFrame);
       rows.push({
         i,
         camera: window.__camera.get(),
         fallbacks: window.__mapStats.fallbacks,
         ready: window.__mapReady,
+        textures: window.__worldV4.textureStatus?.() ?? null,
       });
     }
     return rows;
   });
   proof.pan = {
     method:
-      '120 requestAnimationFrame camera jumps across world; production eager textures; no lazy candidate installed',
+      '480 rendered frames: 360 pans + 120 instant jumps; first/east/south/four corners; full-world encoded blocks preloaded before first paint',
     frames,
-    missingFrames: frames.filter((f) => f.fallbacks || !f.ready).length,
+    requestsDuringPan: requests.slice(beforePanRequests),
+    missingFrames: frames.filter(
+      (f) =>
+        f.fallbacks || !f.ready || !f.textures || f.textures.missing.length,
+    ).length,
   };
   await writeFile(
     `${out}/evidence/railing-browser.json`,

@@ -1,3 +1,4 @@
+import encodedV4 from './world-v4-encoded.json';
 import {
   v4ForegroundBounds,
   v4Active,
@@ -567,7 +568,7 @@ export async function createMap(
   const entries = new Map(manifest.files.map((f) => [f.file, f]));
   let warned = false;
   const needed = manifest.files.filter(
-    (f) => false || f.file.includes('-map@') || f.file.includes('-96@'),
+    (f) => (!v4Active && f.file.includes('-map@')) || f.file.includes('-96@'),
   );
   const mapEntries = v4Active
     ? v4Assets.filter((a) => v4Layers.some((l) => l.file === a.file))
@@ -643,6 +644,64 @@ export async function createMap(
   await Promise.all(
     loadList.map(async ({ file }) => {
       try {
+        const encoded = v4Active
+          ? encodedV4.find((a) => a.file === file)
+          : undefined;
+        if (encoded) {
+          // Assemble source-aligned blocks before uploading ONE texture: no inter-tile
+          // filtering seams, unchanged layer identity/z, and every destination is ready.
+          const canvas = document.createElement('canvas');
+          [canvas.width, canvas.height] = encoded.size;
+          const ctx = canvas.getContext('2d')!;
+          await Promise.all(
+            encoded.tiles.map(async (tile) => {
+              if (!('file' in tile) || !tile.file) return;
+              const image = new Image();
+              image.src = import.meta.env.BASE_URL + 'assets/' + tile.file;
+              await image.decode();
+              const alphaFile =
+                'alphaFile' in tile ? tile.alphaFile : undefined;
+              const repairFile =
+                'repairFile' in tile ? tile.repairFile : undefined;
+              if (alphaFile || repairFile) {
+                const block = document.createElement('canvas');
+                block.width = tile.width;
+                block.height = tile.height;
+                const bc = block.getContext('2d', {
+                  willReadFrequently: true,
+                })!;
+                bc.drawImage(image, 0, 0);
+                const rgba = bc.getImageData(0, 0, tile.width, tile.height);
+                for (const [file, isAlpha] of [
+                  [alphaFile, true],
+                  [repairFile, false],
+                ] as const) {
+                  if (!file) continue;
+                  const auxiliary = new Image();
+                  auxiliary.src = import.meta.env.BASE_URL + 'assets/' + file;
+                  await auxiliary.decode();
+                  bc.clearRect(0, 0, tile.width, tile.height);
+                  bc.drawImage(auxiliary, 0, 0);
+                  const data = bc.getImageData(
+                    0,
+                    0,
+                    tile.width,
+                    tile.height,
+                  ).data;
+                  for (let i = 0; i < rgba.data.length; i += 4) {
+                    if (isAlpha) rgba.data[i + 3] = data[i];
+                    else if (data[i + 3])
+                      for (let c = 0; c < 3; c++)
+                        rgba.data[i + c] = data[i + c];
+                  }
+                }
+                ctx.putImageData(rgba, tile.x, tile.y);
+              } else ctx.drawImage(image, tile.x, tile.y);
+            }),
+          );
+          textures.set(file, Texture.from(canvas));
+          return;
+        }
         const loaded = await Assets.load<Texture>({
           src: import.meta.env.BASE_URL + 'assets/' + file,
           // @2x filenames otherwise make Pixi halve texture dimensions too.
@@ -1470,6 +1529,13 @@ export async function createMap(
         ...(v4Active
           ? {
               __worldV4: {
+                textureStatus: () => ({
+                  expected: v4Layers.length,
+                  missing: v4Layers
+                    .filter((l) => !textures.has(l.file))
+                    .map((l) => l.file),
+                  loading: false, // All blocks awaited before the first paint.
+                }),
                 motionState: () =>
                   [...motions].map(([id, m]) => ({
                     id,
