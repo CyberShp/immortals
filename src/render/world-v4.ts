@@ -22,6 +22,7 @@ export const V4 = {
   cellWidth: 170.417,
   cellHeight: 80.667,
   actorScale: 1.64,
+  walkSpeed: 48,
 };
 export function worldV4Enabled(search: string) {
   const p = new URLSearchParams(search);
@@ -196,6 +197,35 @@ export const v4Route = [
 ];
 export const v4FadeContains = (p: P) =>
   contains(p, rect(wa.fade.trigger_zone_uv));
+// Presentation overrides pending Lore synchronisation; authoritative layout is untouched.
+export const v4Queue = (
+  [
+    [30.2, 0.25],
+    [30.85, 0.7],
+    [30.4, 1.55],
+    [30.45, 2.1],
+  ] as P[]
+).map((p) => uv(...p));
+export const v4ArenaSeats = (
+  [
+    [38.35, 4.1],
+    [37.7, 2.45],
+    [39.4, 1.2],
+  ] as P[]
+).map((p, i) => {
+  const point = uv(...p),
+    center = uv(...(layout.array_disc_center as P));
+  const length = Math.hypot(center[0] - point[0], center[1] - point[1]);
+  return {
+    id: ['L', 'M', 'R'][i],
+    uv: p,
+    point,
+    facing: [
+      (center[0] - point[0]) / length,
+      (center[1] - point[1]) / length,
+    ] as P,
+  };
+});
 export function adaptV4(base: CoolWorld): CoolWorld {
   const names: Record<string, string> = {
     B_HALL: 'hall',
@@ -263,9 +293,7 @@ export function adaptV4(base: CoolWorld): CoolWorld {
     bridges: [],
     zones: [],
     decor: [],
-    arenaSeats: Object.values(layout.b8_seats_uv).map((p) =>
-      v4Nearest(uv(...(p as P))),
-    ),
+    arenaSeats: v4ArenaSeats.map((s) => s.point),
   };
 }
 export const v4Layers = (() => {
@@ -282,7 +310,7 @@ export const v4Layers = (() => {
       V4.offset,
       -1090,
     ),
-    layer('bridges/east_bridge_v4.png', east.east.world_origin, -1080),
+    layer('bridges/east_bridge_v5.png', east.east.world_origin, -1080),
     layer('bridges/south_bridge_v1.png', south.world_origin, -1070),
   ];
   const gate = fg.objects.find((f) => f.filename === 'gate.png')!;

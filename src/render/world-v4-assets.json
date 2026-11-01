@@ -493,5 +493,14 @@
       "x": 0,
       "y": 0
     }
+  },
+  {
+    "source": "bridges/east_bridge_v5.png",
+    "file": "world-v4/bridges/east_bridge_v5.webp",
+    "size": [492, 367],
+    "anchor": {
+      "x": 0,
+      "y": 0
+    }
   }
 ]

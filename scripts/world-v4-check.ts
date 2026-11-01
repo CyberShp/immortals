@@ -47,8 +47,8 @@ const groups = {
     ...l.cushion_block.west_centers,
     ...l.cushion_block.east_centers,
   ].map((p) => uv(p[0], p[1])),
-  queue: l.queue_spots.map((p) => uv(p[0], p[1])),
-  b8: Object.values(l.b8_seats_uv).map((p) => uv(p[0], p[1])),
+  queue: v.v4Queue,
+  b8: w.coolWorld!.arenaSeats,
   stations: w.worldMap.spots.map((s) => s.point),
   entrances: w.worldMap.slots.map((s) => s.entrance),
   quarry: [w.coolWorld!.quarry],
@@ -68,6 +68,51 @@ for (const [name, points] of Object.entries(groups))
           .map((b) => b.id),
       })),
   );
+check('B8 runtime reachable', w.coolWorld!.arenaSeats.every(reachable));
+const segmentDistance = (
+  p: [number, number],
+  a: [number, number],
+  b: [number, number],
+) => {
+  const dx = b[0] - a[0],
+    dy = b[1] - a[1],
+    t = Math.max(
+      0,
+      Math.min(
+        1,
+        ((p[0] - a[0]) * dx + (p[1] - a[1]) * dy) / (dx * dx + dy * dy),
+      ),
+    );
+  return Math.hypot(p[0] - a[0] - dx * t, p[1] - a[1] - dy * t);
+};
+const center = uv(...(l.array_disc_center as [number, number]));
+for (const seat of v.v4ArenaSeats) {
+  const margin = Math.min(
+    ...v.v4Blocked.flatMap((b) => {
+      const ps = b.polygon.map(v.toUV);
+      return ps.map((p, i) =>
+        segmentDistance(seat.uv, p, ps[(i + 1) % ps.length]),
+      );
+    }),
+  );
+  const d = Math.hypot(center[0] - seat.point[0], center[1] - seat.point[1]);
+  const dot =
+    (seat.facing[0] * (center[0] - seat.point[0]) +
+      seat.facing[1] * (center[1] - seat.point[1])) /
+    d;
+  check(
+    'B8 ' + seat.id + ' clearance >=0.15 UV and facing <=5 degrees',
+    margin >= 0.15 && dot >= Math.cos((5 * Math.PI) / 180),
+    { margin, facing: seat.facing },
+  );
+}
+
+const rawSeats = Object.values(l.b8_seats_uv).map((p) => uv(p[0], p[1]));
+const info = {
+  name: 'Lore 原始 B8 座位仍在碰撞内，待 Lore 同步',
+  conflicts: rawSeats.filter((p) => !w.walkable(p)).length,
+  points: rawSeats,
+};
 check(
   'active targets reachable',
   [
@@ -80,6 +125,7 @@ console.log(
   JSON.stringify(
     {
       results,
+      info,
       pass: results.filter((r) => r.pass).length,
       fail: results.filter((r) => !r.pass).length,
     },

@@ -1,6 +1,6 @@
 import sharp from 'sharp';
 import { chromium } from 'playwright-core';
-import { mkdir, writeFile } from 'node:fs/promises';
+import { mkdir, writeFile, readFile } from 'node:fs/promises';
 import assert from 'node:assert/strict';
 const out =
   process.argv[3] ?? '/Volumes/Media/immortal-qa/world-v4-intake/shots';
@@ -15,6 +15,23 @@ const context = await browser.newContext({
   viewport: { width: 1600, height: 1000 },
   deviceScaleFactor: 2,
 });
+if (process.env.FIXED_CLOCK === '1')
+  await context.addInitScript(() => {
+    performance.now = () => 100000;
+    const raf = window.requestAnimationFrame.bind(window);
+    window.requestAnimationFrame = (callback) => raf(() => callback(100000));
+  });
+if (process.env.V4_BRIDGE_REFERENCE === '1')
+  await context.route(
+    '**/assets/world-v4/bridges/east_bridge_v5.webp',
+    async (route) =>
+      route.fulfill({
+        contentType: 'image/webp',
+        body: await readFile(
+          'public/assets/world-v4/bridges/east_bridge_v4.webp',
+        ),
+      }),
+  );
 const page = await context.newPage();
 const report = { errors: [], shots: [], resources: [] };
 page.on('pageerror', (e) => report.errors.push(e.message));

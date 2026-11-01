@@ -9,6 +9,9 @@ import {
   v4Layers,
   v4Fade,
   worldV4Enabled,
+  v4ArenaSeats,
+  v4Queue,
+  V4,
 } from '../src/render/world-v4';
 afterAll(() => vi.unstubAllGlobals());
 describe('world v4 presentation', () => {
@@ -76,6 +79,68 @@ describe('world v4 presentation', () => {
   it('preserves the unresolved B8 seats versus array footprint conflict', () => {
     for (const p of Object.values(v4Layout.b8_seats_uv))
       expect(v4Walkable(uv(p[0], p[1]))).toBe(false);
+  });
+  it('v4 runtime B8 seats are reachable, separated and face the disc', async () => {
+    vi.stubGlobal('location', { search: '?world=v4' });
+    vi.resetModules();
+    const w = await import('../src/render/world');
+    expect(w.coolWorld!.arenaSeats).toEqual(v4ArenaSeats.map((s) => s.point));
+    const center = uv(...(v4Layout.array_disc_center as [number, number]));
+    for (const s of v4ArenaSeats) {
+      expect(w.walkable(s.point)).toBe(true);
+      expect(
+        w.findPath(w.worldMap.slots[0].entrance, s.point).length,
+      ).toBeGreaterThan(1);
+      const d = Math.hypot(center[0] - s.point[0], center[1] - s.point[1]);
+      expect(
+        (s.facing[0] * (center[0] - s.point[0])) / d +
+          (s.facing[1] * (center[1] - s.point[1])) / d,
+      ).toBeGreaterThanOrEqual(Math.cos((5 * Math.PI) / 180));
+      for (const other of v4ArenaSeats.filter((o) => o !== s))
+        expect(
+          Math.hypot(other.point[0] - s.point[0], other.point[1] - s.point[1]),
+        ).toBeGreaterThan(28 * V4.actorScale);
+    }
+  });
+  it('v4 queue clears all entrance paths by a scaled body width; all 24 cushions remain walkable', async () => {
+    vi.stubGlobal('location', { search: '?world=v4' });
+    vi.resetModules();
+    const w = await import('../src/render/world');
+    const hall = w.worldMap.slots.find((s) => s.id === 'B_HALL')!.entrance;
+    const sources = [
+      ...w.worldMap.slots
+        .filter((s) => s.id !== 'B_HALL')
+        .map((s) => s.entrance),
+      ...w.worldMap.spots.map((s) => s.point),
+      w.coolWorld!.quarry,
+      w.coolWorld!.expeditionPoint,
+    ];
+    const paths = sources.map((p) => w.findPath(p, hall));
+    for (const p of v4Queue) {
+      expect(w.walkable(p)).toBe(true);
+      expect(w.channelClearance(p, paths)).toBeGreaterThan(28 * V4.actorScale);
+      for (const q of v4Queue.filter((q) => q !== p))
+        expect(Math.hypot(p[0] - q[0], p[1] - q[1])).toBeGreaterThanOrEqual(
+          28 * V4.actorScale,
+        );
+    }
+    for (const p of [
+      ...v4Layout.cushion_block.west_centers,
+      ...v4Layout.cushion_block.east_centers,
+    ])
+      expect(w.walkable(uv(p[0], p[1]))).toBe(true);
+  });
+  it('v4 dorm to hall meets 15 seconds with presentation-only speed', async () => {
+    vi.stubGlobal('location', { search: '?world=v4' });
+    vi.resetModules();
+    const w = await import('../src/render/world');
+    expect(w.WALK_SPEED).toBe(48);
+    expect(
+      w.walkTimeSeconds(
+        w.worldMap.slots.find((s) => s.id === 'B_DORM')!.entrance,
+        w.worldMap.slots.find((s) => s.id === 'B_HALL')!.entrance,
+      ),
+    ).toBeLessThanOrEqual(15);
   });
   it('routes from main platform through both bridges and reaches fade and room door', async () => {
     vi.stubGlobal('location', { search: '?world=v4' });

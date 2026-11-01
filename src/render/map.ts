@@ -260,6 +260,8 @@ declare global {
         pose: string;
         stride: number;
         locomotion: string;
+        frame?: string;
+        frameFlip?: number;
       }[];
       buildings: {
         id: string;
@@ -568,7 +570,7 @@ export async function createMap(
     (f) => false || f.file.includes('-map@') || f.file.includes('-96@'),
   );
   const mapEntries = v4Active
-    ? v4Assets
+    ? v4Assets.filter((a) => v4Layers.some((l) => l.file === a.file))
     : coolHall
       ? [
           coolHall.layers.base,
@@ -1539,7 +1541,7 @@ export async function createMap(
           return { from, to, duration: m.duration };
         },
         __motionDebug: {
-          place: (id: string, requested: Point) => {
+          place: (id: string, requested: Point, pose = 'walk-pass') => {
             debugPaintTime = undefined;
             const m = motions.get(id);
             if (!m) throw Error('Unknown disciple');
@@ -1547,7 +1549,7 @@ export async function createMap(
             Object.assign(m, {
               debugControlled: true,
               expedition: undefined,
-              debugPose: 'walk-pass',
+              debugPose: pose,
               x: point[0],
               y: point[1],
               toX: point[0],
@@ -1868,6 +1870,13 @@ export async function createMap(
         : coolFile
           ? art(coolFile, coolDiscipleScale(height))
           : art(file, height / 96);
+      if (coolFile) {
+        stats.disciples.at(-1)!.frame = coolFile;
+        stats.disciples.at(-1)!.frameFlip = coolActionFlip(
+          coolAct!,
+          coolFacing,
+        );
+      }
       if (coolFile)
         stats.coolFrames[coolFile] = (stats.coolFrames[coolFile] ?? 0) + 1;
       const groundMarks = discipleGroundMarks(pose, height, compact);

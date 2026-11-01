@@ -1,5 +1,6 @@
 import {
   v4Active,
+  V4,
   v4Walkable,
   v4Navigation,
   v4SegmentBlocked,
@@ -94,7 +95,7 @@ export { DISCIPLE_SCALE, DISCIPLE_HEIGHT } from './world-scale';
 // Legacy renderer interpolated every trip over 1.2s, not at a constant speed.
 // Reference: old dorm plot front (202.5,170.5) -> hall (299.75,153).
 import { WALK_SPEED as BASE_WALK_SPEED } from './world-scale';
-export const WALK_SPEED = BASE_WALK_SPEED * (v4Active ? 1.64 : 1);
+export const WALK_SPEED = v4Active ? V4.walkSpeed : BASE_WALK_SPEED;
 export function inPolygon([x, y]: Point, poly: Point[]) {
   let c = false;
   for (let i = 0, j = poly.length - 1; i < poly.length; j = i++) {
