@@ -130,17 +130,17 @@ describe('world v4 presentation', () => {
     ])
       expect(w.walkable(uv(p[0], p[1]))).toBe(true);
   });
-  it('v4 dorm to hall meets 15 seconds with presentation-only speed', async () => {
+  it('指挥官 2026-11-01 决定 v4 恢复 32.8px/s,上限 22s（居舍→主殿）', async () => {
     vi.stubGlobal('location', { search: '?world=v4' });
     vi.resetModules();
     const w = await import('../src/render/world');
-    expect(w.WALK_SPEED).toBe(48);
+    expect(w.WALK_SPEED).toBe(32.8);
     expect(
       w.walkTimeSeconds(
         w.worldMap.slots.find((s) => s.id === 'B_DORM')!.entrance,
         w.worldMap.slots.find((s) => s.id === 'B_HALL')!.entrance,
       ),
-    ).toBeLessThanOrEqual(15);
+    ).toBeLessThanOrEqual(22);
   });
   it('routes from main platform through both bridges and reaches fade and room door', async () => {
     vi.stubGlobal('location', { search: '?world=v4' });

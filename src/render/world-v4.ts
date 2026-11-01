@@ -22,7 +22,7 @@ export const V4 = {
   cellWidth: 170.417,
   cellHeight: 80.667,
   actorScale: 1.64,
-  walkSpeed: 48,
+  walkSpeed: 32.8,
 };
 export function worldV4Enabled(search: string) {
   const p = new URLSearchParams(search);
