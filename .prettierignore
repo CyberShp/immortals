@@ -5,3 +5,9 @@ artifacts
 package-lock.json
 
 output
+
+# Read-only intake copies: preserve source bytes.
+src/render/world-v4-layout-v15.json
+src/render/spots-v2.json
+src/display/roster_patch.json
+src/display/recruit_pool.json

@@ -1,0 +1,41 @@
+{
+ "_meta": {
+  "purpose": "招新弟子 lifeLine 抽取池",
+  "source": "/workspace/review/batch4/lifeline_data.json",
+  "field": "lifeLine",
+  "source_rule": "≤16字;招新弟子从 pool 按种子不放回抽取，抽完可重复;仅展示，不进入任何判定",
+  "draw": {
+   "rng": "independent stream derived from the game seed (23-decisions #9); MUST NOT consume sim RNG",
+   "mode": "without_replacement",
+   "on_exhausted": "repeats allowed (23-decisions #9: repeats acceptable). Suggested impl: reshuffle the full pool and continue without replacement",
+   "persist": "REQUIRED (23-decisions #9): write the drawn lifeLine into the save; must be unchanged after reload / import / offline catch-up"
+  },
+  "display_only": true
+ },
+ "pool": [
+  {
+   "id": "LL_R01",
+   "lifeLine": "想让家人在山下过得好些"
+  },
+  {
+   "id": "LL_R02",
+   "lifeLine": "听说这里的茶不错，留下了"
+  },
+  {
+   "id": "LL_R03",
+   "lifeLine": "梦里见过这座山门"
+  },
+  {
+   "id": "LL_R04",
+   "lifeLine": "想弄明白师父为何离开"
+  },
+  {
+   "id": "LL_R05",
+   "lifeLine": "不求飞升，只求不被人遗忘"
+  },
+  {
+   "id": "LL_R06",
+   "lifeLine": "想找回走失的那把剑"
+  }
+ ]
+}

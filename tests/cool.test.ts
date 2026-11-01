@@ -212,7 +212,8 @@ describe('cool 打开时的可走区域与寻路', () => {
       dest.forEach((p) => expect(w.walkable(p), `${tick} ${p}`).toBe(true));
     }
   });
-  it('dorm→hall 步行时间（占位石台重测，WALK_SPEED 不变）', () => {
+  // 2026-11-01：Lore 10 居舍院落与旧布局冲突，见 V3_FAILURES.md；指挥官第 4 批决定标已知失败，保留原期望。
+  it.fails('dorm→hall 步行时间（占位石台重测，WALK_SPEED 不变）', () => {
     const dorm = cool.slots.find((s) => s.id === 'B_DORM')!.front,
       hall = cool.slots.find((s) => s.id === 'B_HALL')!.front;
     const seconds = w.walkTimeSeconds(dorm, hall);

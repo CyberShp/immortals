@@ -1,3 +1,4 @@
+import { lifeLines } from '../display/lifeline';
 import { z } from 'zod';
 import { createStore, get, setMany } from 'idb-keyval';
 import { parseJson, validate } from '../sim/data';
@@ -7,6 +8,7 @@ export const saveSchema = z.object({
   version: z.literal(VERSION),
   lastSeen: z.number().nonnegative(),
   world: worldSchema,
+  lifeLines: z.record(z.string(), z.string().min(1).max(16)).optional(),
 });
 export type Save = z.infer<typeof saveSchema>;
 export const migrations: Record<
@@ -17,7 +19,9 @@ export function migrate(value: unknown): Save {
   if (!value || typeof value !== 'object') throw new Error('存档：必须是对象');
   let raw = value as Record<string, unknown>;
   if (raw.version === 1) raw = migrations[1](raw) as Record<string, unknown>;
-  return validate(saveSchema, raw, '存档');
+  const save = validate(saveSchema, raw, '存档');
+  save.lifeLines = lifeLines(save.world, save.lifeLines);
+  return save;
 }
 export interface Storage {
   read(key: string): Promise<unknown>;
@@ -47,7 +51,12 @@ export const MAIN = 'main',
 export function snapshot(world: World, lastSeen: number): Save {
   return validate(
     saveSchema,
-    { version: VERSION, world: structuredClone(world), lastSeen },
+    {
+      version: VERSION,
+      world: structuredClone(world),
+      lastSeen,
+      lifeLines: { ...lifeLines(world) },
+    },
     '存档',
   );
 }
@@ -58,7 +67,10 @@ export class SaveManager {
     const main = await this.storage.read(MAIN);
     if (main !== undefined) {
       try {
-        return { save: migrate(main), recovered: false };
+        const save = migrate(main);
+        if (!(main as { lifeLines?: unknown }).lifeLines)
+          await this.storage.write([[MAIN, save]]);
+        return { save, recovered: false };
       } catch {
         const backup = await this.storage.read(BACKUP);
         if (backup !== undefined)

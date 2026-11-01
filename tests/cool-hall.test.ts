@@ -532,7 +532,8 @@ describe('cool 打开时：排队位/列队位在可走区且不压入口通道�
     vi.unstubAllGlobals();
     vi.resetModules();
   });
-  it('列队位全部可走，离所有进主殿入口的 A* 通道 > 28', () => {
+  // 2026-11-01：Lore 10 居舍院落与旧布局冲突，见 V3_FAILURES.md；指挥官第 4 批决定标已知失败，保留原期望。
+  it.fails('列队位全部可走，离所有进主殿入口的 A* 通道 > 28', () => {
     const cool = w.coolWorld!;
     const e = hall.entrance as P;
     const sources: P[] = [

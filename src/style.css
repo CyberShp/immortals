@@ -698,3 +698,8 @@ html.cool meter,
 html.cool progress {
   accent-color: var(--c-accent);
 }
+
+/* 小窗只保留简报；人生线在主窗口的人物卡与故事中呈现。 */
+.pip-mode .life-line {
+  display: none;
+}

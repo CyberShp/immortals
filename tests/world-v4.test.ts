@@ -77,7 +77,7 @@ describe('world v4 presentation', () => {
       expect(v4Walkable(uv(p[0], p[1]))).toBe(true);
   });
   it('preserves the unresolved B8 seats versus array footprint conflict', () => {
-    for (const p of Object.values(v4Layout.b8_seats_uv))
+    for (const p of Object.values(v4Layout['b8_seats_uv_v1.4']))
       expect(v4Walkable(uv(p[0], p[1]))).toBe(false);
   });
   it('v4 runtime B8 seats are reachable, separated and face the disc', async () => {

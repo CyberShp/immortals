@@ -1,5 +1,5 @@
-/** Lore v1.4 presentation adapter. Never imported by simulation. */
-import layout from './world-v4-layout.json';
+/** Lore v1.5 presentation adapter. Never imported by simulation. */
+import layout from './world-v4-layout-v15.json';
 import fg from './world-v4-foreground.json';
 import assets from './world-v4-assets.json';
 import east from './world-v4-placement/east_bridge_v3_placement.json';
@@ -125,8 +125,8 @@ export const v4Ground: P[][] = [
 ];
 // Landing connectors: only bridge-width strip across the 0.4-cell inset gap, within delivered platform top.
 v4Ground.push(
-  rect([46.76, 47.16, -4.95, -3.65]),
-  rect([28.912, 31.612, 12.2, 12.6]),
+  rect(layout.walk_joints_v15.east_joint_uv),
+  rect(layout.walk_joints_v15.south_joint_uv),
 );
 export const v4Circles = Object.entries(c.trees_px).map(([id, t]) => ({
   id,
@@ -206,26 +206,24 @@ export const v4Queue = (
     [30.45, 2.1],
   ] as P[]
 ).map((p) => uv(...p));
-export const v4ArenaSeats = (
-  [
-    [38.35, 4.1],
-    [37.7, 2.45],
-    [39.4, 1.2],
-  ] as P[]
-).map((p, i) => {
-  const point = uv(...p),
-    center = uv(...(layout.array_disc_center as P));
-  const length = Math.hypot(center[0] - point[0], center[1] - point[1]);
-  return {
-    id: ['L', 'M', 'R'][i],
-    uv: p,
-    point,
-    facing: [
-      (center[0] - point[0]) / length,
-      (center[1] - point[1]) / length,
-    ] as P,
-  };
-});
+export const v4Spawn = uv(...(layout.spawn_main_uv.uv as P));
+export const v4ArenaSeats = Object.entries(layout.b8_seats_uv).map(
+  ([id, value]) => {
+    const p = value as P;
+    const point = uv(...p),
+      center = uv(...(layout.array_disc_center as P));
+    const length = Math.hypot(center[0] - point[0], center[1] - point[1]);
+    return {
+      id,
+      uv: p,
+      point,
+      facing: [
+        (center[0] - point[0]) / length,
+        (center[1] - point[1]) / length,
+      ] as P,
+    };
+  },
+);
 export function adaptV4(base: CoolWorld): CoolWorld {
   const names: Record<string, string> = {
     B_HALL: 'hall',
@@ -244,17 +242,33 @@ export function adaptV4(base: CoolWorld): CoolWorld {
     B_GATE: 'gate_pier_L',
   };
   const slots = base.slots.map((s) => {
-    const entrance = v4Nearest(
-      offset(c.door_points_px[names[s.id] as keyof typeof c.door_points_px]),
-    );
+    const entrance =
+      s.id === 'B_ALCHEMY'
+        ? uv(...(layout.b_alchemy_anchor.stand_uv as P))
+        : v4Nearest(
+            offset(
+              c.door_points_px[names[s.id] as keyof typeof c.door_points_px],
+            ),
+          );
     const footprint = {
-      polygon: v4Blocked.find((b) => b.id === shape[s.id])!.polygon,
+      polygon:
+        s.id === 'B_ALCHEMY'
+          ? Array.from({ length: 96 }, (_, i) =>
+              uv(
+                furnace.center[0] + furnace.r * Math.cos((i * Math.PI) / 48),
+                furnace.center[1] + furnace.r * Math.sin((i * Math.PI) / 48),
+              ),
+            )
+          : v4Blocked.find((b) => b.id === shape[s.id])!.polygon,
     };
     return {
       ...s,
       entrance,
       front: entrance,
-      label: entrance,
+      label:
+        s.id === 'B_ALCHEMY'
+          ? uv(...(layout.b_alchemy_anchor.label_anchor_uv as P))
+          : entrance,
       footprint,
       rect: [
         Math.min(...footprint.polygon.map((p) => p[0])),
@@ -264,7 +278,7 @@ export function adaptV4(base: CoolWorld): CoolWorld {
       ] as [number, number, number, number],
     };
   });
-  // No new east-platform job: keep the existing alchemy job at the main-platform garden approach.
+  // Preserve existing main-platform spots; satellite work spots are allocated separately.
   const spots = base.spots.map((s, i) => {
     const choices = [
       ...layout.cushion_block.west_centers,

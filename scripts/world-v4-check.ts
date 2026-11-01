@@ -107,9 +107,36 @@ for (const seat of v.v4ArenaSeats) {
   );
 }
 
-const rawSeats = Object.values(l.b8_seats_uv).map((p) => uv(p[0], p[1]));
+const spots = await import('../src/render/v4-spots');
+for (const spot of spots.satelliteSpots) {
+  const points = [spot.point, ...spots.subpositions(spot)];
+  check(
+    'v1.5 ' + spot.id + ' all subpositions reachable from spawn',
+    points.every((p) => w.walkable(p) && w.findPath(v.v4Spawn, p).length > 1),
+    { count: points.length },
+  );
+}
+check(
+  'v1.5 duel 24 separated',
+  spots
+    .duelPositions(24)
+    .every(
+      (p, i, all) =>
+        w.walkable(p) &&
+        all
+          .slice(i + 1)
+          .every((q) => Math.hypot(p[0] - q[0], p[1] - q[1]) >= 45.92),
+    ),
+);
+check(
+  'v1.5 spawn dorm',
+  v.toUV(v.v4Spawn).every((n, i) => Math.abs(n - l.spawn_main_uv.uv[i]) < 1e-8),
+);
+const rawSeats = Object.values(l['b8_seats_uv_v1.4']).map((p) =>
+  uv(p[0], p[1]),
+);
 const info = {
-  name: 'Lore 原始 B8 座位仍在碰撞内，待 Lore 同步',
+  name: 'v1.4 历史 B8 冲突保留对照；运行时已读 v1.5',
   conflicts: rawSeats.filter((p) => !w.walkable(p)).length,
   points: rawSeats,
 };

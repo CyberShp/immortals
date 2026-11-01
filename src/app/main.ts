@@ -1,3 +1,4 @@
+import { lifeLine } from '../display/lifeline';
 import {
   artImage,
   portraitFile,
@@ -43,6 +44,7 @@ import {
   IndexedStorage,
   SaveManager,
   snapshot,
+  migrate,
   type Save,
 } from '../save';
 import { createMap } from '../render/map';
@@ -197,7 +199,7 @@ export async function start() {
     map?.select(id);
     const card = el('disciple-card');
     card.hidden = false;
-    card.innerHTML = `${portrait(d)}<strong>${escape(d.name)}</strong><p>${d.realm.major}${d.realm.layer}层 · ${d.state.behavior}</p><div class="card-needs">${needs(d)}</div><button data-detail="${id}">详情</button><button data-follow="${id}">定位</button>`;
+    card.innerHTML = `${portrait(d)}<strong>${escape(d.name)}</strong><p class="life-line">${escape(lifeLine(world, d.id))}</p><p>${d.realm.major}${d.realm.layer}层 · ${d.state.behavior}</p><div class="card-needs">${needs(d)}</div><button data-detail="${id}">详情</button><button data-follow="${id}">定位</button>`;
     bindDiscipleActions(card);
     positionCard();
   }
@@ -345,7 +347,7 @@ export async function start() {
     el('disciples').innerHTML = world.disciples
       .map(
         (d) =>
-          `<article class="disciple" data-id="${d.id}"><div class="portrait" style="border:2px solid ${C.elements[d.root.elements[0]].color}">${escape(d.name.slice(0, 1))}</div><div class="disciple-body"><div class="name-line"><h3>${escape(d.name)}</h3><span>${formatAge(d.ageSeasons)} · ${d.stage} · ${d.realm.major}${d.realm.layer}层</span></div><p class="detail">${d.root.grade} · ${d.root.elements.join('')} <span>${d.stage === '坐化' ? '已坐化' : d.state.behavior + ' · ' + d.state.location}</span></p><div class="needs">${(['energy', 'mood', 'drive'] as const).map((k, i) => `<label>${['精力', '心境', '道心'][i]} <meter min="0" max="100" value="${d.needs[k]}">${fmt(d.needs[k])}</meter> ${fmt(d.needs[k])}</label>`).join('')}</div><div class="traits">${d.traits.map((t) => traitBadge(t)).join('')}<small>修为 ${fmt(d.realm.xp)} · 余寿 ${d.remainingSeasons} 季</small></div><label class="policy">方针 <select data-policy="${d.id}" aria-label="${escape(d.name)}的方针">${['均衡', '专修', '勤工'].map((p) => `<option ${p === d.policy ? 'selected' : ''}>${p}</option>`).join('')}</select></label><p class="relations">${Object.entries(
+          `<article class="disciple" data-id="${d.id}"><div class="portrait" style="border:2px solid ${C.elements[d.root.elements[0]].color}">${escape(d.name.slice(0, 1))}</div><div class="disciple-body"><div class="name-line"><h3>${escape(d.name)}</h3><span>${formatAge(d.ageSeasons)} · ${d.stage} · ${d.realm.major}${d.realm.layer}层</span></div><p class="life-line">${escape(lifeLine(world, d.id))}</p><p class="detail">${d.root.grade} · ${d.root.elements.join('')} <span>${d.stage === '坐化' ? '已坐化' : d.state.behavior + ' · ' + d.state.location}</span></p><div class="needs">${(['energy', 'mood', 'drive'] as const).map((k, i) => `<label>${['精力', '心境', '道心'][i]} <meter min="0" max="100" value="${d.needs[k]}">${fmt(d.needs[k])}</meter> ${fmt(d.needs[k])}</label>`).join('')}</div><div class="traits">${d.traits.map((t) => traitBadge(t)).join('')}<small>修为 ${fmt(d.realm.xp)} · 余寿 ${d.remainingSeasons} 季</small></div><label class="policy">方针 <select data-policy="${d.id}" aria-label="${escape(d.name)}的方针">${['均衡', '专修', '勤工'].map((p) => `<option ${p === d.policy ? 'selected' : ''}>${p}</option>`).join('')}</select></label><p class="relations">${Object.entries(
             d.relations,
           )
             .slice(0, 6)
@@ -377,7 +379,7 @@ export async function start() {
         .filter((d) => d.stage === '坐化')
         .map(
           (d) =>
-            `<p>${escape(d.name)} · ${d.realm.major} · ${d.flags.薪火 ? '薪火' : '山门留名'}</p>`,
+            `<p>${escape(d.name)} · ${d.realm.major} · ${d.flags.薪火 ? '薪火' : '山门留名'}</p><p class="life-line">${escape(lifeLine(world, d.id))}</p>`,
         )
         .join('') || '<p>青山仍在，故人未远。</p>';
     el('story-open').hidden = !world.flags.storyReport;
@@ -482,7 +484,7 @@ export async function start() {
         b.realm.xp - a.realm.xp,
     )[0];
     show(
-      `<p class="eyebrow">山门卷宗</p><h2>本局故事回顾</h2><ul>${lines.map((t) => `<li>${t}</li>`).join('')}</ul><h3>本命弟子 · ${escape(favorite.name)}</h3><p>${favorite.root.grade} · ${favorite.realm.major}${favorite.realm.layer}层 · ${favorite.traits.map(traitName).join('、')}</p><p>山门升格，故事继续。</p>`,
+      `<p class="eyebrow">山门卷宗</p><h2>本局故事回顾</h2><ul>${lines.map((t) => `<li>${t}</li>`).join('')}</ul><h3>本命弟子 · ${escape(favorite.name)}</h3><p class="life-line">${escape(lifeLine(world, favorite.id))}</p><p>${favorite.root.grade} · ${favorite.realm.major}${favorite.realm.layer}层 · ${favorite.traits.map(traitName).join('、')}</p><p>山门升格，故事继续。</p>`,
     );
   }
   el('story-open').onclick = showStory;
@@ -677,6 +679,7 @@ export async function start() {
           'style,link[rel="stylesheet"]',
         ))
           child.document.head.append(style.cloneNode(true));
+        root.classList.add('pip-mode');
         child.document.body.append(root);
         child.addEventListener('keydown', keyHandler);
         child.addEventListener('keydown', (e) => {
@@ -684,6 +687,7 @@ export async function start() {
         });
         child.document.addEventListener('visibilitychange', visibility);
         child.addEventListener('pagehide', () => {
+          root.classList.remove('pip-mode');
           document.body.append(root);
           child = null;
           map?.draw(world);
@@ -700,6 +704,15 @@ export async function start() {
   if (new URLSearchParams(location.search).get('debug') === '1') {
     const hook = {
       world: () => structuredClone(world),
+      // Directed presentation fixtures are validated, never auto-saved by this hook.
+      previewSave: (value: unknown) => {
+        const incoming = migrate(value);
+        map?.reset();
+        world = incoming.world;
+        lastSeen = Date.now();
+        debugFrozen = true;
+        render();
+      },
       freeze: (value: boolean) => {
         debugFrozen = value;
         loop.reset();

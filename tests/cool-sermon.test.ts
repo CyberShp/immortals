@@ -33,44 +33,48 @@ describe('讲道蒲团排布（4.5 公式，按 hall-v2 几何重算）', () => 
     vi.unstubAllGlobals();
     vi.resetModules();
   });
-  it('N13：24 个蒲团 = 公式、全部可走、两两 ≥28（设计 32）、离入口中轴 >28、资历 1–6 在第 1 排', () => {
-    const { n, a } = sermonAxes(hall);
-    expect(Math.hypot(...n)).toBeCloseTo(1, 9);
-    expect(Math.abs(n[0] * a[0] + n[1] * a[1])).toBeLessThan(0.1);
-    const pts = ids(24).map((_, i) => sermonPoint(hall, i));
-    // 公式手算：第 1 排 1 号 = 入口 + 40n − 32a。
-    const e = hall.entrance;
-    expect(
-      d(pts[0], [e[0] + 40 * n[0] - 32 * a[0], e[1] + 40 * n[1] - 32 * a[1]]),
-    ).toBeLessThan(0.5);
-    expect(
-      d(pts[5], [e[0] + 40 * n[0] + 96 * a[0], e[1] + 40 * n[1] + 96 * a[1]]),
-    ).toBeLessThan(0.5);
-    expect(
-      d(pts[23], [
-        e[0] + 136 * n[0] + 96 * a[0],
-        e[1] + 136 * n[1] + 96 * a[1],
-      ]),
-    ).toBeLessThan(0.5);
-    let min = Infinity;
-    for (const [i, p] of pts.entries()) {
-      expect(w.walkable(p as P), `蒲团 ${i + 1}`).toBe(true);
-      const rel = [p[0] - e[0], p[1] - e[1]];
-      // 离入口通道中轴（过入口、沿 n 的直线）的垂距。
-      expect(Math.abs(rel[0] * n[1] - rel[1] * n[0])).toBeGreaterThan(28);
-      for (const q of pts.slice(i + 1)) min = Math.min(min, d(p, q));
-    }
-    expect(min).toBeGreaterThanOrEqual(28);
-    expect(min).toBeCloseTo(32, 0);
-    // 资历 1–6 在第 1 排（沿 n 的投影 ≈ 40；a 取台基边方向，与 n 不严格垂直，允许 ±5），7 号起在第 2 排（≈72）。
-    const along = (p: readonly number[]) =>
-      (p[0] - e[0]) * n[0] + (p[1] - e[1]) * n[1];
-    for (const p of pts.slice(0, 6))
-      expect(Math.abs(along(p) - 40)).toBeLessThan(5);
-    for (const p of pts.slice(6, 12))
-      expect(Math.abs(along(p) - 72)).toBeLessThan(5);
-    console.log({ sermonCushions: pts, n, a });
-  });
+  // 2026-11-01：Lore 10 居舍院落与旧布局冲突，见 V3_FAILURES.md；指挥官第 4 批决定标已知失败，保留原期望。
+  it.fails(
+    'N13：24 个蒲团 = 公式、全部可走、两两 ≥28（设计 32）、离入口中轴 >28、资历 1–6 在第 1 排',
+    () => {
+      const { n, a } = sermonAxes(hall);
+      expect(Math.hypot(...n)).toBeCloseTo(1, 9);
+      expect(Math.abs(n[0] * a[0] + n[1] * a[1])).toBeLessThan(0.1);
+      const pts = ids(24).map((_, i) => sermonPoint(hall, i));
+      // 公式手算：第 1 排 1 号 = 入口 + 40n − 32a。
+      const e = hall.entrance;
+      expect(
+        d(pts[0], [e[0] + 40 * n[0] - 32 * a[0], e[1] + 40 * n[1] - 32 * a[1]]),
+      ).toBeLessThan(0.5);
+      expect(
+        d(pts[5], [e[0] + 40 * n[0] + 96 * a[0], e[1] + 40 * n[1] + 96 * a[1]]),
+      ).toBeLessThan(0.5);
+      expect(
+        d(pts[23], [
+          e[0] + 136 * n[0] + 96 * a[0],
+          e[1] + 136 * n[1] + 96 * a[1],
+        ]),
+      ).toBeLessThan(0.5);
+      let min = Infinity;
+      for (const [i, p] of pts.entries()) {
+        expect(w.walkable(p as P), `蒲团 ${i + 1}`).toBe(true);
+        const rel = [p[0] - e[0], p[1] - e[1]];
+        // 离入口通道中轴（过入口、沿 n 的直线）的垂距。
+        expect(Math.abs(rel[0] * n[1] - rel[1] * n[0])).toBeGreaterThan(28);
+        for (const q of pts.slice(i + 1)) min = Math.min(min, d(p, q));
+      }
+      expect(min).toBeGreaterThanOrEqual(28);
+      expect(min).toBeCloseTo(32, 0);
+      // 资历 1–6 在第 1 排（沿 n 的投影 ≈ 40；a 取台基边方向，与 n 不严格垂直，允许 ±5），7 号起在第 2 排（≈72）。
+      const along = (p: readonly number[]) =>
+        (p[0] - e[0]) * n[0] + (p[1] - e[1]) * n[1];
+      for (const p of pts.slice(0, 6))
+        expect(Math.abs(along(p) - 40)).toBeLessThan(5);
+      for (const p of pts.slice(6, 12))
+        expect(Math.abs(along(p) - 72)).toBeLessThan(5);
+      console.log({ sermonCushions: pts, n, a });
+    },
+  );
 });
 
 describe('讲道流程（4.4）与冲突（4.6）', () => {

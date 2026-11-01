@@ -1,3 +1,15 @@
+import {
+  SpotPlanner,
+  bridgeTransfer,
+  duelPositions,
+  v4Cushions,
+  satelliteSpots,
+  stages,
+  subpositions,
+  musterPositions,
+  ringPair,
+} from './v4-spots';
+import { outdoorHall, outdoorSeats } from './v4-outdoor';
 import encodedV4 from './world-v4-encoded.json';
 import {
   v4ForegroundBounds,
@@ -9,6 +21,7 @@ import {
   v4Route,
   v4Fade,
   v4FadeContains,
+  v4Spawn,
 } from './world-v4';
 import { horizontalFacing, spriteFlip } from './disciple-facing';
 import { advanceGait, strideLength } from './disciple-gait';
@@ -196,6 +209,8 @@ type Motion = {
   path: Point[];
   duration: number;
   expedition?: 'out' | 'in';
+  musterPoint?: Point;
+  transfer?: { target: Point; arrive: number };
   debugControlled?: boolean;
   debugPose?: string;
   directionAt?: number;
@@ -305,7 +320,7 @@ export async function createMap(
   const walkSpeed = WALK_SPEED * walkScale;
   // 开发开关：封闭房屋屋顶淡出。默认关闭，关闭时渲染与改动前一致。
   // ?cool=1 时默认关闭（COOL_SETTINGS.roofFadeWithCool）。
-  const roofFade = roofFadeActive(location.search);
+  const roofFade = !v4Active && roofFadeActive(location.search);
   // 开发开关：场景纵深（天空/远峰/云海/落影/全局光/前景雾）。默认关闭，关闭时不建任何纵深对象、不加载纵深素材。
   // ?cool=1 优先：cool 打开时纵深默认关闭（COOL_SETTINGS.depthWithCool）。
   const depth = depthActive(location.search);
@@ -315,6 +330,8 @@ export async function createMap(
   const groundFile = cool ? '' : depth ? DEPTH.world : 'map/world.webp';
   // cool 主殿 B1/B2 分层与召集全员（纯表现层）。
   const coolHall = cool && !v4Active ? buildCoolHall() : undefined;
+  const stageHall = v4Active ? outdoorHall() : coolHall;
+  const spotPlanner = new SpotPlanner();
   let coolRoof: CoolRoof = roofClosed();
   let coolRoofHold: number | undefined;
   // v4g 楼层视图：auto = 按殿内有人淡出屋顶、内景为正殿；固定楼层 = 屋顶淡出并保持，显示该层内景。
@@ -445,7 +462,7 @@ export async function createMap(
               queuedAssembly: [...sermon.queuedAssembly],
               masterAlpha: sermonMasterAlpha(sermon),
               masterAction: sermonMasterAction(sermon),
-              master: coolHall!.stairTop,
+              master: stageHall!.stairTop,
               cushions: [...sermon.cushions].map(([id, c]) => ({
                 id,
                 index: c.index,
@@ -471,7 +488,7 @@ export async function createMap(
         },
         /** 调试：手动触发一次召集（等同事件结算触发，不改 sim）。 */
         trigger: (reason = '调试召集') => {
-          if (!world) return;
+          if (!world || !stageHall) return;
           const list = presentDisciples(world);
           const join = new Map(world.disciples.map((d, i) => [d.id, i]));
           beginAssembly([reason], seniorityOrder(list, join), seatedSet(list));
@@ -482,7 +499,7 @@ export async function createMap(
          * （召集散场结束后开始）；讲道已在进行返回 'running'。不改 sim、不写存档。
          */
         sermon: (ms?: number) => {
-          if (!world || !coolHall) return;
+          if (!world || !stageHall) return;
           const durationMs = Math.max(0, ms ?? SERMON.defaultMs);
           if (sermon) return 'running';
           if (assembly) {
@@ -1529,6 +1546,17 @@ export async function createMap(
         ...(v4Active
           ? {
               __worldV4: {
+                assignments: () =>
+                  [...spotPlanner.assignments].map(([id, a]) => ({ id, ...a })),
+                arenaSeats: cool?.arenaSeats,
+                spots: satelliteSpots,
+                stages,
+                subpositions: satelliteSpots.map((s) => ({
+                  id: s.id,
+                  points: subpositions(s),
+                })),
+                muster: musterPositions(),
+                ringPair,
                 textureStatus: () => ({
                   expected: v4Layers.length,
                   missing: v4Layers
@@ -1540,6 +1568,9 @@ export async function createMap(
                   [...motions].map(([id, m]) => ({
                     id,
                     expedition: m.expedition,
+                    transfer: m.transfer,
+                    toX: m.toX,
+                    toY: m.toY,
                     x: m.x,
                     y: m.y,
                     path: m.path,
@@ -1615,6 +1646,7 @@ export async function createMap(
             Object.assign(m, {
               debugControlled: true,
               expedition: undefined,
+              transfer: undefined,
               debugPose: pose,
               x: point[0],
               y: point[1],
@@ -1640,6 +1672,7 @@ export async function createMap(
             Object.assign(m, {
               debugControlled: true,
               expedition: undefined,
+              transfer: undefined,
               debugPose: 'walk-pass',
               x: from[0],
               y: from[1],
@@ -1769,7 +1802,10 @@ export async function createMap(
       m.roofIndoor = indoor
         ? { from: indoor.leg[0], to: indoor.leg[1], start: indoor.start }
         : undefined;
-      const positionOnPath = indoor?.point ?? pathFoot;
+      const positionOnPath =
+        m.transfer && elapsed >= m.transfer.arrive + 800
+          ? m.transfer.target
+          : (indoor?.point ?? pathFoot);
       const stepping = moving || !!indoor?.moving;
       active ||= stepping;
       if (indoor) roofOccupied.add(indoor.id);
@@ -1793,7 +1829,14 @@ export async function createMap(
       group.zIndex = m.y;
       const pose = stepping
         ? gait.pose
-        : (m.debugPose ?? behaviorPose(d.state.behavior, false));
+        : (m.debugPose ??
+          (v4Active &&
+          (spotPlanner.assignments.get(d.id)?.spot?.id.startsWith('S_SWORD') ||
+            spotPlanner.assignments.get(d.id)?.waitingSince !== undefined ||
+            spotPlanner.assignments.get(d.id)?.fallback ||
+            world.events.some((e) => e.definitionId === 'EV_A2'))
+            ? 'talk'
+            : behaviorPose(d.state.behavior, false)));
       const renderedFile = discipleArtFile(d.gender, pose);
       const flip = spriteFlip(renderedFile, m.facing);
       stats.poses[pose] = (stats.poses[pose] ?? 0) + 1;
@@ -1807,7 +1850,12 @@ export async function createMap(
         );
       const expeditionAlpha =
         m.expedition === 'out'
-          ? v4FadeContains(positionOnPath)
+          ? v4FadeContains(positionOnPath) ||
+            (m.musterPoint &&
+              Math.hypot(
+                positionOnPath[0] - m.musterPoint[0],
+                positionOnPath[1] - m.musterPoint[1],
+              ) < 1)
             ? Math.max(0, 1 - (elapsed - m.duration) / 800)
             : 1
           : m.expedition === 'in'
@@ -1817,9 +1865,18 @@ export async function createMap(
         !!m.expedition &&
         expeditionAlpha > 0 &&
         (m.expedition === 'out' || elapsed < 800);
+      const transferAlpha = m.transfer
+        ? elapsed < m.transfer.arrive
+          ? 1
+          : elapsed < m.transfer.arrive + 800
+            ? 1 - (elapsed - m.transfer.arrive) / 800
+            : Math.min(1, (elapsed - m.transfer.arrive - 800) / 800)
+        : 1;
+      active ||= !!m.transfer && elapsed < m.transfer.arrive + 1600;
       const alpha = Math.min(
+        transferAlpha,
         expeditionAlpha,
-        !m.expedition && entering && !moving && !indoor
+        !v4Active && !m.expedition && entering && !moving && !indoor
           ? Math.max(0, 1 - (elapsed - m.duration) / 350)
           : 1,
         hallStatus?.alpha ?? 1,
@@ -1901,7 +1958,7 @@ export async function createMap(
       const file = discipleArtFile(d.gender, pose);
       // ?cool=1：精灵换新帧（身高比例不变：站立头顶→脚底 169 px 缩到 DISCIPLE_HEIGHT）；
       // 动作按坐姿判据（坐椅只在椅坐点、坐蒲团只在蒲团上），遮挡掩码按新帧轮廓。
-      const coolSeat = coolHall
+      const coolSeat = stageHall
         ? (assembly?.seats.get(d.id) ??
           (sermon && sermonSeat(sermon, d.id)) ??
           dailyMap.get(d.id))
@@ -2146,16 +2203,16 @@ export async function createMap(
       }
       scene.addChild(group);
     }
-    if (coolHall && sermon) {
+    if (stageHall && sermon) {
       // 08 增补 R5：P9 讲道位淡光 + 大能 D5 站台阶顶（面向广场 = 正面 3/4，不翻转），
       // 都在屋顶层之上（台阶顶在外观立面之前）；听众蒲团在广场，z 同殿外弟子排序、略在坐者之下。
       const k = coolDiscipleScale(height);
       const ma = sermonMasterAlpha(sermon);
-      const st = coolHall.stairTop;
+      const st = stageHall.stairTop;
       const spot = art(coolPropFile('sermonSpot'), k);
       if (spot && ma > 0) {
         spot.position.set(st[0], st[1]);
-        spot.zIndex = coolHall.hallZ + 0.25;
+        spot.zIndex = stageHall.hallZ + 0.25;
         spot.alpha = ma;
         spot.eventMode = 'none';
         spot.label = 'cool-sermon-spot';
@@ -2171,7 +2228,7 @@ export async function createMap(
       );
       if (master && ma > 0) {
         master.position.set(st[0], st[1]);
-        master.zIndex = coolHall.hallZ + 0.5;
+        master.zIndex = stageHall.hallZ + 0.5;
         master.alpha = ma;
         master.eventMode = 'none';
         master.label = 'cool-sermon-master';
@@ -2183,7 +2240,10 @@ export async function createMap(
         const cushion = art(coolPropFile('cushionSermon'), k);
         if (!cushion) continue;
         cushion.position.set(c.point[0], c.point[1]);
-        cushion.zIndex = outdoorZ(coolHall, c.point) - 0.25;
+        // v4 cushions sit on outdoor ground; v3 hall-front lifting would cover the listeners.
+        cushion.zIndex = v4Active
+          ? c.point[1] - 0.25
+          : outdoorZ(stageHall, c.point) - 0.25;
         cushion.alpha = alpha;
         cushion.eventMode = 'none';
         cushion.label = 'cool-cushion';
@@ -2191,7 +2251,7 @@ export async function createMap(
       }
       active = true;
     }
-    if (coolHall) {
+    if (stageHall) {
       coolOccupied = hallOccupied;
       active ||=
         roofAnimatingCool(coolRoof, now) ||
@@ -2383,7 +2443,7 @@ export async function createMap(
   }
   // cool：本次 draw 每个可见弟子的目标点（召集席位 / 日常站位 / sim 落点）。
   function coolPlan(w: World, list: World['disciples'], destinations: Point[]) {
-    const hall = coolHall!;
+    const hall = stageHall!;
     const joinOrder = new Map(w.disciples.map((d, i) => [d.id, i]));
     const order = () => seniorityOrder(list, joinOrder);
     // 触发只看真实弟子（调试注入的不算入门）。
@@ -2404,7 +2464,12 @@ export async function createMap(
       const seated = seatedSet(list);
       for (const id of order())
         if (!assembly.seats.has(id))
-          addLateJoiner(hall, assembly.seats, id, seated(id));
+          addLateJoiner(
+            hall,
+            assembly.seats,
+            id,
+            v4Active ? false : seated(id),
+          );
     }
     if (sermon) {
       const ids = new Set(list.map((d) => d.id));
@@ -2427,7 +2492,13 @@ export async function createMap(
           w.tick > 0 && !holds(d.id) && destinationBuilding(d) === 'B_HALL',
       )
       .map((d) => d.id);
-    dailyMap = dailySeats(hall, dailyMap, goers);
+    dailyMap = v4Active ? new Map() : dailySeats(hall, dailyMap, goers);
+    if (v4Active) {
+      if (assembly) outdoorSeats(assembly.seats);
+      if (sermon)
+        for (const c of sermon.cushions.values())
+          c.point = v4Cushions[c.index % v4Cushions.length];
+    }
     const socials = worldMap.spots
       .filter((s) => s.kind === 'social')
       .map((s) => s.point as Point)
@@ -2466,10 +2537,13 @@ export async function createMap(
     );
   }
   function beginSermon(durationMs: number) {
-    if (!world || !coolHall) return;
+    if (!world || !stageHall) return;
     const list = presentDisciples(world);
     const join = new Map(world.disciples.map((d, i) => [d.id, i]));
-    sermon = startSermon(coolHall, seniorityOrder(list, join), durationMs);
+    sermon = startSermon(stageHall, seniorityOrder(list, join), durationMs);
+    if (v4Active)
+      for (const c of sermon.cushions.values())
+        c.point = v4Cushions[c.index % v4Cushions.length];
     sermonLast = undefined;
     sermonLog.push({ at: performance.now(), event: 'start' });
   }
@@ -2489,7 +2563,13 @@ export async function createMap(
     }
     if (assembly) for (const r of reasons) retriggerAssembly(assembly, r);
     else {
-      assembly = startAssembly(coolHall!, order, reasons.join('、'), seated);
+      assembly = startAssembly(
+        stageHall!,
+        order,
+        reasons.join('、'),
+        v4Active ? () => false : seated,
+      );
+      if (v4Active) outdoorSeats(assembly.seats);
       for (const r of reasons.slice(1)) retriggerAssembly(assembly, r);
       assemblyLast = undefined;
     }
@@ -2504,10 +2584,10 @@ export async function createMap(
     now: number,
   ) {
     const previousFoot: [number, number] = [m.x, m.y];
-    [m.x, m.y] = alongPath(
-      m.path,
-      motionDistance(m, Math.max(0, now - m.start)),
-    );
+    [m.x, m.y] =
+      m.transfer && now - m.start >= m.transfer.arrive + 800
+        ? m.transfer.target
+        : alongPath(m.path, motionDistance(m, Math.max(0, now - m.start)));
     const indoor = m.roofIndoor;
     if (indoor)
       [m.x, m.y] = alongPath(
@@ -2549,6 +2629,7 @@ export async function createMap(
     }
     if (!path.length) return;
     m.roofIndoor = undefined;
+    m.transfer = undefined;
     m.path = path;
     m.duration = coolMotionMs(
       pathLength(path),
@@ -2569,11 +2650,19 @@ export async function createMap(
     now: number,
     target?: Point,
   ) {
-    const from: Point = direction === 'out' ? [m.x, m.y] : v4Fade;
+    const rank = Math.max(0, [...motions.values()].indexOf(m));
+    const muster =
+      m.musterPoint ?? musterPositions(Math.max(1, rank + 1))[rank];
+    m.musterPoint = muster;
+    const from: Point = direction === 'out' ? [m.x, m.y] : muster;
     const route =
       direction === 'out'
-        ? [...findPath(nearestWalkable(from), v4Route[0]), ...v4Route.slice(1)]
-        : [...v4Route].reverse();
+        ? [
+            ...findPath(nearestWalkable(from), v4Route[0]),
+            ...v4Route.slice(1),
+            ...findPath(v4Fade, muster).slice(1),
+          ]
+        : [...findPath(muster, v4Fade), ...[...v4Route].reverse().slice(1)];
     if (direction === 'in' && target)
       route.push(...findPath(v4Route[0], target).slice(1));
     if (route.length < 2) throw Error('v4 expedition route unreachable');
@@ -2590,6 +2679,7 @@ export async function createMap(
         (pathLength(route) / (routeSpeed(route) * walkScale)) * 1000 +
         (direction === 'in' ? 800 : 0),
       expedition: direction,
+      transfer: undefined,
     });
   }
   function draw(w: World) {
@@ -2608,8 +2698,31 @@ export async function createMap(
         d.stage !== '坐化' &&
         (v4Active || (!d.state.awayUntil && d.state.behavior !== '历练')),
     );
-    const destinations = discipleDestinations(visibleDisciples, w.tick);
-    const coolTargets = coolHall
+    const destinations = v4Active
+      ? spotPlanner.plan(
+          world,
+          visibleDisciples,
+          new Map([...motions].map(([id, m]) => [id, [m.x, m.y] as Point])),
+        )
+      : discipleDestinations(visibleDisciples, w.tick);
+    if (v4Active) {
+      const event = world.events.find((e) => e.definitionId === 'EV_A2');
+      if (event) {
+        const actors = Object.values(event.roles);
+        const order = [
+          ...actors,
+          ...presentDisciples(world)
+            .map((d) => d.id)
+            .filter((id) => !actors.includes(id)),
+        ];
+        const points = duelPositions(order.length);
+        for (let i = 0; i < visibleDisciples.length; i++) {
+          const index = order.indexOf(visibleDisciples[i].id);
+          if (index >= 0) destinations[i] = points[index];
+        }
+      }
+    }
+    const coolTargets = stageHall
       ? coolPlan(world, visibleDisciples, destinations)
       : undefined;
     const indoorCounts = new Map<string, number>();
@@ -2627,6 +2740,7 @@ export async function createMap(
       if (roofId && indoorIndex !== undefined)
         indoorCounts.set(roofId, indoorIndex + 1);
       if (m?.debugControlled) continue;
+
       if (v4Active) {
         const away = !!d.state.awayUntil || d.state.behavior === '历练';
         if (away) {
@@ -2659,6 +2773,23 @@ export async function createMap(
         if (m?.expedition === 'in' && now - m.start < m.duration + 800)
           continue;
         if (m) m.expedition = undefined;
+      }
+      if (m?.transfer && now - m.start < m.transfer.arrive + 1600) continue;
+      if (!m && v4Active) {
+        m = {
+          x: v4Spawn[0],
+          y: v4Spawn[1],
+          fromX: v4Spawn[0],
+          fromY: v4Spawn[1],
+          toX: v4Spawn[0],
+          toY: v4Spawn[1],
+          start: now,
+          facing: 1,
+          row,
+          path: [v4Spawn],
+          duration: 0,
+        };
+        motions.set(d.id, m);
       }
       if (!m)
         motions.set(d.id, {
@@ -2695,6 +2826,29 @@ export async function createMap(
           pendingReplans.delete(d.id);
           if (coolHall) replanBudget--;
           replanMotion(m, x, y, ct, row, now);
+          if (
+            v4Active &&
+            !assembly &&
+            !sermon &&
+            !world.events.some((e) => e.definitionId === 'EV_A2')
+          ) {
+            const a = spotPlanner.assignments.get(d.id);
+            const transfer =
+              a?.spot &&
+              bridgeTransfer(
+                [m.x, m.y],
+                [x, y],
+                a.spot.island,
+                d.state.stepsLeft,
+                WALK_SPEED,
+              );
+            if (transfer?.path.length) {
+              m.path = transfer.path;
+              m.duration =
+                (pathLength(m.path) / (routeSpeed(m.path) * walkScale)) * 1000;
+              m.transfer = { target: [x, y], arrive: m.duration };
+            }
+          }
         } else pendingReplans.delete(d.id);
       }
     }
@@ -2732,6 +2886,14 @@ export async function createMap(
     select,
     reset: () => {
       motions.clear();
+      if (v4Active) {
+        spotPlanner.reset();
+        injected.length = 0;
+        assembly = undefined;
+        sermon = undefined;
+        triggerState = undefined;
+        dailyMap.clear();
+      }
       debugPaintTime = undefined;
       expeditionAway.clear();
       selectedId = undefined;

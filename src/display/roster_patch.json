@@ -1,0 +1,57 @@
+{
+ "_meta": {
+  "target": "roster.json (fixed 6 disciples)",
+  "source": "/workspace/review/batch4/lifeline_data.json",
+  "field": "lifeLine",
+  "op": "for each entry in `set`: find the roster disciple whose `name` equals the key, then set disciple.lifeLine = value (add field; touch nothing else)",
+  "roster_shape": "roster.json is not on the box. Per 23-decisions-batch4.md #8: Forge maps name->id when applying and verifies against the real roster.json. Keys here are the 6 fixed names from 02-systems-and-events.md §1.6.",
+  "display_only": "lifeLine is display-only; must not enter any sim judgement; sim baselines must stay byte-identical",
+  "text_policy": "texts copied verbatim from source; full-width '，' per 23-decisions #7; see lifeline_report.md"
+ },
+ "set": {
+  "陆青崖": {
+   "lifeLine": "要在筑基前赢沈墨一次"
+  },
+  "沈墨": {
+   "lifeLine": "想读完藏书，别再被人吵"
+  },
+  "白芷": {
+   "lifeLine": "酒葫芦里装着没说出口的话"
+  },
+  "苏小禾": {
+   "lifeLine": "想学全林长老的医术"
+  },
+  "钱多多": {
+   "lifeLine": "只想睡到自然醒，偏偏总捡到宝"
+  },
+  "林守拙": {
+   "lifeLine": "还想亲眼看孩子们筑基"
+  }
+ },
+ "as_array": [
+  {
+   "name": "陆青崖",
+   "lifeLine": "要在筑基前赢沈墨一次"
+  },
+  {
+   "name": "沈墨",
+   "lifeLine": "想读完藏书，别再被人吵"
+  },
+  {
+   "name": "白芷",
+   "lifeLine": "酒葫芦里装着没说出口的话"
+  },
+  {
+   "name": "苏小禾",
+   "lifeLine": "想学全林长老的医术"
+  },
+  {
+   "name": "钱多多",
+   "lifeLine": "只想睡到自然醒，偏偏总捡到宝"
+  },
+  {
+   "name": "林守拙",
+   "lifeLine": "还想亲眼看孩子们筑基"
+  }
+ ]
+}

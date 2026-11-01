@@ -1,0 +1,165 @@
+{
+ "version": "v2-draft",
+ "frame": "uv,同 11-main-platform-final-v1.5.json;spots 为表现层岗位点,选点规则同 05 文档,独立随机流",
+ "spots": [
+  {
+   "id": "E_ALCH_FRONT",
+   "island": "east",
+   "uv": [
+    50.45,
+    -6.85
+   ],
+   "cat": "work",
+   "action": "扇火、搅药",
+   "cap": 1,
+   "building": "B_ALCHEMY",
+   "prefer": [
+    "T_HERB"
+   ],
+   "note": "即 b_alchemy_anchor,以画面炉前为准,允许±0.5格贴近炉前"
+  },
+  {
+   "id": "E_SOCIAL_1",
+   "island": "east",
+   "uv": [
+    49.4,
+    -3.82
+   ],
+   "cat": "social",
+   "action": "站谈",
+   "cap": 2,
+   "prefer": [
+    "T_KIND",
+    "T_AMOROUS"
+   ]
+  },
+  {
+   "id": "E_SOCIAL_2",
+   "island": "east",
+   "uv": [
+    50.67,
+    -3.93
+   ],
+   "cat": "social",
+   "action": "站谈",
+   "cap": 2,
+   "prefer": [
+    "T_WINE",
+    "T_AMOROUS"
+   ]
+  },
+  {
+   "id": "S_SWORD_1",
+   "island": "south",
+   "uv": [
+    35.94,
+    15.15
+   ],
+   "cat": "train",
+   "action": "舞剑、收势",
+   "cap": 1,
+   "prefer": [
+    "T_SWORD",
+    "T_PROUD"
+   ],
+   "note": "靠木人桩"
+  },
+  {
+   "id": "S_SWORD_2",
+   "island": "south",
+   "uv": [
+    35.99,
+    13.97
+   ],
+   "cat": "train",
+   "action": "舞剑、收势",
+   "cap": 1,
+   "prefer": [
+    "T_SWORD",
+    "T_PROUD"
+   ]
+  },
+  {
+   "id": "S_SWORD_3",
+   "island": "south",
+   "uv": [
+    36.06,
+    12.87
+   ],
+   "cat": "train",
+   "action": "舞剑、收势",
+   "cap": 1,
+   "prefer": [
+    "T_SWORD",
+    "T_PROUD"
+   ]
+  },
+  {
+   "id": "S_SOCIAL_1",
+   "island": "south",
+   "uv": [
+    28.34,
+    14.61
+   ],
+   "cat": "social",
+   "action": "站谈",
+   "cap": 2,
+   "prefer": [
+    "T_WINE"
+   ]
+  },
+  {
+   "id": "S_DOCK_VIEW",
+   "island": "south",
+   "uv": [
+    27.17,
+    15.5
+   ],
+   "cat": "rest",
+   "action": "缓步、远眺",
+   "cap": 1,
+   "prefer": [
+    "T_LUCKY"
+   ],
+   "note": "码头区,选点前请 Forge 对可走区取最近点"
+  },
+  {
+   "id": "S_MUSTER",
+   "island": "south",
+   "uv": [
+    30.262,
+    13.2
+   ],
+   "cat": "fade",
+   "action": "出征/归来渐隐渐显",
+   "cap": 99
+  }
+ ],
+ "stages": [
+  {
+   "id": "S_RING",
+   "uv": [
+    34.62,
+    14.31
+   ],
+   "use": "EV_A2 战书比剑的演出位:两名当事弟子站在此处两侧(±0.6格)对剑"
+  },
+  {
+   "id": "S_WATCH_1",
+   "uv": [
+    33.25,
+    14.65
+   ],
+   "use": "EV_A2 观战位"
+  },
+  {
+   "id": "S_WATCH_2",
+   "uv": [
+    32.65,
+    13.55
+   ],
+   "use": "EV_A2 观战位"
+  }
+ ],
+ "unplaced_note": "主台原有岗位点沿用 05 文档与现有 spots.json,不动"
+}
